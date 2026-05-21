@@ -770,7 +770,9 @@ function CoursesPage() {
 
             {/* Courses Section */}
             <section>
-              <h2 className="text-second-header font-bold text-foreground/70 mb-5">Courses</h2>
+              {tab !== "all" && (
+                <h2 className="text-second-header font-bold text-foreground/70 mb-5">Courses</h2>
+              )}
 
             {tab === "all" && <CourseSlider onPurchase={handlePurchase} />}
 
