@@ -25,7 +25,6 @@ import { PricingDialog } from "@/components/courses/PricingDialog";
 import { ClaimOfferDialog } from "@/components/courses/ClaimOfferDialog";
 import { useViewMode } from "@/hooks/use-view-mode";
 import { useProducts, type Product } from "@/lib/products-store";
-import { markRecentlyOpened, useRecentlyOpened } from "@/lib/recently-opened";
 
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -418,136 +417,6 @@ const courseProgress: Record<string, number> = {
   rust: 28,
 };
 
-function SectionHeading({ tag, title }: { tag: string; title: string }) {
-  return (
-    <div className="mb-5">
-      <span className="inline-flex items-center rounded-full bg-secondary px-2.5 py-0.5 text-smaller font-semibold uppercase tracking-wide text-muted-foreground">
-        {tag}
-      </span>
-      <h2 className="mt-2 text-[22px] font-bold leading-tight text-foreground">{title}</h2>
-    </div>
-  );
-}
-
-function RecentlyOpenedCard() {
-  const recent = useRecentlyOpened();
-  const products = useProducts();
-  const allList = [...myCourses, ...allCourses];
-
-  // Resolve recent item, or fall back to first my-course / first product.
-  let kind: "course" | "program" = "course";
-  let title = "";
-  let description = "";
-  let image: string | undefined;
-  let progress = 0;
-  let to: { route: "/courses/learn/$courseId" | "/courses/$courseId"; courseId: string } | null = null;
-
-  if (recent?.kind === "product") {
-    const p = products.find((p) => p.id === recent.id);
-    if (p) {
-      const meta = getProductMeta(p);
-      kind = "program";
-      title = p.title;
-      description = p.description || "Continue your learning path.";
-      image = p.image;
-      progress = meta.progress;
-    }
-  } else if (recent?.kind === "course") {
-    const c = allList.find((c) => c.id === recent.id);
-    if (c) {
-      kind = "course";
-      title = c.title;
-      description = c.description;
-      image = c.cover;
-      progress = courseProgress[c.id] ?? 0;
-      to = {
-        route: c.category === "my" ? "/courses/learn/$courseId" : "/courses/$courseId",
-        courseId: c.id,
-      };
-    }
-  }
-
-  if (!title) {
-    const fallbackCourse = myCourses[0];
-    if (fallbackCourse) {
-      kind = "course";
-      title = fallbackCourse.title;
-      description = fallbackCourse.description;
-      image = fallbackCourse.cover;
-      progress = courseProgress[fallbackCourse.id] ?? 0;
-      to = { route: "/courses/learn/$courseId", courseId: fallbackCourse.id };
-    } else if (products[0]) {
-      const p = products[0];
-      const meta = getProductMeta(p);
-      kind = "program";
-      title = p.title;
-      description = p.description || "Continue your learning path.";
-      image = p.image;
-      progress = meta.progress;
-    }
-  }
-
-  if (!title) return null;
-
-  const Cta = (
-    <span className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full px-5 py-2.5 text-button-primary font-semibold text-[#1a1a1a] transition-transform duration-300 hover:scale-[1.02]" style={{ backgroundColor: "#D0FC03" }}>
-      Continue Learning <ArrowRight className="h-4 w-4" />
-    </span>
-  );
-
-  return (
-    <section className="mb-8">
-      <SectionHeading tag="Recently Opened" title="Pick up where you left off" />
-      <div
-        className="group relative overflow-hidden rounded-3xl p-5 shadow-[var(--shadow-soft)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[var(--shadow-soft-hover)]"
-        style={{ backgroundColor: "#1a1a1a", color: "#ffffff" }}
-      >
-        <div className="flex flex-col gap-5 md:flex-row md:items-center">
-          <div className="relative h-32 w-full overflow-hidden rounded-2xl md:h-28 md:w-48 md:shrink-0">
-            {image ? (
-              <img
-                src={image}
-                alt={title}
-                className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.06]"
-              />
-            ) : (
-              <div className="h-full w-full" style={{ background: "linear-gradient(135deg, #2a2a2a, #1a1a1a)" }} />
-            )}
-          </div>
-          <div className="min-w-0 flex-1">
-            <span
-              className="inline-flex items-center rounded-full px-2.5 py-0.5 text-smaller font-semibold uppercase tracking-wide"
-              style={{ backgroundColor: "rgba(208,252,3,0.15)", color: "#D0FC03" }}
-            >
-              {kind === "program" ? "Program" : "Course"}
-            </span>
-            <h3 className="mt-2 text-[20px] font-bold leading-snug text-white">{title}</h3>
-            <p className="mt-1 text-body text-white/70 line-clamp-2">{description}</p>
-            <div className="mt-3 flex items-center gap-3">
-              <div className="h-2 flex-1 overflow-hidden rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.12)" }}>
-                <div
-                  className="h-full rounded-full transition-[width] duration-500 ease-out"
-                  style={{ width: `${progress}%`, backgroundColor: "#D0FC03" }}
-                />
-              </div>
-              <span className="text-small font-semibold tabular-nums text-white">{progress}%</span>
-            </div>
-          </div>
-          <div className="md:shrink-0">
-            {to ? (
-              <Link to={to.route} params={{ courseId: to.courseId }}>
-                {Cta}
-              </Link>
-            ) : (
-              Cta
-            )}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function CourseCard({
   course,
   view,
@@ -559,12 +428,11 @@ function CourseCard({
 }) {
   const isMine = course.category === "my";
   const progress = courseProgress[course.id] ?? 0;
-  const showProgress = isMine || progress > 0;
 
   return (
     <article
       onClick={() => onOpen(course)}
-      className={`group cursor-pointer overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-soft)] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[var(--shadow-soft-hover)] ${
+      className={`group cursor-pointer overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-soft)] transition-shadow duration-300 ease-out hover:shadow-[var(--shadow-soft-hover)] ${
         view === "list" ? "grid min-h-[220px] grid-cols-1 md:grid-cols-[320px_1fr]" : "flex flex-col"
       }`}
     >
@@ -572,22 +440,21 @@ function CourseCard({
         <CourseVisual course={course} compact={view === "list"} />
       </div>
       <div className="flex flex-1 flex-col p-5">
-        <span className="mb-2 inline-flex w-fit items-center rounded-full bg-secondary px-2.5 py-0.5 text-smaller font-semibold uppercase tracking-wide text-muted-foreground">
-          Course
-        </span>
-        <h3 className="text-second-header font-bold leading-snug text-foreground">{course.title}</h3>
-        <p className="mt-2 text-body text-muted-foreground leading-relaxed line-clamp-2">{course.description}</p>
-        {showProgress && (
-          <div className="mt-4 flex items-center gap-3">
-            <div className="h-2 flex-1 overflow-hidden rounded-full bg-secondary">
+        <div className="mb-3 flex items-start justify-between gap-3">
+          <h3 className="text-second-header font-bold leading-snug text-foreground">{course.title}</h3>
+        </div>
+        {isMine && (
+          <div className="mb-3 flex items-center gap-3">
+            <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
               <div
-                className="h-full rounded-full transition-[width] duration-500 ease-out"
-                style={{ width: `${progress}%`, backgroundColor: "#D0FC03" }}
+                className="h-full rounded-full bg-primary transition-all duration-500"
+                style={{ width: `${progress}%` }}
               />
             </div>
             <span className="text-small font-semibold tabular-nums text-foreground">{progress}%</span>
           </div>
         )}
+        <p className="text-body text-muted-foreground leading-relaxed line-clamp-3">{course.description}</p>
       </div>
     </article>
   );
@@ -658,15 +525,7 @@ function ProductCard({ product, view }: { product: Product; view: "grid" | "list
         <ProductVisual product={product} compact={view === "list"} />
       </div>
       <div className="flex flex-1 flex-col p-5">
-        <span className="mb-2 inline-flex w-fit items-center rounded-full bg-secondary px-2.5 py-0.5 text-smaller font-semibold uppercase tracking-wide text-muted-foreground">
-          Program
-        </span>
         <h3 className="text-second-header font-bold leading-snug text-foreground">{product.title}</h3>
-        {product.description && (
-          <p className="mt-2 text-body text-muted-foreground leading-relaxed line-clamp-2">
-            {product.description}
-          </p>
-        )}
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-small text-muted-foreground">
           <span className="inline-flex items-center gap-1.5">
             <BookOpen className="h-3.5 w-3.5" />
@@ -683,14 +542,17 @@ function ProductCard({ product, view }: { product: Product; view: "grid" | "list
             {pathType}
           </span>
         </div>
-        <div className="mt-4 flex items-center gap-3">
-          <div className="h-2 flex-1 overflow-hidden rounded-full bg-secondary">
+        <div className="mt-4">
+          <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
             <div
               className="h-full rounded-full transition-[width] duration-500 ease-out"
               style={{ width: `${progress}%`, backgroundColor: "#D0FC03" }}
             />
           </div>
-          <span className="text-small font-semibold tabular-nums text-foreground">{progress}%</span>
+          <div className="mt-1.5 flex items-center justify-between text-small">
+            <span className="text-muted-foreground">Progress</span>
+            <span className="font-semibold text-foreground tabular-nums">{progress}%</span>
+          </div>
         </div>
       </div>
     </article>
@@ -804,7 +666,6 @@ function CoursesPage() {
   }, [tab, query, enrollments]);
 
   const handleOpen = (course: Course) => {
-    markRecentlyOpened({ kind: "course", id: course.id });
     if (tab === "my") {
       navigate({ to: "/courses/learn/$courseId", params: { courseId: course.id } });
     } else {
@@ -897,12 +758,10 @@ function CoursesPage() {
               </div>
             </div>
 
-            <RecentlyOpenedCard />
-
             {/* Programs Section - hidden on All Courses tab */}
             {tab !== "all" && (
               <section className="mb-10">
-                <SectionHeading tag="Program" title="Choose Your Learning Path" />
+                <h2 className="text-second-header font-bold text-foreground/70 mb-5">Programs</h2>
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
                   {products.map((product) => (
                     <ProductCard key={product.id} product={product} view="grid" />
@@ -913,7 +772,7 @@ function CoursesPage() {
 
             {/* Courses Section */}
             <section>
-              <SectionHeading tag="Course" title="Continue Building Your Skills" />
+              <h2 className="text-second-header font-bold text-foreground/70 mb-5">Courses</h2>
 
             {tab === "all" && <CourseSlider onPurchase={handlePurchase} />}
 
