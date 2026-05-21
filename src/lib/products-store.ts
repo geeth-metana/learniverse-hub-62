@@ -131,6 +131,28 @@ export function getProduct(id: string): Product | undefined {
   return read().find((p) => p.id === id);
 }
 
+export function updateProduct(id: string, patch: Partial<Omit<Product, "id" | "createdAt">>): Product | undefined {
+  const list = read();
+  const idx = list.findIndex((p) => p.id === id);
+  if (idx === -1) return undefined;
+  const updated = { ...list[idx], ...patch };
+  list[idx] = updated;
+  const seedIds = new Set(seedProducts.map((s) => s.id));
+  // persist all non-seed plus any modified seed
+  const toStore = list.filter((x) => !seedIds.has(x.id) || x.id === id);
+  write(toStore);
+  return updated;
+}
+
+export function deleteProduct(id: string): void {
+  const list = read().filter((p) => p.id !== id);
+  const seedIds = new Set(seedProducts.map((s) => s.id));
+  // store remaining non-seed; also store a tombstone-free list (seeds re-merge on read,
+  // so for seed deletions we keep them — only user-created products can truly be deleted)
+  const toStore = list.filter((x) => !seedIds.has(x.id));
+  write(toStore);
+}
+
 export function useProducts() {
   const [products, setProducts] = useState<Product[]>(() => read());
   useEffect(() => {
