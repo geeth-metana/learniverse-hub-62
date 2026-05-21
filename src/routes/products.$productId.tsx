@@ -20,9 +20,14 @@ import {
   Unlock,
   CircleDashed,
   FolderOpen,
+  Settings as SettingsIcon,
+  Pencil,
+  Ban,
+  Trash2,
 } from "lucide-react";
-import { getProduct, type Product, type ProductItem } from "@/lib/products-store";
+import { getProduct, updateProduct, deleteProduct, type Product, type ProductItem } from "@/lib/products-store";
 import { getCourse } from "@/lib/courses-data";
+import { useViewMode } from "@/hooks/use-view-mode";
 import { courseDetails, fallbackDetail } from "./courses.$courseId";
 import {
   Accordion,
@@ -77,7 +82,9 @@ function ViewProductPage() {
   const navigate = useNavigate();
   const [product, setProduct] = useState<Product | undefined>(() => getProduct(productId));
   const [openCourseId, setOpenCourseId] = useState<string | null>(null);
-  const [expandedCard, setExpandedCard] = useState<'cohorts' | 'instructors' | null>(null);
+  const [expandedCard, setExpandedCard] = useState<'cohorts' | 'instructors' | 'settings' | null>(null);
+  const viewMode = useViewMode();
+  const isAdmin = viewMode === 'admin';
 
   useEffect(() => {
     setProduct(getProduct(productId));
