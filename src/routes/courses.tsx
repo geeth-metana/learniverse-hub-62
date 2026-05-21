@@ -467,7 +467,7 @@ function ProductVisual({ product, compact = false }: { product: Product; compact
         <img
           src={product.image}
           alt={product.title}
-          className="h-full w-full object-cover"
+          className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.06]"
         />
       </div>
     );
