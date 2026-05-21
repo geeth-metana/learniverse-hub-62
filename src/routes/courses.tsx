@@ -21,7 +21,7 @@ import { useEnrollments } from "@/lib/enrollment";
 import { PricingDialog } from "@/components/courses/PricingDialog";
 import { ClaimOfferDialog } from "@/components/courses/ClaimOfferDialog";
 import { useViewMode } from "@/hooks/use-view-mode";
-import { useProducts, type Product } from "@/lib/products-store";
+
 
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -457,59 +457,6 @@ function CourseCard({
   );
 }
 
-function ProductVisual({ product, compact = false }: { product: Product; compact?: boolean }) {
-  if (product.image) {
-    return (
-      <div className={`relative overflow-hidden rounded-2xl ${compact ? "h-full min-h-36" : "h-40"}`}>
-        <img
-          src={product.image}
-          alt={product.title}
-          className="h-full w-full object-cover"
-        />
-      </div>
-    );
-  }
-
-  return (
-    <div className={`relative overflow-hidden rounded-2xl ${compact ? "h-full min-h-36" : "h-40"}`} style={{ background: "linear-gradient(180deg, oklch(1 1 150), oklch(1 1 200))" }}>
-      <div className="absolute left-5 top-5 rounded-full bg-background/80 px-3 py-1 text-small font-semibold text-foreground shadow-[var(--shadow-soft)]">
-        Program
-      </div>
-      <div className="absolute inset-x-6 bottom-6 rounded-2xl border border-background/55 bg-background/70 p-4 shadow-[var(--shadow-soft)] backdrop-blur-md">
-        <div className="mb-3 flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-full bg-brand" />
-          <span className="h-2.5 w-2.5 rounded-full bg-toggle-bg/70" />
-          <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/40" />
-        </div>
-        <div className="space-y-2">
-          <span className="block h-2 rounded-full bg-toggle-bg/80" />
-          <span className="block h-2 w-4/5 rounded-full bg-toggle-bg/45" />
-          <span className="block h-2 w-2/3 rounded-full bg-toggle-bg/25" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ProductCard({ product, view }: { product: Product; view: "grid" | "list" }) {
-  return (
-    <article
-      className={`group overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-soft)] transition-shadow duration-300 ease-out hover:shadow-[var(--shadow-soft-hover)] ${
-        view === "list" ? "grid min-h-[220px] grid-cols-1 md:grid-cols-[320px_1fr]" : "flex flex-col"
-      }`}
-    >
-      <div className={view === "list" ? "p-4" : "p-4 pb-0"}>
-        <ProductVisual product={product} compact={view === "list"} />
-      </div>
-      <div className="flex flex-1 flex-col p-5">
-        <div className="mb-3 flex items-start justify-between gap-3">
-          <h3 className="text-second-header font-bold leading-snug text-foreground">{product.title}</h3>
-        </div>
-        <p className="text-body text-muted-foreground leading-relaxed line-clamp-3">{product.description}</p>
-      </div>
-    </article>
-  );
-}
 
 const OFFER_DEADLINE = new Date("2026-08-28T00:00:00Z").getTime();
 
@@ -597,7 +544,6 @@ function CoursesPage() {
   const [view, setView] = useState<"grid" | "list">("grid");
   const [query, setQuery] = useState("");
   const [pricingFor, setPricingFor] = useState<string | null>(null);
-  const products = useProducts();
 
   const { get: getEnrollment, all: enrollments } = useEnrollments();
 
@@ -710,20 +656,6 @@ function CoursesPage() {
               </div>
             </div>
 
-            {/* Programs Section */}
-            <section className="mb-10">
-              <h2 className="text-second-header font-bold text-foreground/70 mb-5">Programs</h2>
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
-                {products.map((product) => (
-                  <ProductCard key={product.id} product={product} view="grid" />
-                ))}
-              </div>
-            </section>
-
-            {/* Courses Section */}
-            <section>
-              <h2 className="text-second-header font-bold text-foreground/70 mb-5">Courses</h2>
-
             {tab === "all" && <CourseSlider onPurchase={handlePurchase} />}
 
             {list.length === 0 ? (
@@ -743,7 +675,6 @@ function CoursesPage() {
                 ))}
               </div>
             )}
-            </section>
           </div>
         </main>
       </div>
