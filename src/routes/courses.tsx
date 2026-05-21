@@ -528,7 +528,15 @@ function ProductCard({ product, view }: { product: Product; view: "grid" | "list
         <ProductVisual product={product} compact={view === "list"} />
       </div>
       <div className="flex flex-1 flex-col p-5">
+        <span className="mb-2 inline-flex w-fit items-center rounded-full bg-secondary px-2.5 py-0.5 text-smaller font-semibold uppercase tracking-wide text-muted-foreground">
+          Program
+        </span>
         <h3 className="text-second-header font-bold leading-snug text-foreground">{product.title}</h3>
+        {product.description && (
+          <p className="mt-2 text-body text-muted-foreground leading-relaxed line-clamp-2">
+            {product.description}
+          </p>
+        )}
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-small text-muted-foreground">
           <span className="inline-flex items-center gap-1.5">
             <BookOpen className="h-3.5 w-3.5" />
@@ -545,17 +553,14 @@ function ProductCard({ product, view }: { product: Product; view: "grid" | "list
             {pathType}
           </span>
         </div>
-        <div className="mt-4">
-          <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+        <div className="mt-4 flex items-center gap-3">
+          <div className="h-2 flex-1 overflow-hidden rounded-full bg-secondary">
             <div
               className="h-full rounded-full transition-[width] duration-500 ease-out"
               style={{ width: `${progress}%`, backgroundColor: "#D0FC03" }}
             />
           </div>
-          <div className="mt-1.5 flex items-center justify-between text-small">
-            <span className="text-muted-foreground">Progress</span>
-            <span className="font-semibold text-foreground tabular-nums">{progress}%</span>
-          </div>
+          <span className="text-small font-semibold tabular-nums text-foreground">{progress}%</span>
         </div>
       </div>
     </article>
