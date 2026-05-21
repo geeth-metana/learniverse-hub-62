@@ -418,6 +418,136 @@ const courseProgress: Record<string, number> = {
   rust: 28,
 };
 
+function SectionHeading({ tag, title }: { tag: string; title: string }) {
+  return (
+    <div className="mb-5">
+      <span className="inline-flex items-center rounded-full bg-secondary px-2.5 py-0.5 text-smaller font-semibold uppercase tracking-wide text-muted-foreground">
+        {tag}
+      </span>
+      <h2 className="mt-2 text-[22px] font-bold leading-tight text-foreground">{title}</h2>
+    </div>
+  );
+}
+
+function RecentlyOpenedCard() {
+  const recent = useRecentlyOpened();
+  const products = useProducts();
+  const allList = [...myCourses, ...allCourses];
+
+  // Resolve recent item, or fall back to first my-course / first product.
+  let kind: "course" | "program" = "course";
+  let title = "";
+  let description = "";
+  let image: string | undefined;
+  let progress = 0;
+  let to: { route: "/courses/learn/$courseId" | "/courses/$courseId"; courseId: string } | null = null;
+
+  if (recent?.kind === "product") {
+    const p = products.find((p) => p.id === recent.id);
+    if (p) {
+      const meta = getProductMeta(p);
+      kind = "program";
+      title = p.title;
+      description = p.description || "Continue your learning path.";
+      image = p.image;
+      progress = meta.progress;
+    }
+  } else if (recent?.kind === "course") {
+    const c = allList.find((c) => c.id === recent.id);
+    if (c) {
+      kind = "course";
+      title = c.title;
+      description = c.description;
+      image = c.cover;
+      progress = courseProgress[c.id] ?? 0;
+      to = {
+        route: c.category === "my" ? "/courses/learn/$courseId" : "/courses/$courseId",
+        courseId: c.id,
+      };
+    }
+  }
+
+  if (!title) {
+    const fallbackCourse = myCourses[0];
+    if (fallbackCourse) {
+      kind = "course";
+      title = fallbackCourse.title;
+      description = fallbackCourse.description;
+      image = fallbackCourse.cover;
+      progress = courseProgress[fallbackCourse.id] ?? 0;
+      to = { route: "/courses/learn/$courseId", courseId: fallbackCourse.id };
+    } else if (products[0]) {
+      const p = products[0];
+      const meta = getProductMeta(p);
+      kind = "program";
+      title = p.title;
+      description = p.description || "Continue your learning path.";
+      image = p.image;
+      progress = meta.progress;
+    }
+  }
+
+  if (!title) return null;
+
+  const Cta = (
+    <span className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full px-5 py-2.5 text-button-primary font-semibold text-[#1a1a1a] transition-transform duration-300 hover:scale-[1.02]" style={{ backgroundColor: "#D0FC03" }}>
+      Continue Learning <ArrowRight className="h-4 w-4" />
+    </span>
+  );
+
+  return (
+    <section className="mb-8">
+      <SectionHeading tag="Recently Opened" title="Pick up where you left off" />
+      <div
+        className="group relative overflow-hidden rounded-3xl p-5 shadow-[var(--shadow-soft)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[var(--shadow-soft-hover)]"
+        style={{ backgroundColor: "#1a1a1a", color: "#ffffff" }}
+      >
+        <div className="flex flex-col gap-5 md:flex-row md:items-center">
+          <div className="relative h-32 w-full overflow-hidden rounded-2xl md:h-28 md:w-48 md:shrink-0">
+            {image ? (
+              <img
+                src={image}
+                alt={title}
+                className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.06]"
+              />
+            ) : (
+              <div className="h-full w-full" style={{ background: "linear-gradient(135deg, #2a2a2a, #1a1a1a)" }} />
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <span
+              className="inline-flex items-center rounded-full px-2.5 py-0.5 text-smaller font-semibold uppercase tracking-wide"
+              style={{ backgroundColor: "rgba(208,252,3,0.15)", color: "#D0FC03" }}
+            >
+              {kind === "program" ? "Program" : "Course"}
+            </span>
+            <h3 className="mt-2 text-[20px] font-bold leading-snug text-white">{title}</h3>
+            <p className="mt-1 text-body text-white/70 line-clamp-2">{description}</p>
+            <div className="mt-3 flex items-center gap-3">
+              <div className="h-2 flex-1 overflow-hidden rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.12)" }}>
+                <div
+                  className="h-full rounded-full transition-[width] duration-500 ease-out"
+                  style={{ width: `${progress}%`, backgroundColor: "#D0FC03" }}
+                />
+              </div>
+              <span className="text-small font-semibold tabular-nums text-white">{progress}%</span>
+            </div>
+          </div>
+          <div className="md:shrink-0">
+            {to ? (
+              <Link to={to.route} params={{ courseId: to.courseId }}>
+                {Cta}
+              </Link>
+            ) : (
+              Cta
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function CourseCard({
   course,
   view,
