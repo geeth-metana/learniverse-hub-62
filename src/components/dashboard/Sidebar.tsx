@@ -124,8 +124,16 @@ export function Sidebar() {
         <h2 className="text-main-header font-semibold text-foreground">Metana Platform</h2>
       </div>
       <div className="flex-1 overflow-y-auto overflow-x-hidden px-3">
-        <Section title="PLATFORM" items={platform} collapsed={false} />
-        <Section title="INTERNAL" items={internal} collapsed={false} />
+        <Section
+          title="PLATFORM"
+          items={
+            viewMode === "student"
+              ? platform.filter((i) => ["Dashboard", "Calendar", "Courses", "Announcement", "Settings"].includes(i.label))
+              : platform
+          }
+          collapsed={false}
+        />
+        {viewMode !== "student" && <Section title="INTERNAL" items={internal} collapsed={false} />}
         <Section title="EXTERNAL" items={external} collapsed={false} />
       </div>
       <div className="p-4 border-t border-sidebar-border space-y-3">
