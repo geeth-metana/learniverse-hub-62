@@ -98,15 +98,16 @@ function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-background">
-        <main className="min-h-screen p-6 lg:p-10">
-          <button
-            onClick={() => navigate({ to: "/courses" })}
-            className="inline-flex items-center gap-2 text-body text-muted-foreground hover:text-foreground mb-6"
-          >
-            <ArrowLeft className="h-4 w-4" /> Back to courses
-          </button>
+        <main className="min-h-screen flex flex-col items-center py-10 lg:py-16 px-6 lg:px-10">
+          <div className="w-full max-w-6xl">
+            <button
+              onClick={() => navigate({ to: "/courses" })}
+              className="inline-flex items-center gap-2 text-body text-muted-foreground hover:text-foreground mb-8"
+            >
+              <ArrowLeft className="h-4 w-4" /> Back to courses
+            </button>
 
-          <div className="grid lg:grid-cols-2 gap-10 max-w-6xl">
+            <div className="grid lg:grid-cols-2 gap-10 w-full">
             {/* Left */}
             <div>
               <h1 className="text-primary-header font-extrabold tracking-tight">
