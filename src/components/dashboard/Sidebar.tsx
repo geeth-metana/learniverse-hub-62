@@ -49,7 +49,6 @@ const platform = [
   { to: "/", label: "Dashboard", icon: LayoutGrid },
   { to: "/calendar", label: "Calendar", icon: Calendar },
   { to: "/courses", label: "Courses", icon: BookOpen },
-  { to: "/bootcamps/new", label: "Create Bootcamp", icon: Hammer },
   { to: "/products", label: "Products", icon: Package },
   { to: "/announcement", label: "Announcement", icon: Megaphone },
   { to: "/settings", label: "Settings", icon: Settings },

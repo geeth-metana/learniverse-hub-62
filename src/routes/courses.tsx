@@ -14,11 +14,13 @@ import {
   ArrowRight,
   Sparkles,
   Star,
+  Plus,
 } from "lucide-react";
 import { myCourses, allCourses, type Course } from "@/lib/courses-data";
 import { useEnrollments } from "@/lib/enrollment";
 import { PricingDialog } from "@/components/courses/PricingDialog";
 import { ClaimOfferDialog } from "@/components/courses/ClaimOfferDialog";
+import { useViewMode } from "@/hooks/use-view-mode";
 
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -481,6 +483,7 @@ function Digit({ value }: { value: string }) {
 function JourneyHeader() {
   const { days, hours, minutes, seconds } = useCountdown(OFFER_DEADLINE);
   const [claimOpen, setClaimOpen] = useState(false);
+  const viewMode = useViewMode();
   const parts = [
     String(days).padStart(3, "0"),
     String(hours).padStart(2, "0"),
@@ -495,6 +498,16 @@ function JourneyHeader() {
           Your personalized space to learn, practice, and improve every day.
         </p>
       </div>
+      {viewMode === "admin" ? (
+        <div className="flex items-center">
+          <Link
+            to="/bootcamps/new"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-toggle-bg px-5 py-2.5 text-button-primary font-semibold text-background transition-colors hover:bg-toggle-bg/90"
+          >
+            <Plus className="h-4 w-4 text-primary" /> Create
+          </Link>
+        </div>
+      ) : (
       <div className="flex items-center gap-6 rounded-full bg-muted px-5 py-3">
         <div className="flex items-center text-second-header font-bold text-foreground">
           {parts.map((part, i) => (
@@ -511,6 +524,7 @@ function JourneyHeader() {
           <Sparkles className="h-4 w-4 text-primary" /> Claim offer
         </button>
       </div>
+      )}
       <ClaimOfferDialog
         open={claimOpen}
         onOpenChange={setClaimOpen}
