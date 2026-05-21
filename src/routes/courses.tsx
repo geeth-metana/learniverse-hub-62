@@ -25,6 +25,7 @@ import { PricingDialog } from "@/components/courses/PricingDialog";
 import { ClaimOfferDialog } from "@/components/courses/ClaimOfferDialog";
 import { useViewMode } from "@/hooks/use-view-mode";
 import { useProducts, type Product } from "@/lib/products-store";
+import { markRecentlyOpened, useRecentlyOpened } from "@/lib/recently-opened";
 
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
