@@ -15,8 +15,8 @@ import {
   Headphones,
   MoreVertical,
 } from "lucide-react";
-import metanaLogo from "@/assets/metana-logo-black.png";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import metanaLogo from "@/assets/metana-logo-black.png";
 
 const SIDEBAR_TOGGLE_EVENT = "metana:toggle-sidebar";
 
@@ -88,18 +88,28 @@ export function Sidebar() {
   return (
     <aside className={`shrink-0 h-screen sticky top-0 bg-sidebar flex flex-col overflow-hidden transition-[width] duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${collapsed ? "w-0 border-r-0" : "w-[260px] border-r border-sidebar-border"}`}>
       <div className="px-5 pt-6 pb-8 flex justify-start">
-        <img src={metanaLogo} alt="Metana" className="h-8 w-36 object-contain" />
+        <h2 className="text-main-header font-semibold text-foreground">Metana Platform</h2>
       </div>
       <div className="flex-1 overflow-y-auto overflow-x-hidden px-3">
         <Section title="PLATFORM" items={platform} collapsed={false} />
         <Section title="INTERNAL" items={internal} collapsed={false} />
         <Section title="EXTERNAL" items={external} collapsed={false} />
       </div>
-      <div className="p-4 border-t border-sidebar-border">
-        <button className="w-full flex items-center justify-center gap-2 py-2.5 rounded-full border border-border text-body hover:bg-sidebar-accent transition-colors">
+      <div className="p-4 border-t border-sidebar-border space-y-3">
+        <button className="w-full flex items-center justify-center gap-2 py-2.5 rounded-full bg-brand text-brand-foreground font-semibold text-body hover:opacity-90 transition-opacity">
           <Headphones className="h-4 w-4" />
           <span>Support</span>
         </button>
+        <div className="flex items-center gap-3 px-1">
+          <img src={metanaLogo} alt="Metana" className="h-8 w-8 rounded-full object-cover shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-body font-semibold text-foreground truncate">LMS ADMIN</p>
+            <p className="text-small text-muted-foreground truncate">admin@lms.com</p>
+          </div>
+          <button className="p-1 rounded-full hover:bg-sidebar-accent transition-colors" aria-label="More">
+            <MoreVertical className="h-4 w-4 text-muted-foreground" />
+          </button>
+        </div>
       </div>
     </aside>
   );
