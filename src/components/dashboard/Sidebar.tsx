@@ -14,8 +14,21 @@ import {
   GitBranch,
   Headphones,
   MoreVertical,
+  User,
+  Keyboard,
+  Moon,
+  Sun,
+  LogOut,
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { THEME_TOGGLE_EVENT, useTheme } from "@/hooks/use-theme";
 import metanaLogo from "@/assets/metana-logo-black.png";
 import metanaLogoDark from "@/assets/metana-logo-white.png";
 
@@ -79,6 +92,8 @@ function Section({ title, items, collapsed }: { title: string; items: typeof pla
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
+  const theme = useTheme();
+  const isDark = theme === "dark";
 
   useEffect(() => {
     const onToggle = () => setCollapsed((v) => !v);
@@ -108,9 +123,34 @@ export function Sidebar() {
             <p className="text-body font-semibold text-foreground truncate">LMS ADMIN</p>
             <p className="text-small text-muted-foreground truncate">admin@lms.com</p>
           </div>
-          <button className="p-1 rounded-full hover:bg-sidebar-accent transition-colors" aria-label="More">
-            <MoreVertical className="h-4 w-4 text-muted-foreground" />
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="p-1 rounded-full hover:bg-sidebar-accent transition-colors" aria-label="More">
+                <MoreVertical className="h-4 w-4 text-muted-foreground" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" side="top" className="w-56">
+              <DropdownMenuItem>
+                <User className="h-4 w-4" />
+                <span>View My Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Keyboard className="h-4 w-4" />
+                <span>Keyboard shortcuts</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => window.dispatchEvent(new Event(THEME_TOGGLE_EVENT))}
+              >
+                {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                <span>Switch to {isDark ? "light" : "dark"} mode</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-destructive focus:text-destructive">
+                <LogOut className="h-4 w-4" />
+                <span>Log Out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </aside>
