@@ -743,6 +743,7 @@ function CoursesPage() {
                 ))}
               </div>
             )}
+            </section>
           </div>
         </main>
       </div>
