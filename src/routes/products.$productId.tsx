@@ -365,6 +365,7 @@ function ViewProductPage() {
 
               {/* Sidebar summary */}
               <aside className="lg:sticky lg:top-6 self-start space-y-4">
+                {isAdmin && (
                 <div className="rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
                   <h3 className="text-second-header font-semibold text-foreground">Overview</h3>
                   <dl className="mt-4 space-y-3 text-small">
@@ -416,8 +417,9 @@ function ViewProductPage() {
                     </div>
                   </dl>
                 </div>
+                )}
 
-                {(() => {
+                {isAdmin && (() => {
                   const dummyPricing = {
                     upfront: { enabled: true, totalPrice: 4800, discountPct: 15 },
                     installment: {
@@ -532,6 +534,7 @@ function ViewProductPage() {
                 )}
 
                 {/* Upcoming Cohorts */}
+                {isAdmin && (
                 <Collapsible
                   open={expandedCard === 'cohorts'}
                   onOpenChange={(open) => setExpandedCard(open ? 'cohorts' : null)}
@@ -578,8 +581,10 @@ function ViewProductPage() {
                     </ul>
                   </CollapsibleContent>
                 </Collapsible>
+                )}
 
                 {/* Instructors */}
+                {isAdmin ? (
                 <Collapsible
                   open={expandedCard === 'instructors'}
                   onOpenChange={(open) => setExpandedCard(open ? 'instructors' : null)}
@@ -640,6 +645,29 @@ function ViewProductPage() {
                     </div>
                   </CollapsibleContent>
                 </Collapsible>
+                ) : (
+                <div className="rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-[oklch(0.65_0.18_280)]" />
+                    <h3 className="text-second-header font-semibold text-foreground">Instructors</h3>
+                  </div>
+                  <div className="mt-4 space-y-3">
+                    {[
+                      { name: 'Alex Morgan', role: 'Lead Instructor', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop&crop=face' },
+                      { name: 'Priya Sharma', role: 'Course Director', image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&h=120&fit=crop&crop=face' },
+                      { name: 'James Chen', role: 'Technical Mentor', image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&h=120&fit=crop&crop=face' },
+                    ].map((inst, idx) => (
+                      <div key={idx} className="flex items-center gap-3 rounded-xl border border-border bg-background p-3">
+                        <img src={inst.image} alt={inst.name} className="h-10 w-10 shrink-0 rounded-full object-cover" />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-small font-semibold text-foreground">{inst.name}</p>
+                          <p className="truncate text-smaller text-muted-foreground">{inst.role}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                )}
 
                 {/* Settings (admin only) */}
                 {isAdmin && (
