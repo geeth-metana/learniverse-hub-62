@@ -20,9 +20,14 @@ import {
   Unlock,
   CircleDashed,
   FolderOpen,
+  Settings as SettingsIcon,
+  Pencil,
+  Ban,
+  Trash2,
 } from "lucide-react";
-import { getProduct, type Product, type ProductItem } from "@/lib/products-store";
+import { getProduct, updateProduct, deleteProduct, type Product, type ProductItem } from "@/lib/products-store";
 import { getCourse } from "@/lib/courses-data";
+import { useViewMode } from "@/hooks/use-view-mode";
 import { courseDetails, fallbackDetail } from "./courses.$courseId";
 import {
   Accordion,
@@ -77,7 +82,9 @@ function ViewProductPage() {
   const navigate = useNavigate();
   const [product, setProduct] = useState<Product | undefined>(() => getProduct(productId));
   const [openCourseId, setOpenCourseId] = useState<string | null>(null);
-  const [expandedCard, setExpandedCard] = useState<'cohorts' | 'instructors' | null>(null);
+  const [expandedCard, setExpandedCard] = useState<'cohorts' | 'instructors' | 'settings' | null>(null);
+  const viewMode = useViewMode();
+  const isAdmin = viewMode === 'admin';
 
   useEffect(() => {
     setProduct(getProduct(productId));
@@ -633,6 +640,60 @@ function ViewProductPage() {
                     </div>
                   </CollapsibleContent>
                 </Collapsible>
+
+                {/* Settings (admin only) */}
+                {isAdmin && (
+                  <Collapsible
+                    open={expandedCard === 'settings'}
+                    onOpenChange={(open) => setExpandedCard(open ? 'settings' : null)}
+                    className="rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]"
+                  >
+                    <CollapsibleTrigger className="flex w-full items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <SettingsIcon className="h-4 w-4 text-[oklch(0.6_0.05_260)]" />
+                        <h3 className="text-second-header font-semibold text-foreground">
+                          Settings
+                        </h3>
+                      </div>
+                      <ChevronDown
+                        className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${expandedCard === 'settings' ? 'rotate-180' : ''}`}
+                      />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
+                      <div className="mt-4 space-y-2">
+                        <button
+                          onClick={() => navigate({ to: "/products/new" })}
+                          className="flex w-full items-center gap-3 rounded-xl border border-border bg-background px-3 py-2.5 text-left text-small font-semibold text-foreground transition-colors hover:bg-muted"
+                        >
+                          <Pencil className="h-4 w-4 text-muted-foreground" />
+                          Edit product
+                        </button>
+                        <button
+                          onClick={() => {
+                            const updated = updateProduct(product.id, { published: !product.published });
+                            if (updated) setProduct(updated);
+                          }}
+                          className="flex w-full items-center gap-3 rounded-xl border border-border bg-background px-3 py-2.5 text-left text-small font-semibold text-foreground transition-colors hover:bg-muted"
+                        >
+                          <Ban className="h-4 w-4 text-muted-foreground" />
+                          {product.published ? 'Disable product' : 'Enable product'}
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm(`Delete "${product.title}"? This cannot be undone.`)) {
+                              deleteProduct(product.id);
+                              navigate({ to: "/products" });
+                            }
+                          }}
+                          className="flex w-full items-center gap-3 rounded-xl border border-destructive/30 bg-background px-3 py-2.5 text-left text-small font-semibold text-destructive transition-colors hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Delete product
+                        </button>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                )}
               </aside>
             </div>
           </div>
