@@ -19,6 +19,11 @@ import {
   Moon,
   Sun,
   LogOut,
+  Eye,
+  ShieldCheck,
+  GraduationCap,
+  UserSquare2,
+  Check,
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
@@ -27,8 +32,13 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
 import { THEME_TOGGLE_EVENT, useTheme } from "@/hooks/use-theme";
+import { useViewMode, setViewMode, VIEW_MODE_LABELS, type ViewMode } from "@/hooks/use-view-mode";
 import metanaLogo from "@/assets/metana-logo-black.png";
 import metanaLogoDark from "@/assets/metana-logo-white.png";
 
@@ -94,6 +104,13 @@ export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const theme = useTheme();
   const isDark = theme === "dark";
+  const viewMode = useViewMode();
+
+  const viewModeOptions: { value: ViewMode; icon: typeof ShieldCheck }[] = [
+    { value: "admin", icon: ShieldCheck },
+    { value: "instructor", icon: UserSquare2 },
+    { value: "student", icon: GraduationCap },
+  ];
 
   useEffect(() => {
     const onToggle = () => setCollapsed((v) => !v);
@@ -120,7 +137,7 @@ export function Sidebar() {
           <img src={metanaLogo} alt="Metana" className="h-8 w-8 rounded-full object-cover shrink-0 block dark:hidden" />
           <img src={metanaLogoDark} alt="Metana" className="h-8 w-8 rounded-full object-contain shrink-0 hidden dark:block" />
           <div className="flex-1 min-w-0">
-            <p className="text-body font-semibold text-foreground truncate">LMS ADMIN</p>
+            <p className="text-body font-semibold text-foreground truncate">LMS {VIEW_MODE_LABELS[viewMode].toUpperCase()}</p>
             <p className="text-small text-muted-foreground truncate">admin@lms.com</p>
           </div>
           <DropdownMenu>
@@ -138,6 +155,24 @@ export function Sidebar() {
                 <Keyboard className="h-4 w-4" />
                 <span>Keyboard shortcuts</span>
               </DropdownMenuItem>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <Eye className="h-4 w-4" />
+                  <span>View as</span>
+                  <span className="ml-auto text-xs text-muted-foreground">{VIEW_MODE_LABELS[viewMode]}</span>
+                </DropdownMenuSubTrigger>
+                <DropdownMenuPortal>
+                  <DropdownMenuSubContent>
+                    {viewModeOptions.map(({ value, icon: Icon }) => (
+                      <DropdownMenuItem key={value} onClick={() => setViewMode(value)}>
+                        <Icon className="h-4 w-4" />
+                        <span>{VIEW_MODE_LABELS[value]}</span>
+                        {viewMode === value && <Check className="ml-auto h-4 w-4" />}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuSubContent>
+                </DropdownMenuPortal>
+              </DropdownMenuSub>
               <DropdownMenuItem
                 onClick={() => window.dispatchEvent(new Event(THEME_TOGGLE_EVENT))}
               >
