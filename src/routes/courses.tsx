@@ -454,6 +454,9 @@ function CourseCard({
         <p className="text-body text-muted-foreground leading-relaxed line-clamp-3">{course.description}</p>
       </div>
     </article>
+  );
+}
+
 function ProductVisual({ product, compact = false }: { product: Product; compact?: boolean }) {
   if (product.image) {
     return (
