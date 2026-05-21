@@ -656,25 +656,11 @@ function CoursesPage() {
               </div>
             </div>
 
-            {/* Programs Section */}
-            <section className="mb-10">
-              <h2 className="text-second-header font-bold text-foreground/70 mb-5">Programs</h2>
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
-                {products.map((product) => (
-                  <ProductCard key={product.id} product={product} view="grid" />
-                ))}
-              </div>
-            </section>
-
-            {/* Courses Section */}
-            <section>
-              <h2 className="text-second-header font-bold text-foreground/70 mb-5">Courses</h2>
-
             {tab === "all" && <CourseSlider onPurchase={handlePurchase} />}
 
             {list.length === 0 ? (
               <div className="rounded-3xl border border-dashed border-border py-16 text-center text-body text-muted-foreground">
-                No courses match “{query}”.
+                No courses match u201C{query}u201D.
               </div>
             ) : (
               <div
@@ -689,7 +675,6 @@ function CoursesPage() {
                 ))}
               </div>
             )}
-            </section>
           </div>
         </main>
       </div>
