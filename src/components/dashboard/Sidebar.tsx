@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import metanaLogo from "@/assets/metana-logo-black.png";
+import metanaLogoDark from "@/assets/metana-logo-white.png";
 
 const SIDEBAR_TOGGLE_EVENT = "metana:toggle-sidebar";
 
@@ -101,7 +102,8 @@ export function Sidebar() {
           <span>Support</span>
         </button>
         <div className="flex items-center gap-3 px-1">
-          <img src={metanaLogo} alt="Metana" className="h-8 w-8 rounded-full object-cover shrink-0" />
+          <img src={metanaLogo} alt="Metana" className="h-8 w-8 rounded-full object-cover shrink-0 block dark:hidden" />
+          <img src={metanaLogoDark} alt="Metana" className="h-8 w-8 rounded-full object-contain shrink-0 hidden dark:block" />
           <div className="flex-1 min-w-0">
             <p className="text-body font-semibold text-foreground truncate">LMS ADMIN</p>
             <p className="text-small text-muted-foreground truncate">admin@lms.com</p>
