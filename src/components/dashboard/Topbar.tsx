@@ -1,6 +1,7 @@
 import { Bell, Search, Moon, Sun, PanelLeft } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import metanaLogo from "@/assets/metana-logo-black.png";
+import metanaLogoDark from "@/assets/metana-logo-white.png";
 import { useTheme, THEME_TOGGLE_EVENT } from "@/hooks/use-theme";
 
 const SIDEBAR_TOGGLE_EVENT = "metana:toggle-sidebar";
@@ -44,7 +45,8 @@ export function Topbar() {
         <PanelLeft className="h-5 w-5" />
       </IconBtn>
       <div className="flex items-center gap-2">
-        <img src={metanaLogo} alt="Metana" className="h-8 w-32 object-contain" />
+        <img src={metanaLogo} alt="Metana" className="h-8 w-32 object-contain block dark:hidden" />
+        <img src={metanaLogoDark} alt="Metana" className="h-8 w-32 object-contain hidden dark:block" />
       </div>
       <div className="flex items-center gap-1 text-muted-foreground">
         <IconBtn label="Notifications">
