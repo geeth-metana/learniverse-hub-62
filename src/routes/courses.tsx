@@ -15,6 +15,9 @@ import {
   Sparkles,
   Star,
   Plus,
+  BookOpen,
+  CalendarDays,
+  GitBranch,
 } from "lucide-react";
 import { myCourses, allCourses, type Course } from "@/lib/courses-data";
 import { useEnrollments } from "@/lib/enrollment";
