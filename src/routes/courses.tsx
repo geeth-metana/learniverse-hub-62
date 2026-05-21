@@ -14,11 +14,13 @@ import {
   ArrowRight,
   Sparkles,
   Star,
+  Plus,
 } from "lucide-react";
 import { myCourses, allCourses, type Course } from "@/lib/courses-data";
 import { useEnrollments } from "@/lib/enrollment";
 import { PricingDialog } from "@/components/courses/PricingDialog";
 import { ClaimOfferDialog } from "@/components/courses/ClaimOfferDialog";
+import { useViewMode } from "@/hooks/use-view-mode";
 
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
