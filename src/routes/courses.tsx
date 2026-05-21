@@ -429,11 +429,12 @@ function CourseCard({
 }) {
   const isMine = course.category === "my";
   const progress = courseProgress[course.id] ?? 0;
+  const showProgress = isMine || progress > 0;
 
   return (
     <article
       onClick={() => onOpen(course)}
-      className={`group cursor-pointer overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-soft)] transition-shadow duration-300 ease-out hover:shadow-[var(--shadow-soft-hover)] ${
+      className={`group cursor-pointer overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-soft)] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[var(--shadow-soft-hover)] ${
         view === "list" ? "grid min-h-[220px] grid-cols-1 md:grid-cols-[320px_1fr]" : "flex flex-col"
       }`}
     >
@@ -441,21 +442,22 @@ function CourseCard({
         <CourseVisual course={course} compact={view === "list"} />
       </div>
       <div className="flex flex-1 flex-col p-5">
-        <div className="mb-3 flex items-start justify-between gap-3">
-          <h3 className="text-second-header font-bold leading-snug text-foreground">{course.title}</h3>
-        </div>
-        {isMine && (
-          <div className="mb-3 flex items-center gap-3">
-            <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+        <span className="mb-2 inline-flex w-fit items-center rounded-full bg-secondary px-2.5 py-0.5 text-smaller font-semibold uppercase tracking-wide text-muted-foreground">
+          Course
+        </span>
+        <h3 className="text-second-header font-bold leading-snug text-foreground">{course.title}</h3>
+        <p className="mt-2 text-body text-muted-foreground leading-relaxed line-clamp-2">{course.description}</p>
+        {showProgress && (
+          <div className="mt-4 flex items-center gap-3">
+            <div className="h-2 flex-1 overflow-hidden rounded-full bg-secondary">
               <div
-                className="h-full rounded-full bg-primary transition-all duration-500"
-                style={{ width: `${progress}%` }}
+                className="h-full rounded-full transition-[width] duration-500 ease-out"
+                style={{ width: `${progress}%`, backgroundColor: "#D0FC03" }}
               />
             </div>
             <span className="text-small font-semibold tabular-nums text-foreground">{progress}%</span>
           </div>
         )}
-        <p className="text-body text-muted-foreground leading-relaxed line-clamp-3">{course.description}</p>
       </div>
     </article>
   );
