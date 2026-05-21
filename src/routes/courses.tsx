@@ -642,6 +642,20 @@ function CoursesPage() {
           <div className="mx-auto max-w-[1480px]">
             <JourneyHeader />
 
+            {/* Programs Section */}
+            <section className="mb-10">
+              <h2 className="text-primary-header font-bold text-foreground mb-5">Programs</h2>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                {products.map((product) => (
+                  <ProductCard key={product.id} product={product} view="grid" />
+                ))}
+              </div>
+            </section>
+
+            {/* Courses Section */}
+            <section>
+              <h2 className="text-primary-header font-bold text-foreground mb-5">Courses</h2>
+
             <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
               <div className="relative inline-flex items-center rounded-full border border-border bg-background p-1 shadow-[var(--shadow-soft)]">
                 <span
