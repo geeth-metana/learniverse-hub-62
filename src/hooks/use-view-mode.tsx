@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export type ViewMode = "admin" | "instructor" | "student";
+export type ViewMode = "admin" | "instructor" | "student" | "sales";
 
 const VIEW_MODE_KEY = "metana:view-mode";
 export const VIEW_MODE_CHANGE_EVENT = "metana:view-mode-change";
@@ -9,6 +9,7 @@ export const VIEW_MODE_LABELS: Record<ViewMode, string> = {
   admin: "Admin",
   instructor: "Instructor",
   student: "Student",
+  sales: "Sales",
 };
 
 export function setViewMode(mode: ViewMode) {
@@ -21,7 +22,7 @@ export function useViewMode(): ViewMode {
 
   useEffect(() => {
     const stored = (typeof localStorage !== "undefined" && localStorage.getItem(VIEW_MODE_KEY)) as ViewMode | null;
-    if (stored === "admin" || stored === "instructor" || stored === "student") {
+    if (stored === "admin" || stored === "instructor" || stored === "student" || stored === "sales") {
       setMode(stored);
     }
     const onChange = (e: Event) => {

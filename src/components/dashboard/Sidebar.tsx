@@ -23,6 +23,7 @@ import {
   ShieldCheck,
   GraduationCap,
   UserSquare2,
+  TrendingUp,
   Check,
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -110,6 +111,7 @@ export function Sidebar() {
     { value: "admin", icon: ShieldCheck },
     { value: "instructor", icon: UserSquare2 },
     { value: "student", icon: GraduationCap },
+    { value: "sales", icon: TrendingUp },
   ];
 
   useEffect(() => {
@@ -129,11 +131,13 @@ export function Sidebar() {
           items={
             viewMode === "student"
               ? platform.filter((i) => ["Dashboard", "Calendar", "Courses", "Announcement", "Settings"].includes(i.label))
+              : viewMode === "sales"
+              ? platform.filter((i) => ["Dashboard", "Calendar", "Products", "Announcement", "Settings"].includes(i.label))
               : platform
           }
           collapsed={false}
         />
-        {viewMode !== "student" && <Section title="INTERNAL" items={internal} collapsed={false} />}
+        {(viewMode !== "student" && viewMode !== "sales") && <Section title="INTERNAL" items={internal} collapsed={false} />}
         <Section title="EXTERNAL" items={external} collapsed={false} />
       </div>
       <div className="p-4 border-t border-sidebar-border space-y-3">
