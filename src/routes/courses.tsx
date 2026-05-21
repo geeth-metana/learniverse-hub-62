@@ -515,9 +515,11 @@ function getProductMeta(product: Product) {
 
 function ProductCard({ product, view }: { product: Product; view: "grid" | "list" }) {
   const { courseCount, weeks, pathType, progress } = getProductMeta(product);
+  const navigate = useNavigate();
   return (
     <article
-      className={`group overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-soft)] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[var(--shadow-soft-hover)] ${
+      onClick={() => navigate({ to: "/products/$productId", params: { productId: product.id } })}
+      className={`group cursor-pointer overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-soft)] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[var(--shadow-soft-hover)] ${
         view === "list" ? "grid min-h-[220px] grid-cols-1 md:grid-cols-[320px_1fr]" : "flex flex-col"
       }`}
     >
