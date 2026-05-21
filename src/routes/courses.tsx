@@ -642,20 +642,6 @@ function CoursesPage() {
           <div className="mx-auto max-w-[1480px]">
             <JourneyHeader />
 
-            {/* Programs Section */}
-            <section className="mb-10">
-              <h2 className="text-primary-header font-bold text-foreground mb-5">Programs</h2>
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                {products.map((product) => (
-                  <ProductCard key={product.id} product={product} view="grid" />
-                ))}
-              </div>
-            </section>
-
-            {/* Courses Section */}
-            <section>
-              <h2 className="text-primary-header font-bold text-foreground mb-5">Courses</h2>
-
             <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
               <div className="relative inline-flex items-center rounded-full border border-border bg-background p-1 shadow-[var(--shadow-soft)]">
                 <span
@@ -691,7 +677,7 @@ function CoursesPage() {
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     type="text"
-                    placeholder="Search Course..."
+                    placeholder="Search..."
                     className="w-72 rounded-full border border-border bg-background py-2.5 pl-9 pr-4 text-body placeholder:text-placeholder focus:outline-none focus:ring-2 focus:ring-ring"
                   />
                 </div>
@@ -723,6 +709,20 @@ function CoursesPage() {
                 </div>
               </div>
             </div>
+
+            {/* Programs Section */}
+            <section className="mb-10">
+              <h2 className="text-second-header font-bold text-foreground/70 mb-5">Programs</h2>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+                {products.map((product) => (
+                  <ProductCard key={product.id} product={product} view="grid" />
+                ))}
+              </div>
+            </section>
+
+            {/* Courses Section */}
+            <section>
+              <h2 className="text-second-header font-bold text-foreground/70 mb-5">Courses</h2>
 
             {tab === "all" && <CourseSlider onPurchase={handlePurchase} />}
 
