@@ -897,10 +897,11 @@ function CoursesPage() {
               </div>
             </div>
 
+            <RecentlyOpenedCard />
+
             {/* Programs Section - hidden on All Courses tab */}
             {tab !== "all" && (
               <section className="mb-10">
-                <RecentlyOpenedCard />
                 <SectionHeading tag="Program" title="Choose Your Learning Path" />
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
                   {products.map((product) => (
