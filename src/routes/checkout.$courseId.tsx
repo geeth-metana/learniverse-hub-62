@@ -47,11 +47,8 @@ function CheckoutPage() {
 
   if (existing.status === "pending" || existing.status === "active") {
     return (
-      <div className="flex min-h-screen bg-background">
-        <Sidebar />
-        <div className="flex-1 flex flex-col">
-          <Topbar />
-          <main className="flex-1 grid place-items-center p-8">
+      <div className="min-h-screen bg-background">
+          <main className="min-h-screen grid place-items-center p-8">
             <div className="max-w-md text-center bg-card border border-border rounded-2xl p-8 shadow-[var(--shadow-soft)]">
               <h1 className="text-primary-header font-bold mb-2">Already enrolled</h1>
               <p className="text-muted-foreground mb-6">
@@ -66,7 +63,6 @@ function CheckoutPage() {
               </Link>
             </div>
           </main>
-        </div>
       </div>
     );
   }
@@ -103,11 +99,8 @@ function CheckoutPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <Sidebar />
-      <div className="flex-1 min-w-0 flex flex-col">
-        <Topbar />
-        <main className="flex-1 p-6 lg:p-10">
+    <div className="min-h-screen bg-background">
+        <main className="min-h-screen p-6 lg:p-10">
           <button
             onClick={() => navigate({ to: "/courses" })}
             className="inline-flex items-center gap-2 text-body text-muted-foreground hover:text-foreground mb-6"
@@ -355,7 +348,6 @@ function CheckoutPage() {
             </div>
           </div>
         </main>
-      </div>
     </div>
   );
 }
