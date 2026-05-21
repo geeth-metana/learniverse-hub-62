@@ -24,7 +24,7 @@ import { useEnrollments } from "@/lib/enrollment";
 import { PricingDialog } from "@/components/courses/PricingDialog";
 import { ClaimOfferDialog } from "@/components/courses/ClaimOfferDialog";
 import { useViewMode } from "@/hooks/use-view-mode";
-import { useProducts, type Product } from "@/lib/products-store";
+import { useProducts, slugifyProduct, type Product } from "@/lib/products-store";
 
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -518,7 +518,7 @@ function ProductCard({ product, view }: { product: Product; view: "grid" | "list
   const navigate = useNavigate();
   return (
     <article
-      onClick={() => navigate({ to: "/products/$productId", params: { productId: product.id } })}
+      onClick={() => navigate({ to: "/programs/$programSlug", params: { programSlug: slugifyProduct(product.title) } })}
       className={`group cursor-pointer overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-soft)] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[var(--shadow-soft-hover)] ${
         view === "list" ? "grid min-h-[220px] grid-cols-1 md:grid-cols-[320px_1fr]" : "flex flex-col"
       }`}
