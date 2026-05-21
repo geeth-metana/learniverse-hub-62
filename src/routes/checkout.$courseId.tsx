@@ -346,6 +346,7 @@ function CheckoutPage() {
             </form>
             </div>
           </div>
+          </div>
         </main>
     </div>
   );
