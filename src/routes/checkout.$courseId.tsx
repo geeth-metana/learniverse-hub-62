@@ -1,8 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
-import { Topbar } from "@/components/dashboard/Topbar";
-import { Sidebar } from "@/components/dashboard/Sidebar";
 import { plans, getCourse, type PlanId } from "@/lib/courses-data";
 import { useEnrollments } from "@/lib/enrollment";
 import { toast } from "sonner";
