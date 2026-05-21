@@ -32,6 +32,18 @@ export type ProductPricing = {
 
 const STORAGE_KEY = "metana:products";
 
+export function slugifyProduct(title: string): string {
+  return title
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+export function getProductBySlug(slug: string): Product | undefined {
+  return read().find((p) => slugifyProduct(p.title) === slug);
+}
+
 const seedProducts: Product[] = [
   {
     id: "seed-web3-track",
