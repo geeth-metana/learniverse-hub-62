@@ -184,7 +184,7 @@ function ProgramPage() {
             </div>
 
             <section
-              className="relative mb-6 overflow-hidden rounded-[28px] p-8 lg:p-10"
+              className="relative mb-6 overflow-hidden rounded-[28px] p-8 lg:p-10 [--hero-fg:oklch(0.22_0.04_280)] [--hero-fg-muted:oklch(0.45_0.04_280)] [--hero-surface:oklch(1_0_0/0.85)]"
               style={{
                 background:
                   "linear-gradient(135deg, oklch(0.96 0.05 260), oklch(0.93 0.09 295) 55%, oklch(0.92 0.12 330))",
@@ -201,70 +201,71 @@ function ProgramPage() {
                 className="pointer-events-none absolute -left-16 bottom-[-40%] h-72 w-72 rounded-full opacity-50 blur-3xl"
                 style={{ background: "var(--brand)" }}
               />
-              <div className="relative grid gap-8 lg:grid-cols-[1fr_320px] lg:items-center">
+              <div className="relative grid gap-8 lg:grid-cols-[1fr_320px] lg:items-center" style={{ color: "var(--hero-fg)" }}>
                 <div className="min-w-0">
-                  <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-background/85 px-3 py-1.5 text-smaller font-semibold uppercase tracking-wide text-foreground shadow-[var(--shadow-soft)] backdrop-blur">
+                  <div className="mb-4 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-smaller font-semibold uppercase tracking-wide shadow-[var(--shadow-soft)] backdrop-blur" style={{ background: "var(--hero-surface)", color: "var(--hero-fg)" }}>
                     <Sparkles className="h-3.5 w-3.5 text-[oklch(0.65_0.2_320)]" /> Program
                   </div>
-                  <h1 className="text-primary-header font-bold leading-[1.05] tracking-tight text-foreground">
+                  <h1 className="text-primary-header font-bold leading-[1.05] tracking-tight" style={{ color: "var(--hero-fg)" }}>
                     {product.title}
                   </h1>
-                  <p className="mt-3 max-w-xl text-body leading-relaxed text-foreground/75">
+                  <p className="mt-3 max-w-xl text-body leading-relaxed" style={{ color: "var(--hero-fg-muted)" }}>
                     {product.description || "No description"}
                   </p>
 
                   <div className="mt-5 flex flex-wrap items-center gap-2.5">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-background/85 px-3.5 py-1.5 text-small font-semibold text-foreground shadow-[var(--shadow-soft)] backdrop-blur">
-                      <BookOpen className="h-3.5 w-3.5 text-muted-foreground" /> {courses.length} course
+                    <span className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-small font-semibold shadow-[var(--shadow-soft)] backdrop-blur" style={{ background: "var(--hero-surface)", color: "var(--hero-fg)" }}>
+                      <BookOpen className="h-3.5 w-3.5" style={{ color: "var(--hero-fg-muted)" }} /> {courses.length} course
                       {courses.length === 1 ? "" : "s"}
                     </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-background/85 px-3.5 py-1.5 text-small font-semibold text-foreground shadow-[var(--shadow-soft)] backdrop-blur">
-                      <FileText className="h-3.5 w-3.5 text-muted-foreground" /> {totalLessons}+ lessons
+                    <span className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-small font-semibold shadow-[var(--shadow-soft)] backdrop-blur" style={{ background: "var(--hero-surface)", color: "var(--hero-fg)" }}>
+                      <FileText className="h-3.5 w-3.5" style={{ color: "var(--hero-fg-muted)" }} /> {totalLessons}+ lessons
                     </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-background/85 px-3.5 py-1.5 text-small font-semibold text-foreground shadow-[var(--shadow-soft)] backdrop-blur">
+                    <span className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-small font-semibold shadow-[var(--shadow-soft)] backdrop-blur" style={{ background: "var(--hero-surface)", color: "var(--hero-fg)" }}>
                       {accessibility === "linear" ? (
                         <>
-                          <Lock className="h-3.5 w-3.5 text-muted-foreground" /> Linear path
+                          <Lock className="h-3.5 w-3.5" style={{ color: "var(--hero-fg-muted)" }} /> Linear path
                         </>
                       ) : (
                         <>
-                          <Unlock className="h-3.5 w-3.5 text-muted-foreground" /> Free-form
+                          <Unlock className="h-3.5 w-3.5" style={{ color: "var(--hero-fg-muted)" }} /> Free-form
                         </>
                       )}
                     </span>
                     {groupCount > 0 && (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-background/85 px-3.5 py-1.5 text-small font-semibold text-foreground shadow-[var(--shadow-soft)] backdrop-blur">
-                        <FolderOpen className="h-3.5 w-3.5 text-muted-foreground" /> {groupCount} group{groupCount === 1 ? "" : "s"}
+                      <span className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-small font-semibold shadow-[var(--shadow-soft)] backdrop-blur" style={{ background: "var(--hero-surface)", color: "var(--hero-fg)" }}>
+                        <FolderOpen className="h-3.5 w-3.5" style={{ color: "var(--hero-fg-muted)" }} /> {groupCount} group{groupCount === 1 ? "" : "s"}
                       </span>
                     )}
                   </div>
 
                   {/* Overall progress + CTA */}
-                  <div className="mt-7 flex flex-col gap-4 rounded-2xl bg-background/85 p-5 shadow-[var(--shadow-soft)] backdrop-blur sm:flex-row sm:items-center sm:gap-6">
+                  <div className="mt-7 flex flex-col gap-4 rounded-2xl p-5 shadow-[var(--shadow-soft)] backdrop-blur sm:flex-row sm:items-center sm:gap-6" style={{ background: "var(--hero-surface)" }}>
                     <div className="min-w-0 flex-1">
                       <div className="mb-2 flex items-center justify-between">
-                        <p className="text-smaller font-semibold uppercase tracking-wide text-muted-foreground">
+                        <p className="text-smaller font-semibold uppercase tracking-wide" style={{ color: "var(--hero-fg-muted)" }}>
                           Overall progress
                         </p>
-                        <p className="text-small font-bold tabular-nums text-foreground">{overallProgress}%</p>
+                        <p className="text-small font-bold tabular-nums" style={{ color: "var(--hero-fg)" }}>{overallProgress}%</p>
                       </div>
-                      <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
+                      <div className="h-2.5 w-full overflow-hidden rounded-full" style={{ background: "oklch(0.92 0.01 280)" }}>
                         <div
                           className="h-full rounded-full transition-[width] duration-500"
                           style={{ width: `${overallProgress}%`, backgroundColor: "#D0FC03" }}
                         />
                       </div>
                       {nextCourse && (
-                        <p className="mt-2 truncate text-smaller text-muted-foreground">
+                        <p className="mt-2 truncate text-smaller" style={{ color: "var(--hero-fg-muted)" }}>
                           {(courseProgress[nextCourse.id] ?? 0) > 0 ? "Continue" : "Start"}{" "}
-                          <span className="font-semibold text-foreground">{nextCourse.title}</span>
+                          <span className="font-semibold" style={{ color: "var(--hero-fg)" }}>{nextCourse.title}</span>
                         </p>
                       )}
                     </div>
                     {nextCourse && (
                       <button
                         onClick={() => setOpenCourseId(nextCourse.id)}
-                        className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-button-primary font-semibold text-background shadow-[var(--shadow-soft)] transition-transform hover:-translate-y-0.5 hover:shadow-[var(--shadow-soft-hover)]"
+                        className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full px-5 py-2.5 text-button-primary font-semibold shadow-[var(--shadow-soft)] transition-transform hover:-translate-y-0.5 hover:shadow-[var(--shadow-soft-hover)]"
+                        style={{ background: "oklch(0.22 0.04 280)", color: "oklch(0.99 0 0)" }}
                       >
                         <PlayCircle className="h-4 w-4" />
                         {(courseProgress[nextCourse.id] ?? 0) > 0 ? "Continue learning" : "Start learning"}
@@ -286,9 +287,9 @@ function ProgramPage() {
                         className="absolute inset-x-0 bottom-0 h-1/3"
                         style={{ background: "linear-gradient(to top, oklch(0.2 0.05 280 / 0.55), transparent)" }}
                       />
-                      <div className="absolute left-4 right-4 bottom-4 flex items-center gap-2 rounded-2xl bg-background/90 p-3 shadow-[var(--shadow-soft)] backdrop-blur">
+                      <div className="absolute left-4 right-4 bottom-4 flex items-center gap-2 rounded-2xl p-3 shadow-[var(--shadow-soft)] backdrop-blur" style={{ background: "oklch(1 0 0 / 0.92)", color: "var(--hero-fg)" }}>
                         <Trophy className="h-4 w-4 text-[oklch(0.78_0.15_75)]" />
-                        <p className="text-smaller font-semibold text-foreground">
+                        <p className="text-smaller font-semibold">
                           Certificate on completion
                         </p>
                       </div>
