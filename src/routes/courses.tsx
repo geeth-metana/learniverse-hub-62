@@ -660,7 +660,7 @@ function CoursesPage() {
 
             {list.length === 0 ? (
               <div className="rounded-3xl border border-dashed border-border py-16 text-center text-body text-muted-foreground">
-                No courses match u201C{query}u201D.
+                No courses match “{query}”.
               </div>
             ) : (
               <div
