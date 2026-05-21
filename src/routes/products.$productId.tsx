@@ -663,7 +663,7 @@ function ViewProductPage() {
                       <div className="mt-4 space-y-2">
                         <button
                           onClick={() => navigate({ to: "/products/new" })}
-                          className="flex w-full items-center gap-3 rounded-xl border border-border bg-background px-3 py-2.5 text-left text-small font-semibold text-foreground transition-colors hover:bg-muted"
+                          className="flex w-full items-center gap-3 rounded-2xl border border-border bg-background px-4 py-2.5 text-left text-small font-semibold text-foreground transition-colors hover:bg-muted"
                         >
                           <Pencil className="h-4 w-4 text-muted-foreground" />
                           Edit product
@@ -673,9 +673,9 @@ function ViewProductPage() {
                             const updated = updateProduct(product.id, { published: !product.published });
                             if (updated) setProduct(updated);
                           }}
-                          className="flex w-full items-center gap-3 rounded-xl border border-border bg-background px-3 py-2.5 text-left text-small font-semibold text-foreground transition-colors hover:bg-muted"
+                          className="flex w-full items-center gap-3 rounded-2xl border border-destructive/40 bg-background px-4 py-2.5 text-left text-small font-semibold text-destructive transition-colors hover:bg-destructive/10"
                         >
-                          <Ban className="h-4 w-4 text-muted-foreground" />
+                          <Ban className="h-4 w-4 text-destructive" />
                           {product.published ? 'Disable product' : 'Enable product'}
                         </button>
                         <button
@@ -685,9 +685,9 @@ function ViewProductPage() {
                               navigate({ to: "/products" });
                             }
                           }}
-                          className="flex w-full items-center gap-3 rounded-xl border border-destructive/30 bg-background px-3 py-2.5 text-left text-small font-semibold text-destructive transition-colors hover:bg-destructive/10"
+                          className="flex w-full items-center gap-3 rounded-2xl border border-destructive bg-destructive px-4 py-2.5 text-left text-small font-semibold text-destructive-foreground transition-colors hover:bg-destructive/90"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4 text-destructive-foreground" />
                           Delete product
                         </button>
                       </div>
