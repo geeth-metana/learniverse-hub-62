@@ -804,6 +804,7 @@ function CoursesPage() {
   }, [tab, query, enrollments]);
 
   const handleOpen = (course: Course) => {
+    markRecentlyOpened({ kind: "course", id: course.id });
     if (tab === "my") {
       navigate({ to: "/courses/learn/$courseId", params: { courseId: course.id } });
     } else {
@@ -899,7 +900,8 @@ function CoursesPage() {
             {/* Programs Section - hidden on All Courses tab */}
             {tab !== "all" && (
               <section className="mb-10">
-                <h2 className="text-second-header font-bold text-foreground/70 mb-5">Programs</h2>
+                <RecentlyOpenedCard />
+                <SectionHeading tag="Program" title="Choose Your Learning Path" />
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
                   {products.map((product) => (
                     <ProductCard key={product.id} product={product} view="grid" />
@@ -910,7 +912,7 @@ function CoursesPage() {
 
             {/* Courses Section */}
             <section>
-              <h2 className="text-second-header font-bold text-foreground/70 mb-5">Courses</h2>
+              <SectionHeading tag="Course" title="Continue Building Your Skills" />
 
             {tab === "all" && <CourseSlider onPurchase={handlePurchase} />}
 
