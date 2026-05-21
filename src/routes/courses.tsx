@@ -510,7 +510,6 @@ function ProductCard({ product, view }: { product: Product; view: "grid" | "list
     </article>
   );
 }
-}
 
 const OFFER_DEADLINE = new Date("2026-08-28T00:00:00Z").getTime();
 
