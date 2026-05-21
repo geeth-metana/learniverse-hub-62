@@ -542,18 +542,16 @@ function ProductCard({ product, view }: { product: Product; view: "grid" | "list
             {pathType}
           </span>
         </div>
-        <div className="mt-4">
-          <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+        <div className="mt-3 flex items-center gap-3">
+          <div className="h-2 flex-1 overflow-hidden rounded-full bg-secondary">
             <div
               className="h-full rounded-full transition-[width] duration-500 ease-out"
               style={{ width: `${progress}%`, backgroundColor: "#D0FC03" }}
             />
           </div>
-          <div className="mt-1.5 flex items-center justify-between text-small">
-            <span className="text-muted-foreground">Progress</span>
-            <span className="font-semibold text-foreground tabular-nums">{progress}%</span>
-          </div>
+          <span className="shrink-0 text-small font-semibold tabular-nums text-foreground">{progress}%</span>
         </div>
+        <p className="mt-3 text-small leading-relaxed text-muted-foreground line-clamp-2">{product.description}</p>
       </div>
     </article>
   );
