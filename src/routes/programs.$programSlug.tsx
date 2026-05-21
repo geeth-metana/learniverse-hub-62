@@ -7,7 +7,6 @@ import {
   Package,
   BookOpen,
   Check,
-  Calendar,
   Users,
   ArrowRight,
   Layers,
@@ -17,6 +16,11 @@ import {
   Unlock,
   CircleDashed,
   FolderOpen,
+  Sparkles,
+  Trophy,
+  Clock,
+  GraduationCap,
+  Award,
 } from "lucide-react";
 import {
   getProductBySlug,
@@ -146,6 +150,21 @@ function ProgramPage() {
     day: "numeric",
   });
 
+  // Stable pseudo per-course progress for demo realism.
+  const courseProgress: Record<string, number> = {};
+  courses.forEach((c, i) => {
+    const seeded: Record<string, number> = { fullstack: 72, solidity: 18, rust: 45, "ai-engineering": 12, zk: 0, data: 0 };
+    courseProgress[c.id] = seeded[c.id] ?? (i === 0 ? 60 : i === 1 ? 25 : 0);
+  });
+  const overallProgress = courses.length
+    ? Math.round(courses.reduce((acc, c) => acc + (courseProgress[c.id] ?? 0), 0) / courses.length)
+    : 0;
+  const totalLessons = courses.reduce((acc, c) => {
+    const d = courseDetails[c.id] ?? fallbackDetail;
+    return acc + (d.modules?.length ?? 0) * 9;
+  }, 0);
+  const nextCourse = courses.find((c) => (courseProgress[c.id] ?? 0) > 0 && (courseProgress[c.id] ?? 0) < 100) ?? courses[0];
+
   return (
     <div className="flex min-h-screen bg-background text-foreground">
       <Sidebar />
@@ -165,62 +184,146 @@ function ProgramPage() {
             </div>
 
             <section
-              className="relative mb-6 overflow-hidden rounded-3xl p-8 lg:p-10"
+              className="relative mb-6 overflow-hidden rounded-[28px] p-8 lg:p-10 [--hero-fg:oklch(0.22_0.04_280)] [--hero-fg-muted:oklch(0.45_0.04_280)] [--hero-surface:oklch(1_0_0/0.85)]"
               style={{
                 background:
-                  "linear-gradient(135deg, oklch(0.94 0.08 280), oklch(0.9 0.12 320))",
+                  "linear-gradient(135deg, oklch(0.96 0.05 260), oklch(0.93 0.09 295) 55%, oklch(0.92 0.12 330))",
               }}
             >
-              <div className="flex flex-wrap items-stretch justify-between gap-6">
-                <div className="max-w-2xl">
-                  <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-background/80 px-3 py-1 text-small font-semibold text-foreground shadow-[var(--shadow-soft)]">
-                    <Package className="h-3.5 w-3.5" /> Program
+              {/* decorative glows */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full opacity-60 blur-3xl"
+                style={{ background: "oklch(0.88 0.18 330)" }}
+              />
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -left-16 bottom-[-40%] h-72 w-72 rounded-full opacity-50 blur-3xl"
+                style={{ background: "var(--brand)" }}
+              />
+              <div className="relative grid gap-8 lg:grid-cols-[1fr_320px] lg:items-center" style={{ color: "var(--hero-fg)" }}>
+                <div className="min-w-0">
+                  <div className="mb-4 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-smaller font-semibold uppercase tracking-wide shadow-[var(--shadow-soft)] backdrop-blur" style={{ background: "var(--hero-surface)", color: "var(--hero-fg)" }}>
+                    <Sparkles className="h-3.5 w-3.5 text-[oklch(0.65_0.2_320)]" /> Program
                   </div>
-                  <h1 className="text-primary-header font-bold leading-tight text-foreground">
+                  <h1 className="text-primary-header font-bold leading-[1.05] tracking-tight" style={{ color: "var(--hero-fg)" }}>
                     {product.title}
                   </h1>
-                  <p className="mt-3 text-body leading-relaxed text-foreground/80">
+                  <p className="mt-3 max-w-xl text-body leading-relaxed" style={{ color: "var(--hero-fg-muted)" }}>
                     {product.description || "No description"}
                   </p>
-                  <div className="mt-5 flex flex-wrap items-center gap-3">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-background/80 px-3.5 py-2 text-small font-semibold text-foreground">
-                      <BookOpen className="h-3.5 w-3.5" /> {courses.length} course
+
+                  <div className="mt-5 flex flex-wrap items-center gap-2.5">
+                    <span className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-small font-semibold shadow-[var(--shadow-soft)] backdrop-blur" style={{ background: "var(--hero-surface)", color: "var(--hero-fg)" }}>
+                      <BookOpen className="h-3.5 w-3.5" style={{ color: "var(--hero-fg-muted)" }} /> {courses.length} course
                       {courses.length === 1 ? "" : "s"}
                     </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-background/80 px-3.5 py-2 text-small font-semibold text-foreground">
+                    <span className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-small font-semibold shadow-[var(--shadow-soft)] backdrop-blur" style={{ background: "var(--hero-surface)", color: "var(--hero-fg)" }}>
+                      <FileText className="h-3.5 w-3.5" style={{ color: "var(--hero-fg-muted)" }} /> {totalLessons}+ lessons
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-small font-semibold shadow-[var(--shadow-soft)] backdrop-blur" style={{ background: "var(--hero-surface)", color: "var(--hero-fg)" }}>
                       {accessibility === "linear" ? (
                         <>
-                          <Lock className="h-3.5 w-3.5" /> Linear
+                          <Lock className="h-3.5 w-3.5" style={{ color: "var(--hero-fg-muted)" }} /> Linear path
                         </>
                       ) : (
                         <>
-                          <Unlock className="h-3.5 w-3.5" /> Free-form
+                          <Unlock className="h-3.5 w-3.5" style={{ color: "var(--hero-fg-muted)" }} /> Free-form
                         </>
                       )}
                     </span>
                     {groupCount > 0 && (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-background/80 px-3.5 py-2 text-small font-semibold text-foreground">
-                        <FolderOpen className="h-3.5 w-3.5" /> {groupCount} group
-                        {groupCount === 1 ? "" : "s"}
+                      <span className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-small font-semibold shadow-[var(--shadow-soft)] backdrop-blur" style={{ background: "var(--hero-surface)", color: "var(--hero-fg)" }}>
+                        <FolderOpen className="h-3.5 w-3.5" style={{ color: "var(--hero-fg-muted)" }} /> {groupCount} group{groupCount === 1 ? "" : "s"}
                       </span>
                     )}
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-background/80 px-3.5 py-2 text-small font-semibold text-foreground">
-                      <Calendar className="h-3.5 w-3.5" /> Created {created}
-                    </span>
+                  </div>
+
+                  {/* Overall progress + CTA */}
+                  <div className="mt-7 flex flex-col gap-4 rounded-2xl p-5 shadow-[var(--shadow-soft)] backdrop-blur sm:flex-row sm:items-center sm:gap-6" style={{ background: "var(--hero-surface)" }}>
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-2 flex items-center justify-between">
+                        <p className="text-smaller font-semibold uppercase tracking-wide" style={{ color: "var(--hero-fg-muted)" }}>
+                          Overall progress
+                        </p>
+                        <p className="text-small font-bold tabular-nums" style={{ color: "var(--hero-fg)" }}>{overallProgress}%</p>
+                      </div>
+                      <div className="h-2.5 w-full overflow-hidden rounded-full" style={{ background: "oklch(0.92 0.01 280)" }}>
+                        <div
+                          className="h-full rounded-full transition-[width] duration-500"
+                          style={{ width: `${overallProgress}%`, backgroundColor: "#D0FC03" }}
+                        />
+                      </div>
+                      {nextCourse && (
+                        <p className="mt-2 truncate text-smaller" style={{ color: "var(--hero-fg-muted)" }}>
+                          {(courseProgress[nextCourse.id] ?? 0) > 0 ? "Continue" : "Start"}{" "}
+                          <span className="font-semibold" style={{ color: "var(--hero-fg)" }}>{nextCourse.title}</span>
+                        </p>
+                      )}
+                    </div>
+                    {nextCourse && (
+                      <button
+                        onClick={() => setOpenCourseId(nextCourse.id)}
+                        className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full px-5 py-2.5 text-button-primary font-semibold shadow-[var(--shadow-soft)] transition-transform hover:-translate-y-0.5 hover:shadow-[var(--shadow-soft-hover)]"
+                        style={{ background: "oklch(0.22 0.04 280)", color: "oklch(0.99 0 0)" }}
+                      >
+                        <PlayCircle className="h-4 w-4" />
+                        {(courseProgress[nextCourse.id] ?? 0) > 0 ? "Continue learning" : "Start learning"}
+                      </button>
+                    )}
                   </div>
                 </div>
-                {product.image ? (
-                  <img
-                    src={product.image}
-                    alt={product.title}
-                    className="h-full w-56 shrink-0 rounded-2xl object-cover shadow-[var(--shadow-soft)]"
-                  />
-                ) : (
-                  <div className="grid h-full w-32 shrink-0 place-items-center rounded-3xl bg-background/80 text-foreground shadow-[var(--shadow-soft)]">
-                    <Package className="h-9 w-9" />
-                  </div>
-                )}
+
+                <div className="relative mx-auto w-full max-w-[320px]">
+                  {product.image ? (
+                    <div className="relative aspect-[4/5] w-full overflow-hidden rounded-3xl shadow-[0_30px_60px_-20px_oklch(0.3_0.1_300_/_0.35)] ring-1 ring-background/70">
+                      <img
+                        src={product.image}
+                        alt={product.title}
+                        className="h-full w-full object-cover"
+                      />
+                      <div
+                        aria-hidden
+                        className="absolute inset-x-0 bottom-0 h-1/3"
+                        style={{ background: "linear-gradient(to top, oklch(0.2 0.05 280 / 0.55), transparent)" }}
+                      />
+                      <div className="absolute left-4 right-4 bottom-4 flex items-center gap-2 rounded-2xl p-3 shadow-[var(--shadow-soft)] backdrop-blur" style={{ background: "oklch(1 0 0 / 0.92)", color: "var(--hero-fg)" }}>
+                        <Trophy className="h-4 w-4 text-[oklch(0.78_0.15_75)]" />
+                        <p className="text-smaller font-semibold">
+                          Certificate on completion
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid aspect-[4/5] w-full place-items-center rounded-3xl bg-background/80 text-foreground shadow-[var(--shadow-soft)]">
+                      <Package className="h-12 w-12" />
+                    </div>
+                  )}
+                </div>
               </div>
+            </section>
+
+            {/* Stats strip */}
+            <section className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+              {[
+                { icon: GraduationCap, label: "Courses", value: `${courses.length}` },
+                { icon: FileText, label: "Lessons", value: `${totalLessons}+` },
+                { icon: Clock, label: "Time invested", value: `${Math.round((overallProgress / 100) * Math.max(20, courses.length * 40))}h` },
+                { icon: Award, label: "Started", value: created },
+              ].map((s) => (
+                <div
+                  key={s.label}
+                  className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-soft)]"
+                >
+                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-muted">
+                    <s.icon className="h-4 w-4 text-foreground" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-smaller uppercase tracking-wide text-muted-foreground">{s.label}</p>
+                    <p className="truncate text-small font-bold text-foreground">{s.value}</p>
+                  </div>
+                </div>
+              ))}
             </section>
 
             <div className="grid gap-6 lg:grid-cols-[1fr_360px] items-start">
@@ -264,6 +367,16 @@ function ProgramPage() {
                     const idx = pos;
                     const isOptional = optionalIds.includes(c.id);
                     const detail = courseDetails[c.id] ?? fallbackDetail;
+                    const prog = courseProgress[c.id] ?? 0;
+                    const status: "completed" | "in-progress" | "locked" | "available" =
+                      prog >= 100
+                        ? "completed"
+                        : prog > 0
+                          ? "in-progress"
+                          : accessibility === "linear" && idx > 1
+                            ? "locked"
+                            : "available";
+                    const lessonCount = (detail.modules?.length ?? 0) * 9;
                     return (
                       <AccordionItem
                         key={key}
@@ -271,37 +384,77 @@ function ProgramPage() {
                         className={
                           inGroup
                             ? "overflow-hidden bg-transparent border-b-0"
-                            : "overflow-hidden rounded-2xl border border-border bg-background"
+                            : "group overflow-hidden rounded-2xl border border-border bg-background transition-all duration-300 hover:border-foreground/20 hover:shadow-[var(--shadow-soft)]"
                         }
                       >
-                        <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                        <AccordionTrigger className="px-4 py-4 hover:no-underline">
                           <div className="flex w-full items-center gap-4 text-left">
-                            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-muted text-small font-semibold text-foreground">
-                              {idx}
-                            </span>
-                            <div
-                              className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl text-foreground"
-                              style={{ background: c.gradient }}
-                            >
-                              <BookOpen className="h-5 w-5" />
+                            <div className="relative shrink-0">
+                              <div
+                                className="grid h-14 w-14 place-items-center rounded-2xl text-foreground shadow-[var(--shadow-soft)] transition-transform duration-300 group-hover:scale-[1.04]"
+                                style={{ background: c.gradient }}
+                              >
+                                {status === "completed" ? (
+                                  <Check className="h-6 w-6 text-foreground" strokeWidth={3} />
+                                ) : status === "locked" ? (
+                                  <Lock className="h-5 w-5 text-foreground/70" />
+                                ) : (
+                                  <BookOpen className="h-5 w-5" />
+                                )}
+                              </div>
+                              <span className="absolute -right-1.5 -top-1.5 grid h-6 w-6 place-items-center rounded-full bg-background text-smaller font-bold text-foreground shadow-[var(--shadow-soft)] ring-1 ring-border">
+                                {idx}
+                              </span>
                             </div>
                             <div className="min-w-0 flex-1">
                               <div className="flex flex-wrap items-center gap-2">
-                                <p className="truncate text-body font-semibold text-foreground">
+                                <p className="truncate text-body font-bold text-foreground">
                                   {c.title}
                                 </p>
+                                {status === "completed" && (
+                                  <span className="inline-flex items-center gap-1 rounded-full bg-brand px-2 py-0.5 text-smaller font-bold text-brand-foreground">
+                                    <Check className="h-3 w-3" strokeWidth={3} /> Completed
+                                  </span>
+                                )}
+                                {status === "in-progress" && (
+                                  <span className="inline-flex items-center gap-1 rounded-full bg-[oklch(0.94_0.05_240)] px-2 py-0.5 text-smaller font-bold text-foreground">
+                                    <PlayCircle className="h-3 w-3" /> In progress
+                                  </span>
+                                )}
+                                {status === "locked" && (
+                                  <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-smaller font-bold text-muted-foreground">
+                                    <Lock className="h-3 w-3" /> Locked
+                                  </span>
+                                )}
                                 {isOptional && (
                                   <span className="inline-flex items-center gap-1 rounded-full bg-[oklch(0.94_0.05_240)] px-2 py-0.5 text-smaller font-semibold text-foreground">
                                     <CircleDashed className="h-3 w-3" /> Optional
                                   </span>
                                 )}
                               </div>
-                              <p className="mt-0.5 truncate text-small text-muted-foreground">
+                              <p className="mt-1 truncate text-small text-muted-foreground">
                                 {c.description}
                               </p>
-                              <p className="mt-1 text-smaller font-semibold text-foreground">
-                                {c.meta}
-                              </p>
+                              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-smaller font-semibold text-muted-foreground">
+                                <span className="inline-flex items-center gap-1">
+                                  <Clock className="h-3 w-3" /> {c.meta}
+                                </span>
+                                <span className="text-border">·</span>
+                                <span className="inline-flex items-center gap-1">
+                                  <FileText className="h-3 w-3" /> {lessonCount} lessons
+                                </span>
+                              </div>
+                              {status !== "locked" && (
+                                <div className="mt-3 flex items-center gap-3">
+                                  <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                                    <div
+                                      className="h-full rounded-full transition-[width] duration-500"
+                                      style={{ width: `${prog}%`, backgroundColor: "#D0FC03" }}
+                                    />
+                                  </div>
+                                  <span className="shrink-0 text-smaller font-bold tabular-nums text-foreground">{prog}%</span>
+                                </div>
+                              )}
                             </div>
                           </div>
                         </AccordionTrigger>
@@ -310,7 +463,7 @@ function ProgramPage() {
                           <div className="mt-3 flex justify-end">
                             <button
                               onClick={() => setOpenCourseId(c.id)}
-                              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-smaller font-semibold text-foreground transition-colors hover:bg-muted"
+                              className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-smaller font-semibold text-background transition-transform hover:-translate-y-0.5"
                             >
                               Open course <ArrowRight className="h-3.5 w-3.5" />
                             </button>
@@ -366,25 +519,39 @@ function ProgramPage() {
 
               <aside className="lg:sticky lg:top-6 self-start space-y-4">
                 <div className="rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-[oklch(0.65_0.18_280)]" />
-                    <h3 className="text-second-header font-semibold text-foreground">
-                      Instructors
-                    </h3>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="grid h-8 w-8 place-items-center rounded-lg bg-[oklch(0.95_0.05_280)]">
+                        <Users className="h-4 w-4 text-[oklch(0.5_0.15_280)]" />
+                      </div>
+                      <h3 className="text-second-header font-semibold text-foreground">
+                        Instructors
+                      </h3>
+                    </div>
+                    <span className="rounded-full bg-muted px-2 py-0.5 text-smaller font-semibold text-muted-foreground">
+                      {instructors.length}
+                    </span>
                   </div>
-                  <div className="mt-4 space-y-3">
+                  <div className="mt-4 space-y-2.5">
                     {instructors.map((inst, idx) => (
                       <div
                         key={idx}
-                        className="flex items-center gap-3 rounded-xl border border-border bg-background p-3"
+                        className="group flex items-center gap-3 rounded-2xl border border-border bg-background p-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-[var(--shadow-soft)]"
                       >
-                        <img
-                          src={inst.image}
-                          alt={inst.name}
-                          className="h-10 w-10 shrink-0 rounded-full object-cover"
-                        />
+                        <div className="relative shrink-0">
+                          <div
+                            className="rounded-full p-[2px]"
+                            style={{ background: "var(--gradient-brand)" }}
+                          >
+                            <img
+                              src={inst.image}
+                              alt={inst.name}
+                              className="h-11 w-11 rounded-full object-cover ring-2 ring-background"
+                            />
+                          </div>
+                        </div>
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-small font-semibold text-foreground">
+                          <p className="truncate text-small font-bold text-foreground">
                             {inst.name}
                           </p>
                           <p className="truncate text-smaller text-muted-foreground">
@@ -395,6 +562,28 @@ function ProgramPage() {
                     ))}
                   </div>
                 </div>
+
+                {/* Up next card */}
+                {nextCourse && (
+                  <div
+                    className="relative overflow-hidden rounded-3xl border border-border p-6 shadow-[var(--shadow-soft)]"
+                    style={{ background: "linear-gradient(135deg, oklch(0.97 0.02 260), oklch(0.94 0.05 280))" }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <PlayCircle className="h-4 w-4 text-foreground" />
+                      <h3 className="text-small font-bold uppercase tracking-wide text-foreground">Up next</h3>
+                    </div>
+                    <p className="mt-3 text-body font-bold text-foreground">{nextCourse.title}</p>
+                    <p className="mt-1 text-smaller text-muted-foreground line-clamp-2">{nextCourse.description}</p>
+                    <button
+                      onClick={() => setOpenCourseId(nextCourse.id)}
+                      className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-4 py-2.5 text-small font-semibold text-background transition-transform hover:-translate-y-0.5"
+                    >
+                      {(courseProgress[nextCourse.id] ?? 0) > 0 ? "Continue" : "Start"} course
+                      <ArrowRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
               </aside>
             </div>
           </div>
