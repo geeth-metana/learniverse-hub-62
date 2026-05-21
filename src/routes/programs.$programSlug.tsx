@@ -201,7 +201,7 @@ function ProgramPage() {
                 className="pointer-events-none absolute -left-16 bottom-[-40%] h-72 w-72 rounded-full opacity-50 blur-3xl"
                 style={{ background: "var(--brand)" }}
               />
-              <div className="relative grid gap-8 lg:grid-cols-[1fr_320px] lg:items-center" style={{ color: "var(--hero-fg)" }}>
+              <div className="relative grid gap-8 lg:grid-cols-[1fr_320px] lg:items-stretch" style={{ color: "var(--hero-fg)" }}>
                 <div className="min-w-0">
                   <div className="mb-4 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-smaller font-semibold uppercase tracking-wide shadow-[var(--shadow-soft)] backdrop-blur" style={{ background: "var(--hero-surface)", color: "var(--hero-fg)" }}>
                     <Sparkles className="h-3.5 w-3.5 text-[oklch(0.65_0.2_320)]" /> Program
@@ -274,9 +274,9 @@ function ProgramPage() {
                   </div>
                 </div>
 
-                <div className="relative mx-auto w-full max-w-[320px]">
+                <div className="relative mx-auto w-full max-w-[320px] lg:h-full">
                   {product.image ? (
-                    <div className="relative aspect-[4/5] w-full overflow-hidden rounded-3xl shadow-[0_30px_60px_-20px_oklch(0.3_0.1_300_/_0.35)] ring-1 ring-background/70">
+                    <div className="relative aspect-[4/5] w-full overflow-hidden rounded-3xl shadow-[0_30px_60px_-20px_oklch(0.3_0.1_300_/_0.35)] ring-1 ring-background/70 lg:aspect-auto lg:h-full">
                       <img
                         src={product.image}
                         alt={product.title}
@@ -295,7 +295,7 @@ function ProgramPage() {
                       </div>
                     </div>
                   ) : (
-                    <div className="grid aspect-[4/5] w-full place-items-center rounded-3xl bg-background/80 text-foreground shadow-[var(--shadow-soft)]">
+                    <div className="grid aspect-[4/5] w-full place-items-center rounded-3xl bg-background/80 text-foreground shadow-[var(--shadow-soft)] lg:aspect-auto lg:h-full">
                       <Package className="h-12 w-12" />
                     </div>
                   )}
