@@ -18,7 +18,6 @@ import {
   CircleDashed,
   FolderOpen,
   Sparkles,
-  PlayCircle as Play,
   Trophy,
   Clock,
   GraduationCap,
