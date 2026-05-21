@@ -597,9 +597,7 @@ function CoursesPage() {
   const [view, setView] = useState<"grid" | "list">("grid");
   const [query, setQuery] = useState("");
   const [pricingFor, setPricingFor] = useState<string | null>(null);
-  
-
-
+  const products = useProducts();
 
   const { get: getEnrollment, all: enrollments } = useEnrollments();
 
