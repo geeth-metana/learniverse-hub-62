@@ -152,11 +152,6 @@ function ProgramPage() {
   });
 
   // Stable pseudo per-course progress for demo realism.
-  const hashId = (s: string) => {
-    let h = 0;
-    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-    return h;
-  };
   const courseProgress: Record<string, number> = {};
   courses.forEach((c, i) => {
     const seeded: Record<string, number> = { fullstack: 72, solidity: 18, rust: 45, "ai-engineering": 12, zk: 0, data: 0 };
@@ -321,7 +316,7 @@ function ProgramPage() {
                   className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-soft)]"
                 >
                   <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-muted">
-                    <s.icon className="h-4.5 w-4.5 text-foreground" />
+                    <s.icon className="h-4 w-4 text-foreground" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-smaller uppercase tracking-wide text-muted-foreground">{s.label}</p>
