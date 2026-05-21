@@ -17,6 +17,12 @@ import {
   Unlock,
   CircleDashed,
   FolderOpen,
+  Sparkles,
+  PlayCircle as Play,
+  Trophy,
+  Clock,
+  GraduationCap,
+  Award,
 } from "lucide-react";
 import {
   getProductBySlug,
