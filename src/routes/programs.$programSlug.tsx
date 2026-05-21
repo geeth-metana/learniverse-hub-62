@@ -7,7 +7,6 @@ import {
   Package,
   BookOpen,
   Check,
-  Calendar,
   Users,
   ArrowRight,
   Layers,
