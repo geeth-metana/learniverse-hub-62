@@ -15,6 +15,9 @@ import {
   Sparkles,
   Star,
   Plus,
+  BookOpen,
+  CalendarDays,
+  GitBranch,
 } from "lucide-react";
 import { myCourses, allCourses, type Course } from "@/lib/courses-data";
 import { useEnrollments } from "@/lib/enrollment";
@@ -464,7 +467,7 @@ function ProductVisual({ product, compact = false }: { product: Product; compact
         <img
           src={product.image}
           alt={product.title}
-          className="h-full w-full object-cover"
+          className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.06]"
         />
       </div>
     );
@@ -491,10 +494,30 @@ function ProductVisual({ product, compact = false }: { product: Product; compact
   );
 }
 
+function getProductMeta(product: Product) {
+  const courseCount = product.courseIds?.length ?? 0;
+  const weeks = Math.max(4, courseCount * 2);
+  const pathType = product.accessibility === "free" ? "Non-linear" : "Linear";
+  // Stable pseudo-progress from id so the demo looks realistic.
+  const progressMap: Record<string, number> = {
+    "seed-web3-track": 42,
+    "seed-ai-builder": 28,
+    "seed-protocol-engineer": 64,
+  };
+  let progress = progressMap[product.id];
+  if (progress === undefined) {
+    let h = 0;
+    for (let i = 0; i < product.id.length; i++) h = (h * 31 + product.id.charCodeAt(i)) >>> 0;
+    progress = 15 + (h % 70);
+  }
+  return { courseCount, weeks, pathType, progress };
+}
+
 function ProductCard({ product, view }: { product: Product; view: "grid" | "list" }) {
+  const { courseCount, weeks, pathType, progress } = getProductMeta(product);
   return (
     <article
-      className={`group overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-soft)] transition-shadow duration-300 ease-out hover:shadow-[var(--shadow-soft-hover)] ${
+      className={`group overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-soft)] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[var(--shadow-soft-hover)] ${
         view === "list" ? "grid min-h-[220px] grid-cols-1 md:grid-cols-[320px_1fr]" : "flex flex-col"
       }`}
     >
@@ -502,10 +525,35 @@ function ProductCard({ product, view }: { product: Product; view: "grid" | "list
         <ProductVisual product={product} compact={view === "list"} />
       </div>
       <div className="flex flex-1 flex-col p-5">
-        <div className="mb-3 flex items-start justify-between gap-3">
-          <h3 className="text-second-header font-bold leading-snug text-foreground">{product.title}</h3>
+        <h3 className="text-second-header font-bold leading-snug text-foreground">{product.title}</h3>
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-small text-muted-foreground">
+          <span className="inline-flex items-center gap-1.5">
+            <BookOpen className="h-3.5 w-3.5" />
+            {courseCount} {courseCount === 1 ? "Course" : "Courses"}
+          </span>
+          <span className="text-border">·</span>
+          <span className="inline-flex items-center gap-1.5">
+            <CalendarDays className="h-3.5 w-3.5" />
+            {weeks} Weeks
+          </span>
+          <span className="text-border">·</span>
+          <span className="inline-flex items-center gap-1.5">
+            <GitBranch className="h-3.5 w-3.5" />
+            {pathType}
+          </span>
         </div>
-        <p className="text-body text-muted-foreground leading-relaxed line-clamp-3">{product.description}</p>
+        <div className="mt-4">
+          <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
+            <div
+              className="h-full rounded-full transition-[width] duration-500 ease-out"
+              style={{ width: `${progress}%`, backgroundColor: "#D0FC03" }}
+            />
+          </div>
+          <div className="mt-1.5 flex items-center justify-between text-small">
+            <span className="text-muted-foreground">Progress</span>
+            <span className="font-semibold text-foreground tabular-nums">{progress}%</span>
+          </div>
+        </div>
       </div>
     </article>
   );
