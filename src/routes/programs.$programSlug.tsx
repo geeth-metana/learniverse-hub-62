@@ -699,7 +699,7 @@ function CourseRow({
           >
             <div
               className="space-y-2 px-5 pb-5 pt-1"
-              style={{ borderTop: `1px solid ${BORDER}`, background: SOFT_BG }}
+              style={{ borderTop: `1px solid ${BORDER}`, background: "#fff" }}
             >
               <div className="ml-6 border-l pt-3" style={{ borderColor: BORDER }}>
                 <div className="space-y-2 pl-4">
