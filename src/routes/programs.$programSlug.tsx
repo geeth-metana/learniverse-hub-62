@@ -377,15 +377,25 @@ function StatusPill({ linear }: { linear: boolean }) {
   );
 }
 
-function ProgressBar({ value, height = 8, locked = false }: { value: number; height?: number; locked?: boolean }) {
+function ProgressBar({
+  value,
+  height = 8,
+  locked = false,
+  fill = BRAND,
+}: {
+  value: number;
+  height?: number;
+  locked?: boolean;
+  fill?: string;
+}) {
   return (
     <div
       className="w-full overflow-hidden rounded-full"
-      style={{ height, background: locked ? "#EAECEA" : "#EEF1EE" }}
+      style={{ height, background: BORDER }}
     >
       <div
         className="h-full rounded-full transition-[width] duration-700"
-        style={{ width: `${value}%`, background: locked ? "#C9CDC9" : BRAND }}
+        style={{ width: `${value}%`, background: locked ? "#C9CDC9" : fill }}
       />
     </div>
   );
