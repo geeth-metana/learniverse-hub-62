@@ -982,7 +982,7 @@ function LessonStatusIcon({ status, kind }: { status: LessonStatus; kind: Lesson
 
 function SidebarCard({ children }: { children: React.ReactNode }) {
   return (
-    <div className="overflow-hidden rounded-[20px] bg-white border-white" style={{ border: `1px solid ${BORDER}` }}>
+    <div className="rounded-[20px] bg-white p-5" style={{ border: `1px solid ${BORDER}` }}>
       {children}
     </div>
   );
