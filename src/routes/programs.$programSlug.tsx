@@ -323,10 +323,7 @@ function ProgramPage() {
                   <StatusPill linear={isLinear} />
                 </div>
 
-                <div
-                  className="overflow-hidden rounded-[20px] bg-white"
-                  style={{ border: `1px solid ${BORDER}` }}
-                >
+                <div className="overflow-hidden rounded-[20px] bg-white">
                   {courses.length === 0 && (
                     <div className="p-10 text-center">
                       <p className="text-sm" style={{ color: MUTED }}>
@@ -422,10 +419,7 @@ function ProgramHeroCard({
   onContinue: () => void;
 }) {
   return (
-    <section
-      className="overflow-hidden rounded-[24px] bg-white p-6 lg:p-8"
-      style={{ border: `1px solid ${BORDER}` }}
-    >
+    <section className="overflow-hidden rounded-[24px] bg-white p-6 lg:p-8">
       <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-center">
         {/* Left */}
         <div className="min-w-0 order-2 lg:order-1">
@@ -982,7 +976,7 @@ function LessonStatusIcon({ status, kind }: { status: LessonStatus; kind: Lesson
 
 function SidebarCard({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-[20px] bg-white p-5" style={{ border: `1px solid ${BORDER}` }}>
+    <div className="rounded-[20px] bg-white p-5">
       {children}
     </div>
   );
