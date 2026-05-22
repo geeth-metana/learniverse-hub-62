@@ -1,32 +1,34 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Topbar } from "@/components/dashboard/Topbar";
 import {
   ArrowLeft,
   ArrowRight,
   BookOpen,
+  Calendar,
   Check,
   ChevronDown,
+  ChevronRight,
   Clock,
   FileText,
-  Flame,
   Lock,
   Package,
   PlayCircle,
   Sparkles,
   Star,
+  User,
   Users,
   Zap,
 } from "lucide-react";
 import {
-  BarChart,
   Bar,
+  BarChart,
+  Cell,
   ResponsiveContainer,
   Tooltip as RTooltip,
   XAxis,
-  Cell,
 } from "recharts";
 import { getProductBySlug, type Product } from "@/lib/products-store";
 import { getCourse } from "@/lib/courses-data";
@@ -38,6 +40,8 @@ const INK = "#1A1A1A";
 const INK_2 = "#24324A";
 const MUTED = "#6B7280";
 const BG = "#F8FAF7";
+const ALT_BG = "#F4F7EF";
+const SOFT_BG = "#F8FAF7";
 const BORDER = "#E5E7EB";
 
 type LessonKind = "video" | "reading" | "quiz" | "assignment";
@@ -175,7 +179,6 @@ function ProgramPage() {
       };
     });
 
-    // Apply lock logic
     built.forEach((c, i) => {
       if (c.progress >= 100) c.status = "completed";
       else if (c.progress > 0) c.status = "in-progress";
@@ -183,7 +186,6 @@ function ProgramPage() {
       else c.status = "available";
     });
 
-    // Mark first non-completed course's first available lesson as current if not already
     const hasCurrent = built.some((c) =>
       c.modules.some((m) => m.units.some((u) => u.lessons.some((l) => l.status === "current"))),
     );
@@ -203,7 +205,6 @@ function ProgramPage() {
       }
     }
 
-    // Lock lessons of locked courses
     built.forEach((c) => {
       if (c.status === "locked") {
         c.modules.forEach((m) =>
@@ -222,14 +223,17 @@ function ProgramPage() {
         <div className="flex min-w-0 flex-1 flex-col">
           <Topbar />
           <main className="flex-1 p-6 lg:p-10">
-            <div className="mx-auto max-w-[800px] rounded-3xl border border-dashed border-border bg-white py-20 text-center">
+            <div
+              className="mx-auto max-w-[800px] rounded-3xl bg-white py-20 text-center"
+              style={{ border: `1px dashed ${BORDER}` }}
+            >
               <Package className="mx-auto h-10 w-10" style={{ color: MUTED }} />
               <p className="mt-4 text-sm" style={{ color: MUTED }}>
                 Program not found.
               </p>
               <button
                 onClick={() => navigate({ to: "/courses" })}
-                className="mt-5 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-transform hover:-translate-y-0.5"
+                className="mt-5 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold"
                 style={{ background: BRAND, color: INK }}
               >
                 <ArrowLeft className="h-4 w-4" /> Back to Courses
@@ -252,7 +256,6 @@ function ProgramPage() {
     courses.find((c) => c.status === "available") ??
     courses[0];
 
-  // Streak data
   const weekly = [
     { day: "Mon", v: 3 },
     { day: "Tue", v: 2 },
@@ -264,6 +267,7 @@ function ProgramPage() {
   ];
   const weeklyCompleted = weekly.reduce((a, d) => a + d.v, 0);
   const currentStreakDays = 7;
+  const streakScore = currentStreakDays * completedLessons;
   const learningMomentum =
     currentStreakDays * 10 + completedLessons * 2 + weeklyCompleted * 5;
 
@@ -275,26 +279,21 @@ function ProgramPage() {
         <main className="flex-1 p-6 lg:p-10">
           <div className="mx-auto max-w-[1280px]">
             {/* Breadcrumb */}
-            <motion.div
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-6 flex items-center gap-3"
-            >
+            <div className="mb-6 flex items-center gap-3">
               <button
                 onClick={() => navigate({ to: "/courses" })}
-                className="grid h-9 w-9 place-items-center rounded-full bg-white transition-colors hover:bg-neutral-100"
+                className="grid h-9 w-9 place-items-center rounded-full bg-white transition-colors hover:bg-neutral-50"
                 style={{ border: `1px solid ${BORDER}` }}
                 aria-label="Back"
               >
                 <ArrowLeft className="h-4 w-4" style={{ color: INK_2 }} />
               </button>
               <p className="text-sm" style={{ color: MUTED }}>
-                Programs <span className="mx-1.5">/</span>
-                <span style={{ color: INK_2 }}>{product.title}</span>
+                Programs <ChevronRight className="mx-1 inline h-3.5 w-3.5 -translate-y-px" />
+                <span style={{ color: INK }} className="font-medium">{product.title}</span>
               </p>
-            </motion.div>
+            </div>
 
-            {/* HERO */}
             <ProgramHeroCard
               product={product}
               isLinear={isLinear}
@@ -302,78 +301,57 @@ function ProgramPage() {
               completedLessons={completedLessons}
               totalLessons={totalLessons}
               currentCourseTitle={currentCourse?.title ?? ""}
-              currentStreakDays={currentStreakDays}
               onContinue={() =>
                 currentCourse &&
                 navigate({ to: "/courses/$courseId", params: { courseId: currentCourse.id } })
               }
             />
 
-            {/* GRID */}
-            <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_360px] items-start">
-              {/* Curriculum */}
-              <motion.section
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-              >
-                <div className="mb-4 flex items-end justify-between">
-                  <div>
-                    <h2
-                      className="text-xl font-bold tracking-tight"
-                      style={{ color: INK }}
-                    >
-                      Program Curriculum
-                    </h2>
-                    <p className="mt-1 text-sm" style={{ color: MUTED }}>
-                      {isLinear
-                        ? "Complete each course to unlock the next."
-                        : "Jump into any course — they're all unlocked for you."}
-                    </p>
-                  </div>
+            <div className="mt-8 grid items-start gap-6 lg:grid-cols-[1fr_360px]">
+              <section>
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="text-xl font-bold tracking-tight" style={{ color: INK }}>
+                    Program Curriculum
+                  </h2>
                   <StatusPill linear={isLinear} />
                 </div>
 
-                <div className="space-y-3">
-                  {courses.map((c, idx) => (
-                    <CourseAccordion
-                      key={c.id}
-                      course={c}
-                      index={idx + 1}
-                      onOpenLesson={() =>
-                        navigate({ to: "/courses/$courseId", params: { courseId: c.id } })
-                      }
-                    />
-                  ))}
+                <div
+                  className="overflow-hidden rounded-[20px] bg-white"
+                  style={{ border: `1px solid ${BORDER}` }}
+                >
                   {courses.length === 0 && (
-                    <div
-                      className="rounded-3xl bg-white p-10 text-center"
-                      style={{ border: `1px solid ${BORDER}` }}
-                    >
+                    <div className="p-10 text-center">
                       <p className="text-sm" style={{ color: MUTED }}>
                         No courses in this program yet.
                       </p>
                     </div>
                   )}
+                  {courses.map((c, idx) => (
+                    <CourseRow
+                      key={c.id}
+                      course={c}
+                      index={idx + 1}
+                      isLast={idx === courses.length - 1}
+                      onOpenLesson={() =>
+                        navigate({ to: "/courses/$courseId", params: { courseId: c.id } })
+                      }
+                    />
+                  ))}
                 </div>
-              </motion.section>
+              </section>
 
-              {/* Sidebar */}
-              <motion.aside
-                initial={{ opacity: 0, x: 16 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.15 }}
-                className="space-y-5 lg:sticky lg:top-6 self-start"
-              >
+              <aside className="space-y-5 self-start lg:sticky lg:top-6">
                 <InstructorCard />
                 <LearningStreakCard
                   weekly={weekly}
                   currentStreakDays={currentStreakDays}
                   weeklyCompleted={weeklyCompleted}
+                  streakScore={streakScore}
                   learningMomentum={learningMomentum}
                 />
                 <RecommendedCourseCard />
-              </motion.aside>
+              </aside>
             </div>
           </div>
         </main>
@@ -399,18 +377,15 @@ function StatusPill({ linear }: { linear: boolean }) {
   );
 }
 
-function ProgressBar({ value, height = 8 }: { value: number; height?: number }) {
+function ProgressBar({ value, height = 8, locked = false }: { value: number; height?: number; locked?: boolean }) {
   return (
     <div
       className="w-full overflow-hidden rounded-full"
-      style={{ height, background: "#EEF1EE" }}
+      style={{ height, background: locked ? "#EAECEA" : "#EEF1EE" }}
     >
-      <motion.div
-        initial={{ width: 0 }}
-        animate={{ width: `${value}%` }}
-        transition={{ duration: 1, ease: [0.32, 0.72, 0, 1] }}
-        className="h-full rounded-full"
-        style={{ background: BRAND }}
+      <div
+        className="h-full rounded-full transition-[width] duration-700"
+        style={{ width: `${value}%`, background: locked ? "#C9CDC9" : BRAND }}
       />
     </div>
   );
@@ -423,7 +398,6 @@ function ProgramHeroCard({
   completedLessons,
   totalLessons,
   currentCourseTitle,
-  currentStreakDays,
   onContinue,
 }: {
   product: Product;
@@ -432,24 +406,16 @@ function ProgramHeroCard({
   completedLessons: number;
   totalLessons: number;
   currentCourseTitle: string;
-  currentStreakDays: number;
   onContinue: () => void;
 }) {
   return (
-    <motion.section
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
-      className="relative overflow-hidden rounded-[24px] bg-white p-6 lg:p-8"
-      style={{
-        border: `1px solid ${BORDER}`,
-        boxShadow:
-          "0 1px 2px rgba(20,30,50,0.04), 0 8px 28px rgba(20,30,50,0.04)",
-      }}
+    <section
+      className="overflow-hidden rounded-[24px] bg-white p-6 lg:p-8"
+      style={{ border: `1px solid ${BORDER}` }}
     >
       <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-center">
         {/* Left */}
-        <div className="min-w-0">
+        <div className="min-w-0 order-2 lg:order-1">
           <div className="flex flex-wrap items-center gap-2">
             <span
               className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider"
@@ -466,22 +432,15 @@ function ProgramHeroCard({
           >
             {product.title}
           </h1>
-          <p
-            className="mt-3 max-w-xl text-[15px] leading-relaxed"
-            style={{ color: MUTED }}
-          >
+          <p className="mt-3 max-w-xl text-[15px] leading-relaxed" style={{ color: MUTED }}>
             {product.description ||
-              "Master AI-powered software engineering through structured courses, projects, mentorship, and real-world workflows."}
+              "Master Rust systems programming and ship production LLM apps, RAG pipelines, and agentic systems."}
           </p>
 
-          {/* Progress block */}
           <div className="mt-6">
             <div className="mb-2 flex items-baseline justify-between">
               <div className="flex items-baseline gap-2">
-                <span
-                  className="text-3xl font-bold tabular-nums"
-                  style={{ color: INK }}
-                >
+                <span className="text-3xl font-bold tabular-nums" style={{ color: INK }}>
                   {programProgress}%
                 </span>
                 <span className="text-sm" style={{ color: MUTED }}>
@@ -496,33 +455,36 @@ function ProgramHeroCard({
             {currentCourseTitle && (
               <p className="mt-3 text-sm" style={{ color: MUTED }}>
                 Current Course:{" "}
-                <span className="font-semibold" style={{ color: INK_2 }}>
+                <span className="font-semibold" style={{ color: INK }}>
                   {currentCourseTitle}
                 </span>
               </p>
             )}
           </div>
 
-          <div className="mt-6">
-            <motion.button
-              whileHover={{ scale: 1.02, y: -1 }}
-              whileTap={{ scale: 0.98 }}
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <button
               onClick={onContinue}
-              className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-bold transition-shadow"
-              style={{
-                background: BRAND,
-                color: INK,
-                boxShadow: "0 6px 20px rgba(204, 246, 33, 0.45)",
-              }}
+              className="inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold transition-colors hover:brightness-95"
+              style={{ background: BRAND, color: INK }}
             >
               <PlayCircle className="h-4 w-4" />
               Continue Learning
-            </motion.button>
+            </button>
+
+            <MetaInfoRow
+              items={[
+                { icon: Clock, label: "22H / Week" },
+                { icon: Calendar, label: "4 Months" },
+                { icon: User, label: "Part Time" },
+                { icon: BookOpen, label: `${totalLessons} Lessons` },
+              ]}
+            />
           </div>
         </div>
 
         {/* Right - image */}
-        <div className="relative">
+        <div className="relative order-1 lg:order-2">
           <div
             className="relative aspect-[5/4] w-full overflow-hidden rounded-[20px]"
             style={{ border: `1px solid ${BORDER}` }}
@@ -541,112 +503,108 @@ function ProgramHeroCard({
                 <Package className="h-12 w-12" style={{ color: INK_2 }} />
               </div>
             )}
-            <div
-              aria-hidden
-              className="absolute inset-0"
-              style={{
-                background:
-                  "linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.25))",
-              }}
-            />
           </div>
-
         </div>
       </div>
-    </motion.section>
+    </section>
+  );
+}
+
+function MetaInfoRow({
+  items,
+}: {
+  items: { icon: React.ComponentType<{ className?: string }>; label: string }[];
+}) {
+  return (
+    <div
+      className="flex flex-wrap items-stretch rounded-full"
+      style={{ border: `1px solid ${BORDER}`, background: SOFT_BG }}
+    >
+      {items.map((it, i) => {
+        const Icon = it.icon;
+        return (
+          <div
+            key={it.label}
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold"
+            style={{
+              color: INK_2,
+              borderLeft: i === 0 ? "none" : `1px solid ${BORDER}`,
+            }}
+          >
+            <Icon className="h-3.5 w-3.5" />
+            {it.label}
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
 /* ---------- Curriculum ---------- */
 
-function CourseAccordion({
+function CourseRow({
   course,
   index,
+  isLast,
   onOpenLesson,
 }: {
   course: CourseNode;
   index: number;
+  isLast: boolean;
   onOpenLesson: () => void;
 }) {
   const locked = course.status === "locked";
-  const [open, setOpen] = useState(course.status === "in-progress");
+  const completed = course.status === "completed";
+  const inProgress = course.status === "in-progress";
+  const [open, setOpen] = useState(inProgress);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: locked ? 0.7 : 1, y: 0 }}
-      whileHover={locked ? undefined : { y: -2 }}
-      transition={{ duration: 0.25 }}
-      className="overflow-hidden rounded-[20px] bg-white"
+    <div
       style={{
-        border: `1px solid ${BORDER}`,
-        boxShadow: "0 1px 2px rgba(20,30,50,0.03), 0 4px 14px rgba(20,30,50,0.03)",
+        borderBottom: isLast ? "none" : `1px solid ${BORDER}`,
+        background: locked ? "#F4F5F4" : "#fff",
+        opacity: locked ? 0.75 : 1,
       }}
     >
       <button
         type="button"
         disabled={locked}
         onClick={() => !locked && setOpen((o) => !o)}
-        className={`flex w-full items-center gap-4 px-5 py-4 text-left ${locked ? "cursor-not-allowed" : "hover:bg-[#FAFCFA]"}`}
+        className={`flex w-full items-center gap-4 px-5 py-4 text-left ${locked ? "cursor-not-allowed" : "hover:bg-[" + ALT_BG + "]"}`}
+        style={{ transition: "background-color 0.15s" }}
+        onMouseEnter={(e) => {
+          if (!locked) e.currentTarget.style.background = ALT_BG;
+        }}
+        onMouseLeave={(e) => {
+          if (!locked) e.currentTarget.style.background = "transparent";
+        }}
       >
-        <div className="relative shrink-0">
-          <div
-            className="grid h-14 w-14 place-items-center rounded-2xl"
-            style={{ background: course.gradient }}
-          >
-            {course.status === "completed" ? (
-              <Check className="h-6 w-6" strokeWidth={3} style={{ color: INK }} />
-            ) : locked ? (
-              <Lock className="h-5 w-5" style={{ color: INK_2 }} />
-            ) : (
-              <BookOpen className="h-5 w-5" style={{ color: INK_2 }} />
-            )}
-          </div>
-          <span
-            className="absolute -right-1.5 -top-1.5 grid h-6 w-6 place-items-center rounded-full bg-white text-[10px] font-bold"
-            style={{ border: `1px solid ${BORDER}`, color: INK_2 }}
-          >
-            {index}
-          </span>
+        <div
+          className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-bold"
+          style={{
+            background: completed ? BRAND : locked ? "#E5E7EB" : BRAND_SOFT,
+            color: INK,
+          }}
+        >
+          {completed ? (
+            <Check className="h-5 w-5" strokeWidth={3} />
+          ) : locked ? (
+            <Lock className="h-4 w-4" style={{ color: MUTED }} />
+          ) : (
+            index
+          )}
         </div>
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="truncate text-[15px] font-bold" style={{ color: INK }}>
+            <p className="truncate text-[15px] font-bold" style={{ color: locked ? MUTED : INK }}>
               {course.title}
             </p>
             <CourseStatusBadge status={course.status} />
           </div>
-          <p className="mt-0.5 truncate text-xs" style={{ color: MUTED }}>
-            {course.description}
-          </p>
 
-          <div
-            className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-semibold"
-            style={{ color: MUTED }}
-          >
-            <span className="inline-flex items-center gap-1">
-              <Clock className="h-3 w-3" /> {course.meta}
-            </span>
-            <span>·</span>
-            <span className="inline-flex items-center gap-1">
-              <FileText className="h-3 w-3" /> {course.totalLessons} lessons
-            </span>
-          </div>
-
-          <div className="mt-3 flex items-center gap-3">
-            <div
-              className="h-1.5 flex-1 overflow-hidden rounded-full"
-              style={{ background: locked ? "#EAECEA" : "#EEF1EE" }}
-            >
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${course.progress}%` }}
-                transition={{ duration: 0.9 }}
-                className="h-full rounded-full"
-                style={{ background: locked ? "#C9CDC9" : BRAND }}
-              />
-            </div>
+          <div className="mt-2 flex items-center gap-3">
+            <ProgressBar value={course.progress} height={6} locked={locked} />
             <span
               className="shrink-0 text-[11px] font-bold tabular-nums"
               style={{ color: locked ? MUTED : INK }}
@@ -654,23 +612,17 @@ function CourseAccordion({
               {course.progress}%
             </span>
           </div>
-
-          {locked && (
-            <p className="mt-2 text-[11px]" style={{ color: MUTED }}>
-              Complete the previous course to unlock this.
-            </p>
-          )}
         </div>
 
-        {!locked && (
-          <motion.div
-            animate={{ rotate: open ? 180 : 0 }}
-            transition={{ duration: 0.25 }}
+        {!locked ? (
+          <div
             className="ml-2 grid h-8 w-8 shrink-0 place-items-center rounded-full"
-            style={{ background: "#F3F5F3" }}
+            style={{ background: SOFT_BG, transition: "transform 0.2s", transform: open ? "rotate(180deg)" : "rotate(0)" }}
           >
             <ChevronDown className="h-4 w-4" style={{ color: INK_2 }} />
-          </motion.div>
+          </div>
+        ) : (
+          <Lock className="ml-2 h-4 w-4 shrink-0" style={{ color: MUTED }} />
         )}
       </button>
 
@@ -681,26 +633,30 @@ function CourseAccordion({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
+            transition={{ duration: 0.25 }}
             className="overflow-hidden"
           >
             <div
-              className="space-y-2 px-5 pb-5 pt-2"
-              style={{ borderTop: `1px solid ${BORDER}` }}
+              className="space-y-2 px-5 pb-5 pt-1"
+              style={{ borderTop: `1px solid ${BORDER}`, background: SOFT_BG }}
             >
-              {course.modules.map((m, mi) => (
-                <ModuleAccordion
-                  key={m.id}
-                  mod={m}
-                  index={mi}
-                  onOpenLesson={onOpenLesson}
-                />
-              ))}
+              <div className="ml-6 border-l pt-3" style={{ borderColor: BORDER }}>
+                <div className="space-y-2 pl-4">
+                  {course.modules.map((m, mi) => (
+                    <ModuleAccordion
+                      key={m.id}
+                      mod={m}
+                      index={mi}
+                      onOpenLesson={onOpenLesson}
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 }
 
@@ -727,7 +683,7 @@ function CourseStatusBadge({ status }: { status: CourseStatus }) {
     return (
       <span
         className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
-        style={{ background: "#F1F3F1", color: MUTED }}
+        style={{ background: "#EAECEA", color: MUTED }}
       >
         <Lock className="h-3 w-3" /> Locked
       </span>
@@ -735,7 +691,7 @@ function CourseStatusBadge({ status }: { status: CourseStatus }) {
   return (
     <span
       className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
-      style={{ background: "#F1F3F1", color: INK_2 }}
+      style={{ background: SOFT_BG, color: INK_2, border: `1px solid ${BORDER}` }}
     >
       Not Started
     </span>
@@ -753,21 +709,18 @@ function ModuleAccordion({
 }) {
   const [open, setOpen] = useState(index === 0);
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.04 }}
-      className="overflow-hidden rounded-2xl"
-      style={{ border: `1px solid ${BORDER}`, background: "#FBFCFB" }}
+    <div
+      className="overflow-hidden rounded-xl bg-white"
+      style={{ border: `1px solid ${BORDER}` }}
     >
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-white"
+        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-[#FAFCFA]"
       >
         <div
-          className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-xs font-bold"
-          style={{ background: "#fff", border: `1px solid ${BORDER}`, color: INK_2 }}
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-xs font-bold"
+          style={{ background: SOFT_BG, color: INK_2 }}
         >
           {String(index + 1).padStart(2, "0")}
         </div>
@@ -776,13 +729,13 @@ function ModuleAccordion({
             {mod.title}
           </p>
           <p className="text-[11px]" style={{ color: MUTED }}>
-            {mod.units.length} units ·{" "}
-            {mod.units.reduce((a, u) => a + u.lessons.length, 0)} lessons
+            {mod.units.length} units · {mod.units.reduce((a, u) => a + u.lessons.length, 0)} lessons
           </p>
         </div>
-        <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
-          <ChevronDown className="h-4 w-4" style={{ color: MUTED }} />
-        </motion.div>
+        <ChevronDown
+          className="h-4 w-4 transition-transform"
+          style={{ color: MUTED, transform: open ? "rotate(180deg)" : "rotate(0)" }}
+        />
       </button>
       <AnimatePresence initial={false}>
         {open && (
@@ -790,7 +743,7 @@ function ModuleAccordion({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.28 }}
+            transition={{ duration: 0.22 }}
             className="overflow-hidden"
           >
             <div
@@ -798,18 +751,13 @@ function ModuleAccordion({
               style={{ borderTop: `1px solid ${BORDER}` }}
             >
               {mod.units.map((u, ui) => (
-                <UnitAccordion
-                  key={u.id}
-                  unit={u}
-                  index={ui}
-                  onOpenLesson={onOpenLesson}
-                />
+                <UnitAccordion key={u.id} unit={u} index={ui} onOpenLesson={onOpenLesson} />
               ))}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 }
 
@@ -825,13 +773,7 @@ function UnitAccordion({
   const [open, setOpen] = useState(index === 0);
   const completed = unit.lessons.filter((l) => l.status === "completed").length;
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 4 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.04 }}
-      className="overflow-hidden rounded-xl bg-white"
-      style={{ border: `1px solid ${BORDER}` }}
-    >
+    <div className="overflow-hidden rounded-lg bg-white" style={{ border: `1px solid ${BORDER}` }}>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -844,9 +786,10 @@ function UnitAccordion({
         <span className="shrink-0 text-[11px]" style={{ color: MUTED }}>
           {completed}/{unit.lessons.length}
         </span>
-        <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
-          <ChevronDown className="h-3.5 w-3.5" style={{ color: MUTED }} />
-        </motion.div>
+        <ChevronDown
+          className="h-3.5 w-3.5 transition-transform"
+          style={{ color: MUTED, transform: open ? "rotate(180deg)" : "rotate(0)" }}
+        />
       </button>
       <AnimatePresence initial={false}>
         {open && (
@@ -854,7 +797,7 @@ function UnitAccordion({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
             <ul className="space-y-1 px-2 pb-2 pt-1.5" style={{ borderTop: `1px solid ${BORDER}` }}>
@@ -865,7 +808,7 @@ function UnitAccordion({
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 }
 
@@ -875,20 +818,12 @@ function LessonRow({ lesson, onClick }: { lesson: Lesson; onClick: () => void })
   const isLocked = lesson.status === "locked";
 
   return (
-    <motion.li
-      whileHover={isLocked ? undefined : { y: -1, x: 2 }}
-      transition={{ duration: 0.15 }}
+    <li
       onClick={() => !isLocked && onClick()}
-      className={`flex items-center gap-3 rounded-lg px-3 py-2.5 ${isLocked ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
-      style={
-        isCurrent
-          ? {
-              background: BRAND_SOFT,
-              borderLeft: `3px solid ${BRAND}`,
-              boxShadow: "0 0 0 1px rgba(204,246,33,0.35)",
-            }
-          : undefined
-      }
+      className={`flex items-center gap-3 rounded-md px-3 py-2.5 transition-colors ${
+        isLocked ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:bg-[#FAFCFA]"
+      }`}
+      style={isCurrent ? { background: "#F3FFD6" } : undefined}
     >
       <LessonStatusIcon status={lesson.status} kind={lesson.kind} />
       <span
@@ -908,17 +843,11 @@ function LessonRow({ lesson, onClick }: { lesson: Lesson; onClick: () => void })
           Continue
         </span>
       )}
-    </motion.li>
+    </li>
   );
 }
 
-function LessonStatusIcon({
-  status,
-  kind,
-}: {
-  status: LessonStatus;
-  kind: LessonKind;
-}) {
+function LessonStatusIcon({ status, kind }: { status: LessonStatus; kind: LessonKind }) {
   if (status === "completed") {
     return (
       <span
@@ -933,19 +862,8 @@ function LessonStatusIcon({
     return <Lock className="h-4 w-4 shrink-0" style={{ color: MUTED }} />;
   }
   if (status === "current") {
-    return (
-      <span className="relative grid h-5 w-5 shrink-0 place-items-center">
-        <motion.span
-          animate={{ scale: [1, 1.4, 1], opacity: [0.6, 0, 0.6] }}
-          transition={{ duration: 1.6, repeat: Infinity }}
-          className="absolute inset-0 rounded-full"
-          style={{ background: BRAND }}
-        />
-        <PlayCircle className="relative h-4 w-4" style={{ color: INK }} />
-      </span>
-    );
+    return <PlayCircle className="h-4 w-4 shrink-0" style={{ color: INK }} />;
   }
-  // available -> kind icon
   const Icon =
     kind === "video"
       ? PlayCircle
@@ -959,16 +877,17 @@ function LessonStatusIcon({
 
 /* ---------- Sidebar Cards ---------- */
 
+function SidebarCard({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="rounded-[20px] bg-white p-5" style={{ border: `1px solid ${BORDER}` }}>
+      {children}
+    </div>
+  );
+}
+
 function InstructorCard() {
   return (
-    <motion.div
-      whileHover={{ y: -2 }}
-      className="rounded-[20px] bg-white p-5"
-      style={{
-        border: `1px solid ${BORDER}`,
-        boxShadow: "0 1px 2px rgba(20,30,50,0.03), 0 4px 14px rgba(20,30,50,0.03)",
-      }}
-    >
+    <SidebarCard>
       <div className="flex items-center gap-2">
         <div
           className="grid h-8 w-8 place-items-center rounded-lg"
@@ -982,16 +901,12 @@ function InstructorCard() {
       </div>
 
       <div className="mt-4 flex items-center gap-4">
-        <div
-          className="rounded-full p-[2px]"
-          style={{ background: BRAND }}
-        >
-          <img
-            src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop&crop=face"
-            alt="Ashane Perera"
-            className="h-14 w-14 rounded-full object-cover ring-2 ring-white"
-          />
-        </div>
+        <img
+          src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop&crop=face"
+          alt="Ashane Perera"
+          className="h-14 w-14 rounded-full object-cover"
+          style={{ border: `1px solid ${BORDER}` }}
+        />
         <div className="min-w-0">
           <p className="truncate text-sm font-bold" style={{ color: INK }}>
             Ashane Perera
@@ -1016,7 +931,7 @@ function InstructorCard() {
           <div
             key={s.l}
             className="rounded-xl p-2.5 text-center"
-            style={{ background: "#F7F9F7" }}
+            style={{ background: ALT_BG }}
           >
             <p className="text-sm font-bold" style={{ color: INK }}>
               {s.v}
@@ -1027,14 +942,7 @@ function InstructorCard() {
           </div>
         ))}
       </div>
-
-      <button
-        className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-bold transition-transform hover:-translate-y-0.5"
-        style={{ background: INK_2, color: "#fff" }}
-      >
-        View Profile <ArrowRight className="h-3.5 w-3.5" />
-      </button>
-    </motion.div>
+    </SidebarCard>
   );
 }
 
@@ -1042,22 +950,17 @@ function LearningStreakCard({
   weekly,
   currentStreakDays,
   weeklyCompleted,
+  streakScore,
   learningMomentum,
 }: {
   weekly: { day: string; v: number }[];
   currentStreakDays: number;
   weeklyCompleted: number;
+  streakScore: number;
   learningMomentum: number;
 }) {
   return (
-    <motion.div
-      whileHover={{ y: -2 }}
-      className="rounded-[20px] bg-white p-5"
-      style={{
-        border: `1px solid ${BORDER}`,
-        boxShadow: "0 1px 2px rgba(20,30,50,0.03), 0 4px 14px rgba(20,30,50,0.03)",
-      }}
-    >
+    <SidebarCard>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div
@@ -1113,19 +1016,15 @@ function LearningStreakCard({
       </div>
 
       <div className="mt-3 grid grid-cols-2 gap-2">
-        <div className="rounded-xl p-2.5" style={{ background: "#F7F9F7" }}>
+        <div className="rounded-xl p-2.5" style={{ background: ALT_BG }}>
           <p className="text-[10px]" style={{ color: MUTED }}>
             Streak Score
           </p>
           <p className="text-sm font-bold" style={{ color: INK }}>
-            {currentStreakDays * weeklyCompleted}
+            {streakScore}
           </p>
         </div>
-        <div
-          className="group relative rounded-xl p-2.5"
-          style={{ background: BRAND_SOFT }}
-          title="Calculated using streak days, total completed lessons, and recent weekly activity."
-        >
+        <div className="rounded-xl p-2.5" style={{ background: BRAND_SOFT }}>
           <p className="text-[10px]" style={{ color: INK_2 }}>
             Learning Momentum
           </p>
@@ -1134,58 +1033,55 @@ function LearningStreakCard({
           </p>
         </div>
       </div>
-    </motion.div>
+    </SidebarCard>
   );
 }
 
 function RecommendedCourseCard() {
   return (
-    <motion.div
-      whileHover={{ y: -2 }}
-      className="overflow-hidden rounded-[20px] bg-white"
-      style={{
-        border: `1px solid ${BORDER}`,
-        boxShadow: "0 1px 2px rgba(20,30,50,0.03), 0 4px 14px rgba(20,30,50,0.03)",
-      }}
-    >
-      <div className="p-5 pb-3">
-        <div className="flex items-center gap-2">
-          <div
-            className="grid h-8 w-8 place-items-center rounded-lg"
-            style={{ background: BRAND_SOFT }}
-          >
-            <Sparkles className="h-4 w-4" style={{ color: INK }} />
-          </div>
-          <h3 className="text-base font-bold" style={{ color: INK }}>
-            Recommended Next
-          </h3>
+    <SidebarCard>
+      <div className="flex items-center gap-2">
+        <div
+          className="grid h-8 w-8 place-items-center rounded-lg"
+          style={{ background: BRAND_SOFT }}
+        >
+          <Sparkles className="h-4 w-4" style={{ color: INK }} />
         </div>
+        <h3 className="text-base font-bold" style={{ color: INK }}>
+          Recommended Next
+        </h3>
       </div>
-      <div className="p-5 pt-3">
-        <div className="flex items-center gap-2">
-          <p className="text-sm font-bold" style={{ color: INK }}>
+
+      <div className="mt-4 flex items-start gap-3">
+        <div
+          className="grid h-14 w-14 shrink-0 place-items-center rounded-xl"
+          style={{ background: ALT_BG, border: `1px solid ${BORDER}` }}
+        >
+          <BookOpen className="h-6 w-6" style={{ color: INK }} />
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-bold leading-tight" style={{ color: INK }}>
             AI Agents & Automation
           </p>
           <span
-            className="rounded-full px-2 py-0.5 text-[10px] font-bold"
+            className="mt-1 inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold"
             style={{ background: BRAND_SOFT, color: INK }}
           >
-            Recommended
-          </span>
-        </div>
-        <p className="mt-1 text-xs leading-relaxed" style={{ color: MUTED }}>
-          Build tool-using AI agents and automation workflows.
-        </p>
-        <div className="mt-3 flex items-center gap-3 text-[11px] font-semibold" style={{ color: MUTED }}>
-          <span className="inline-flex items-center gap-1">
-            <Clock className="h-3 w-3" /> 12 Hours
-          </span>
-          <span>·</span>
-          <span className="inline-flex items-center gap-1">
-            <FileText className="h-3 w-3" /> 24 Lessons
+            AI / Engineering
           </span>
         </div>
       </div>
-    </motion.div>
+
+      <p className="mt-3 text-xs leading-relaxed" style={{ color: MUTED }}>
+        Build tool-using AI agents and automation workflows for production use cases.
+      </p>
+
+      <button
+        className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-bold"
+        style={{ background: ALT_BG, color: INK, border: `1px solid ${BORDER}` }}
+      >
+        Explore Course <ArrowRight className="h-3.5 w-3.5" />
+      </button>
+    </SidebarCard>
   );
 }
