@@ -701,8 +701,8 @@ function CourseRow({
               className="space-y-2 px-5 pb-5 pt-1"
               style={{ borderTop: `1px solid ${BORDER}`, background: "#fff" }}
             >
-              <div className="ml-6 border-l pt-3 border-white">
-                <div className="space-y-2 pl-4">
+              <div className="pt-3 flex flex-col items-center">
+                <div className="space-y-2 w-full max-w-3xl">
                   {course.modules.map((m, mi) => (
                     <ModuleAccordion
                       key={m.id}
