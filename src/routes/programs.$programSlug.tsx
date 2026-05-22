@@ -499,7 +499,7 @@ function ProgramHeroCard({
               <img
                 src={product.image}
                 alt={product.title}
-                className="h-full w-full object-cover"
+                className="h-full w-full object-cover border-white"
               />
             ) : (
               <div
