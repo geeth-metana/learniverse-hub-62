@@ -590,19 +590,13 @@ function CourseRow({
         }}
       >
         <div
-          className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-bold"
+          className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-bold tabular-nums"
           style={{
-            background: completed ? BRAND : locked ? "#E5E7EB" : BRAND_SOFT,
-            color: INK,
+            background: "#F1F3F5",
+            color: locked ? MUTED : INK,
           }}
         >
-          {completed ? (
-            <Check className="h-5 w-5" strokeWidth={3} />
-          ) : locked ? (
-            <Lock className="h-4 w-4" style={{ color: MUTED }} />
-          ) : (
-            index
-          )}
+          {index}
         </div>
 
         <div className="min-w-0 flex-1">
@@ -614,7 +608,7 @@ function CourseRow({
           </div>
 
           <div className="mt-2 flex items-center gap-3">
-            <ProgressBar value={course.progress} height={6} locked={locked} />
+            <ProgressBar value={course.progress} height={6} locked={locked} fill={INK} />
             <span
               className="shrink-0 text-[11px] font-bold tabular-nums"
               style={{ color: locked ? MUTED : INK }}
