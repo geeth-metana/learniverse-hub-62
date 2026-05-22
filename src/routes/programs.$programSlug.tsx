@@ -1119,22 +1119,47 @@ function LearningStreakCard({
       </div>
 
       <div className="mt-3 grid grid-cols-2 gap-2">
-        <div className="rounded-xl p-2.5" style={{ background: ALT_BG }}>
-          <p className="text-[10px]" style={{ color: MUTED }}>
-            Streak Score
-          </p>
-          <p className="text-sm font-bold" style={{ color: INK }}>
-            {streakScore}
-          </p>
-        </div>
-        <div className="rounded-xl p-2.5" style={{ background: BRAND_SOFT }}>
-          <p className="text-[10px]" style={{ color: INK_2 }}>
-            Learning Momentum
-          </p>
-          <p className="text-sm font-bold" style={{ color: INK }}>
-            {learningMomentum}
-          </p>
-        </div>
+        <TooltipProvider delayDuration={2000}>
+          <Tooltip>
+            <div className="rounded-xl p-2.5" style={{ background: ALT_BG }}>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-1 cursor-help">
+                  <p className="text-[10px]" style={{ color: MUTED }}>
+                    Streak Score
+                  </p>
+                  <HelpCircle className="w-3 h-3" style={{ color: MUTED }} />
+                </div>
+              </TooltipTrigger>
+              <p className="text-sm font-bold" style={{ color: INK }}>
+                {streakScore}
+              </p>
+            </div>
+            <TooltipContent side="top" className="max-w-[220px] text-xs">
+              Calculated by multiplying your current learning streak by the total lessons completed.
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        <TooltipProvider delayDuration={2000}>
+          <Tooltip>
+            <div className="rounded-xl p-2.5" style={{ background: BRAND_SOFT }}>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-1 cursor-help">
+                  <p className="text-[10px]" style={{ color: INK_2 }}>
+                    Learning Momentum
+                  </p>
+                  <HelpCircle className="w-3 h-3" style={{ color: INK_2 }} />
+                </div>
+              </TooltipTrigger>
+              <p className="text-sm font-bold" style={{ color: INK }}>
+                {learningMomentum}
+              </p>
+            </div>
+            <TooltipContent side="top" className="max-w-[220px] text-xs">
+              Calculated using your streak, total completed lessons, and lessons completed this week.
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
     </SidebarCard>
   );
