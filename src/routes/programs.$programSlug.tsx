@@ -527,22 +527,22 @@ function MetaInfoRow({
 }) {
   return (
     <div
-      className="flex flex-wrap items-stretch rounded-full"
-      style={{ border: `1px solid ${BORDER}`, background: SOFT_BG }}
+      className="flex h-12 min-w-0 flex-1 items-stretch overflow-hidden rounded-2xl bg-white"
+      style={{ border: `1px solid ${BORDER}` }}
     >
       {items.map((it, i) => {
         const Icon = it.icon;
         return (
           <div
             key={it.label}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold"
+            className="flex flex-1 items-center justify-center gap-1.5 px-3 text-xs font-semibold"
             style={{
               color: INK_2,
               borderLeft: i === 0 ? "none" : `1px solid ${BORDER}`,
             }}
           >
-            <Icon className="h-3.5 w-3.5" />
-            {it.label}
+            <Icon className="h-3.5 w-3.5" style={{ color: MUTED }} />
+            <span className="whitespace-nowrap">{it.label}</span>
           </div>
         );
       })}
