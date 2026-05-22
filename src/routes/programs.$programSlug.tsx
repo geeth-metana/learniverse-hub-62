@@ -327,17 +327,13 @@ function ProgramPage() {
                       </p>
                     </div>
                   )}
-                  {courses.map((c, idx) => (
-                    <CourseRow
-                      key={c.id}
-                      course={c}
-                      index={idx + 1}
-                      isLast={idx === courses.length - 1}
-                      onOpenLesson={() =>
-                        navigate({ to: "/courses/$courseId", params: { courseId: c.id } })
-                      }
-                    />
-                  ))}
+                  <CurriculumList
+                    courses={courses}
+                    defaultOpenCourseId={currentCourse?.id}
+                    onOpenLesson={(courseId) =>
+                      navigate({ to: "/courses/$courseId", params: { courseId } })
+                    }
+                  />
                 </div>
               </section>
 
@@ -551,21 +547,82 @@ function MetaInfoRow({
 
 /* ---------- Curriculum ---------- */
 
+function findCurrentLocation(course: CourseNode) {
+  for (const m of course.modules) {
+    for (const u of m.units) {
+      if (u.lessons.some((l) => l.status === "current")) {
+        return { moduleId: m.id, unitId: u.id };
+      }
+    }
+  }
+  // fallback: first available lesson
+  for (const m of course.modules) {
+    for (const u of m.units) {
+      if (u.lessons.some((l) => l.status === "available")) {
+        return { moduleId: m.id, unitId: u.id };
+      }
+    }
+  }
+  const m0 = course.modules[0];
+  return m0 ? { moduleId: m0.id, unitId: m0.units[0]?.id ?? "" } : { moduleId: "", unitId: "" };
+}
+
+function CurriculumList({
+  courses,
+  defaultOpenCourseId,
+  onOpenLesson,
+}: {
+  courses: CourseNode[];
+  defaultOpenCourseId?: string;
+  onOpenLesson: (courseId: string) => void;
+}) {
+  const [openCourseId, setOpenCourseId] = useState<string | null>(
+    defaultOpenCourseId ?? null,
+  );
+  useEffect(() => {
+    if (defaultOpenCourseId) setOpenCourseId(defaultOpenCourseId);
+  }, [defaultOpenCourseId]);
+  return (
+    <>
+      {courses.map((c, idx) => (
+        <CourseRow
+          key={c.id}
+          course={c}
+          index={idx + 1}
+          isLast={idx === courses.length - 1}
+          isOpen={openCourseId === c.id}
+          onToggle={() =>
+            setOpenCourseId((cur) => (cur === c.id ? null : c.id))
+          }
+          onOpenLesson={() => onOpenLesson(c.id)}
+        />
+      ))}
+    </>
+  );
+}
+
 function CourseRow({
   course,
   index,
   isLast,
+  isOpen,
+  onToggle,
   onOpenLesson,
 }: {
   course: CourseNode;
   index: number;
   isLast: boolean;
+  isOpen: boolean;
+  onToggle: () => void;
   onOpenLesson: () => void;
 }) {
   const locked = course.status === "locked";
-  const completed = course.status === "completed";
-  const inProgress = course.status === "in-progress";
-  const [open, setOpen] = useState(inProgress);
+  const open = isOpen && !locked;
+  const defaultLoc = useMemo(() => findCurrentLocation(course), [course]);
+  const [openModuleId, setOpenModuleId] = useState<string | null>(defaultLoc.moduleId);
+  useEffect(() => {
+    setOpenModuleId(defaultLoc.moduleId);
+  }, [defaultLoc.moduleId]);
 
   return (
     <div
@@ -578,7 +635,7 @@ function CourseRow({
       <button
         type="button"
         disabled={locked}
-        onClick={() => !locked && setOpen((o) => !o)}
+        onClick={() => !locked && onToggle()}
         className={`flex w-full items-center gap-4 px-5 py-4 text-left ${locked ? "cursor-not-allowed" : "hover:bg-[" + ALT_BG + "]"}`}
         style={{ transition: "background-color 0.15s" }}
         onMouseEnter={(e) => {
@@ -607,7 +664,7 @@ function CourseRow({
           </div>
 
           <div className="mt-2 flex items-center gap-3">
-            <ProgressBar value={course.progress} height={6} locked={locked} fill={INK} />
+            <ProgressBar value={course.progress} height={6} locked={locked} fill={INK_2} />
             <span
               className="shrink-0 text-[11px] font-bold tabular-nums"
               style={{ color: locked ? MUTED : INK }}
@@ -650,6 +707,11 @@ function CourseRow({
                       key={m.id}
                       mod={m}
                       index={mi}
+                      isOpen={openModuleId === m.id}
+                      onToggle={() =>
+                        setOpenModuleId((cur) => (cur === m.id ? null : m.id))
+                      }
+                      defaultOpenUnitId={defaultLoc.unitId}
                       onOpenLesson={onOpenLesson}
                     />
                   ))}
@@ -704,13 +766,27 @@ function CourseStatusBadge({ status }: { status: CourseStatus }) {
 function ModuleAccordion({
   mod,
   index,
+  isOpen,
+  onToggle,
+  defaultOpenUnitId,
   onOpenLesson,
 }: {
   mod: Mod;
   index: number;
+  isOpen: boolean;
+  onToggle: () => void;
+  defaultOpenUnitId?: string;
   onOpenLesson: () => void;
 }) {
-  const [open, setOpen] = useState(index === 0);
+  const open = isOpen;
+  const initialUnit =
+    mod.units.find((u) => u.id === defaultOpenUnitId)?.id ?? mod.units[0]?.id ?? null;
+  const [openUnitId, setOpenUnitId] = useState<string | null>(initialUnit);
+  useEffect(() => {
+    if (defaultOpenUnitId && mod.units.some((u) => u.id === defaultOpenUnitId)) {
+      setOpenUnitId(defaultOpenUnitId);
+    }
+  }, [defaultOpenUnitId, mod.units]);
   return (
     <div
       className="overflow-hidden rounded-xl bg-white"
@@ -718,7 +794,7 @@ function ModuleAccordion({
     >
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={onToggle}
         className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-[#FAFCFA]"
       >
         <div
@@ -754,7 +830,16 @@ function ModuleAccordion({
               style={{ borderTop: `1px solid ${BORDER}` }}
             >
               {mod.units.map((u, ui) => (
-                <UnitAccordion key={u.id} unit={u} index={ui} onOpenLesson={onOpenLesson} />
+                <UnitAccordion
+                  key={u.id}
+                  unit={u}
+                  index={ui}
+                  isOpen={openUnitId === u.id}
+                  onToggle={() =>
+                    setOpenUnitId((cur) => (cur === u.id ? null : u.id))
+                  }
+                  onOpenLesson={onOpenLesson}
+                />
               ))}
             </div>
           </motion.div>
@@ -767,19 +852,23 @@ function ModuleAccordion({
 function UnitAccordion({
   unit,
   index,
+  isOpen,
+  onToggle,
   onOpenLesson,
 }: {
   unit: Unit;
   index: number;
+  isOpen: boolean;
+  onToggle: () => void;
   onOpenLesson: () => void;
 }) {
-  const [open, setOpen] = useState(index === 0);
+  const open = isOpen;
   const completed = unit.lessons.filter((l) => l.status === "completed").length;
   return (
     <div className="overflow-hidden rounded-lg bg-white" style={{ border: `1px solid ${BORDER}` }}>
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={onToggle}
         className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-[#FAFCFA]"
       >
         <FileText className="h-4 w-4 shrink-0" style={{ color: MUTED }} />
