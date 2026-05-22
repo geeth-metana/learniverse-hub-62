@@ -551,37 +551,6 @@ function ProgramHeroCard({
             />
           </div>
 
-          {/* Floating streak card */}
-          <motion.div
-            animate={{ y: [0, -8, 0] }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute -bottom-4 -left-4 rounded-2xl bg-white p-3.5 pr-5"
-            style={{
-              border: `1px solid ${BORDER}`,
-              boxShadow:
-                "0 10px 30px rgba(20,30,50,0.10), 0 2px 6px rgba(20,30,50,0.04)",
-            }}
-          >
-            <div className="flex items-center gap-3">
-              <div
-                className="grid h-10 w-10 place-items-center rounded-xl"
-                style={{ background: BRAND_SOFT }}
-              >
-                <Flame className="h-5 w-5" style={{ color: "#E0742B" }} />
-              </div>
-              <div>
-                <p
-                  className="text-[10px] font-bold uppercase tracking-wider"
-                  style={{ color: MUTED }}
-                >
-                  Current Streak
-                </p>
-                <p className="text-base font-bold" style={{ color: INK }}>
-                  {currentStreakDays} Days
-                </p>
-              </div>
-            </div>
-          </motion.div>
         </div>
       </div>
     </motion.section>
