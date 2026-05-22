@@ -669,7 +669,7 @@ function CourseStatusBadge({ status }: { status: CourseStatus }) {
     return (
       <span
         className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
-        style={{ background: BRAND, color: INK }}
+        style={{ background: BRAND_SOFT, color: INK }}
       >
         <Check className="h-3 w-3" strokeWidth={3} /> Completed
       </span>
@@ -678,7 +678,7 @@ function CourseStatusBadge({ status }: { status: CourseStatus }) {
     return (
       <span
         className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
-        style={{ background: BRAND_SOFT, color: INK }}
+        style={{ background: "#FFF7D6", color: INK }}
       >
         <PlayCircle className="h-3 w-3" /> In Progress
       </span>
@@ -687,7 +687,7 @@ function CourseStatusBadge({ status }: { status: CourseStatus }) {
     return (
       <span
         className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
-        style={{ background: "#EAECEA", color: MUTED }}
+        style={{ background: "#F1F3F5", color: MUTED }}
       >
         <Lock className="h-3 w-3" /> Locked
       </span>
