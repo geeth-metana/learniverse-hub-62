@@ -523,7 +523,7 @@ function ProgramHeroCard({
 function MetaInfoRow({
   items,
 }: {
-  items: { icon: React.ComponentType<{ className?: string }>; label: string }[];
+  items: { icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>; label: string }[];
 }) {
   return (
     <div
