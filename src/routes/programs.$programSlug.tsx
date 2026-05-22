@@ -327,17 +327,13 @@ function ProgramPage() {
                       </p>
                     </div>
                   )}
-                  {courses.map((c, idx) => (
-                    <CourseRow
-                      key={c.id}
-                      course={c}
-                      index={idx + 1}
-                      isLast={idx === courses.length - 1}
-                      onOpenLesson={() =>
-                        navigate({ to: "/courses/$courseId", params: { courseId: c.id } })
-                      }
-                    />
-                  ))}
+                  <CurriculumList
+                    courses={courses}
+                    defaultOpenCourseId={currentCourse?.id}
+                    onOpenLesson={(courseId) =>
+                      navigate({ to: "/courses/$courseId", params: { courseId } })
+                    }
+                  />
                 </div>
               </section>
 
