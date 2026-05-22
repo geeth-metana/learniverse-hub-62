@@ -377,15 +377,25 @@ function StatusPill({ linear }: { linear: boolean }) {
   );
 }
 
-function ProgressBar({ value, height = 8, locked = false }: { value: number; height?: number; locked?: boolean }) {
+function ProgressBar({
+  value,
+  height = 8,
+  locked = false,
+  fill = BRAND,
+}: {
+  value: number;
+  height?: number;
+  locked?: boolean;
+  fill?: string;
+}) {
   return (
     <div
       className="w-full overflow-hidden rounded-full"
-      style={{ height, background: locked ? "#EAECEA" : "#EEF1EE" }}
+      style={{ height, background: BORDER }}
     >
       <div
         className="h-full rounded-full transition-[width] duration-700"
-        style={{ width: `${value}%`, background: locked ? "#C9CDC9" : BRAND }}
+        style={{ width: `${value}%`, background: locked ? "#C9CDC9" : fill }}
       />
     </div>
   );
@@ -462,10 +472,10 @@ function ProgramHeroCard({
             )}
           </div>
 
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-stretch">
             <button
               onClick={onContinue}
-              className="inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold transition-colors hover:brightness-95"
+              className="inline-flex h-12 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-full px-6 text-sm font-bold transition-colors hover:brightness-95"
               style={{ background: BRAND, color: INK }}
             >
               <PlayCircle className="h-4 w-4" />
@@ -513,26 +523,26 @@ function ProgramHeroCard({
 function MetaInfoRow({
   items,
 }: {
-  items: { icon: React.ComponentType<{ className?: string }>; label: string }[];
+  items: { icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>; label: string }[];
 }) {
   return (
     <div
-      className="flex flex-wrap items-stretch rounded-full"
-      style={{ border: `1px solid ${BORDER}`, background: SOFT_BG }}
+      className="flex h-12 min-w-0 flex-1 items-stretch overflow-hidden rounded-2xl bg-white"
+      style={{ border: `1px solid ${BORDER}` }}
     >
       {items.map((it, i) => {
         const Icon = it.icon;
         return (
           <div
             key={it.label}
-            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold"
+            className="flex flex-1 items-center justify-center gap-1.5 px-3 text-xs font-semibold"
             style={{
               color: INK_2,
               borderLeft: i === 0 ? "none" : `1px solid ${BORDER}`,
             }}
           >
-            <Icon className="h-3.5 w-3.5" />
-            {it.label}
+            <Icon className="h-3.5 w-3.5" style={{ color: MUTED }} />
+            <span className="whitespace-nowrap">{it.label}</span>
           </div>
         );
       })}
@@ -580,19 +590,13 @@ function CourseRow({
         }}
       >
         <div
-          className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-bold"
+          className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-bold tabular-nums"
           style={{
-            background: completed ? BRAND : locked ? "#E5E7EB" : BRAND_SOFT,
-            color: INK,
+            background: "#F1F3F5",
+            color: locked ? MUTED : INK,
           }}
         >
-          {completed ? (
-            <Check className="h-5 w-5" strokeWidth={3} />
-          ) : locked ? (
-            <Lock className="h-4 w-4" style={{ color: MUTED }} />
-          ) : (
-            index
-          )}
+          {index}
         </div>
 
         <div className="min-w-0 flex-1">
@@ -604,7 +608,7 @@ function CourseRow({
           </div>
 
           <div className="mt-2 flex items-center gap-3">
-            <ProgressBar value={course.progress} height={6} locked={locked} />
+            <ProgressBar value={course.progress} height={6} locked={locked} fill={INK} />
             <span
               className="shrink-0 text-[11px] font-bold tabular-nums"
               style={{ color: locked ? MUTED : INK }}
@@ -665,7 +669,7 @@ function CourseStatusBadge({ status }: { status: CourseStatus }) {
     return (
       <span
         className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
-        style={{ background: BRAND, color: INK }}
+        style={{ background: BRAND_SOFT, color: INK }}
       >
         <Check className="h-3 w-3" strokeWidth={3} /> Completed
       </span>
@@ -674,7 +678,7 @@ function CourseStatusBadge({ status }: { status: CourseStatus }) {
     return (
       <span
         className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
-        style={{ background: BRAND_SOFT, color: INK }}
+        style={{ background: "#FFF7D6", color: INK }}
       >
         <PlayCircle className="h-3 w-3" /> In Progress
       </span>
@@ -683,7 +687,7 @@ function CourseStatusBadge({ status }: { status: CourseStatus }) {
     return (
       <span
         className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
-        style={{ background: "#EAECEA", color: MUTED }}
+        style={{ background: "#F1F3F5", color: MUTED }}
       >
         <Lock className="h-3 w-3" /> Locked
       </span>
@@ -823,7 +827,11 @@ function LessonRow({ lesson, onClick }: { lesson: Lesson; onClick: () => void })
       className={`flex items-center gap-3 rounded-md px-3 py-2.5 transition-colors ${
         isLocked ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:bg-[#FAFCFA]"
       }`}
-      style={isCurrent ? { background: "#F3FFD6" } : undefined}
+      style={
+        isCurrent
+          ? { background: "#F3FFD6", borderLeft: `3px solid ${BRAND}` }
+          : undefined
+      }
     >
       <LessonStatusIcon status={lesson.status} kind={lesson.kind} />
       <span
@@ -891,7 +899,7 @@ function InstructorCard() {
       <div className="flex items-center gap-2">
         <div
           className="grid h-8 w-8 place-items-center rounded-lg"
-          style={{ background: BRAND_SOFT }}
+          style={{ background: "#F1F3F5" }}
         >
           <Users className="h-4 w-4" style={{ color: INK }} />
         </div>
@@ -965,7 +973,7 @@ function LearningStreakCard({
         <div className="flex items-center gap-2">
           <div
             className="grid h-8 w-8 place-items-center rounded-lg"
-            style={{ background: BRAND_SOFT }}
+            style={{ background: "#F1F3F5" }}
           >
             <Zap className="h-4 w-4" style={{ color: INK }} />
           </div>
@@ -1043,7 +1051,7 @@ function RecommendedCourseCard() {
       <div className="flex items-center gap-2">
         <div
           className="grid h-8 w-8 place-items-center rounded-lg"
-          style={{ background: BRAND_SOFT }}
+          style={{ background: "#F1F3F5" }}
         >
           <Sparkles className="h-4 w-4" style={{ color: INK }} />
         </div>
