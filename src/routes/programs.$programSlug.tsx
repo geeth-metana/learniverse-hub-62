@@ -486,7 +486,6 @@ function ProgramHeroCard({
               items={[
                 { icon: Clock, label: "22H / Week" },
                 { icon: Calendar, label: "4 Months" },
-                { icon: User, label: "Part Time" },
                 { icon: BookOpen, label: `${totalLessons} Lessons` },
               ]}
             />
