@@ -13,6 +13,7 @@ import {
   ChevronRight,
   Clock,
   FileText,
+  HelpCircle,
   Lock,
   Package,
   PlayCircle,
@@ -30,6 +31,12 @@ import {
   Tooltip as RTooltip,
   XAxis,
 } from "recharts";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { getProductBySlug, type Product } from "@/lib/products-store";
 import { getCourse } from "@/lib/courses-data";
 import { courseDetails, fallbackDetail } from "./courses.$courseId";
