@@ -1161,28 +1161,18 @@ function RecommendedCourseCard() {
           </h3>
         </div>
       </div>
-      <div className="px-5">
-        <div
-          className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl"
-          style={{ border: `1px solid ${BORDER}` }}
-        >
-          <img
-            src="https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&q=80"
-            alt="AI Agents & Automation"
-            className="h-full w-full object-cover"
-          />
+      <div className="p-5 pt-3">
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-bold" style={{ color: INK }}>
+            AI Agents & Automation
+          </p>
           <span
-            className="absolute left-3 top-3 rounded-full px-2.5 py-0.5 text-[10px] font-bold"
-            style={{ background: BRAND, color: INK }}
+            className="rounded-full px-2 py-0.5 text-[10px] font-bold"
+            style={{ background: BRAND_SOFT, color: INK }}
           >
             Recommended
           </span>
         </div>
-      </div>
-      <div className="p-5 pt-3">
-        <p className="text-sm font-bold" style={{ color: INK }}>
-          AI Agents & Automation
-        </p>
         <p className="mt-1 text-xs leading-relaxed" style={{ color: MUTED }}>
           Build tool-using AI agents and automation workflows.
         </p>
@@ -1195,12 +1185,6 @@ function RecommendedCourseCard() {
             <FileText className="h-3 w-3" /> 24 Lessons
           </span>
         </div>
-        <button
-          className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-bold transition-transform hover:-translate-y-0.5"
-          style={{ background: BRAND, color: INK }}
-        >
-          Explore Course <ArrowRight className="h-3.5 w-3.5" />
-        </button>
       </div>
     </motion.div>
   );
