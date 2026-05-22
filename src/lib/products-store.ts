@@ -52,7 +52,7 @@ const seedProducts: Product[] = [
       "End-to-end path from full stack fundamentals to shipping audited Solidity contracts on EVM chains.",
     courseIds: ["fullstack", "solidity"],
     prerequisiteId: null,
-    image: "user-uploads://419a3158-26a6-4560-b4c1-fd678755040f.png",
+    image: "user-uploads://db32b26f-1e5a-4882-bc3f-fc4237b94480.png",
     createdAt: Date.now() - 1000 * 60 * 60 * 24 * 14,
     published: true,
     accessibility: "linear",
