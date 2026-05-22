@@ -472,10 +472,10 @@ function ProgramHeroCard({
             )}
           </div>
 
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-stretch">
             <button
               onClick={onContinue}
-              className="inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-bold transition-colors hover:brightness-95"
+              className="inline-flex h-12 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-full px-6 text-sm font-bold transition-colors hover:brightness-95"
               style={{ background: BRAND, color: INK }}
             >
               <PlayCircle className="h-4 w-4" />
