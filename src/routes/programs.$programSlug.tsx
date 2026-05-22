@@ -827,7 +827,11 @@ function LessonRow({ lesson, onClick }: { lesson: Lesson; onClick: () => void })
       className={`flex items-center gap-3 rounded-md px-3 py-2.5 transition-colors ${
         isLocked ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:bg-[#FAFCFA]"
       }`}
-      style={isCurrent ? { background: "#F3FFD6" } : undefined}
+      style={
+        isCurrent
+          ? { background: "#F3FFD6", borderLeft: `3px solid ${BRAND}` }
+          : undefined
+      }
     >
       <LessonStatusIcon status={lesson.status} kind={lesson.kind} />
       <span
