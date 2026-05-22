@@ -895,7 +895,7 @@ function InstructorCard() {
       <div className="flex items-center gap-2">
         <div
           className="grid h-8 w-8 place-items-center rounded-lg"
-          style={{ background: BRAND_SOFT }}
+          style={{ background: "#F1F3F5" }}
         >
           <Users className="h-4 w-4" style={{ color: INK }} />
         </div>
@@ -969,7 +969,7 @@ function LearningStreakCard({
         <div className="flex items-center gap-2">
           <div
             className="grid h-8 w-8 place-items-center rounded-lg"
-            style={{ background: BRAND_SOFT }}
+            style={{ background: "#F1F3F5" }}
           >
             <Zap className="h-4 w-4" style={{ color: INK }} />
           </div>
@@ -1047,7 +1047,7 @@ function RecommendedCourseCard() {
       <div className="flex items-center gap-2">
         <div
           className="grid h-8 w-8 place-items-center rounded-lg"
-          style={{ background: BRAND_SOFT }}
+          style={{ background: "#F1F3F5" }}
         >
           <Sparkles className="h-4 w-4" style={{ color: INK }} />
         </div>
