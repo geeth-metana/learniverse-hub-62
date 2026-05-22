@@ -1,96 +1,129 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Topbar } from "@/components/dashboard/Topbar";
 import {
   ArrowLeft,
-  Package,
+  ArrowRight,
   BookOpen,
   Check,
-  Users,
-  ArrowRight,
-  Layers,
-  FileText,
-  PlayCircle,
-  Lock,
-  Unlock,
-  CircleDashed,
-  FolderOpen,
-  Sparkles,
-  Trophy,
+  ChevronDown,
   Clock,
-  GraduationCap,
-  Award,
+  FileText,
+  Flame,
+  Lock,
+  Package,
+  PlayCircle,
+  Sparkles,
+  Star,
+  Users,
+  Zap,
 } from "lucide-react";
 import {
-  getProductBySlug,
-  type Product,
-  type ProductItem,
-} from "@/lib/products-store";
+  BarChart,
+  Bar,
+  ResponsiveContainer,
+  Tooltip as RTooltip,
+  XAxis,
+  Cell,
+} from "recharts";
+import { getProductBySlug, type Product } from "@/lib/products-store";
 import { getCourse } from "@/lib/courses-data";
 import { courseDetails, fallbackDetail } from "./courses.$courseId";
-import {
-  Accordion,
-  AccordionItem,
-  AccordionTrigger,
-  AccordionContent,
-} from "@/components/ui/accordion";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
 
-type Lesson = { title: string; duration: string };
-type Unit = { title: string; lessons: Lesson[] };
+const BRAND = "#CCF621";
+const BRAND_SOFT = "#F0FBC2";
+const INK = "#1A1A1A";
+const INK_2 = "#24324A";
+const MUTED = "#6B7280";
+const BG = "#F8FAF7";
+const BORDER = "#E5E7EB";
 
-function buildUnits(moduleTitle: string, moduleIdx: number): Unit[] {
-  const base = moduleTitle.replace(/^Module\s*\d+\s*[—-]\s*/i, "").trim() || "Topic";
-  const unitsPerModule = 3;
-  return Array.from({ length: unitsPerModule }, (_, u) => {
-    const lessonCount = 3 + ((moduleIdx + u) % 2);
-    return {
-      title: `Unit ${u + 1} — ${base} ${["essentials", "in practice", "deep dive"][u] ?? "more"}`,
-      lessons: Array.from({ length: lessonCount }, (_, l) => ({
-        title: `Lesson ${u + 1}.${l + 1} — ${base} ${["intro", "walkthrough", "exercise", "review", "challenge"][l] ?? "extra"}`,
-        duration: `${8 + ((l + u + moduleIdx) % 5) * 3} min`,
-      })),
-    };
-  });
-}
+type LessonKind = "video" | "reading" | "quiz" | "assignment";
+type LessonStatus = "completed" | "current" | "available" | "locked";
+type Lesson = { id: string; title: string; duration: string; kind: LessonKind; status: LessonStatus };
+type Unit = { id: string; title: string; lessons: Lesson[] };
+type Mod = { id: string; title: string; units: Unit[] };
+type CourseStatus = "completed" | "in-progress" | "available" | "locked";
+type CourseNode = {
+  id: string;
+  title: string;
+  description: string;
+  meta: string;
+  gradient: string;
+  modules: Mod[];
+  totalLessons: number;
+  completedLessons: number;
+  progress: number;
+  status: CourseStatus;
+};
 
 export const Route = createFileRoute("/programs/$programSlug")({
   head: () => ({
     meta: [
       { title: "Program — Metana Platform" },
-      { name: "description", content: "Your learning program overview." },
+      { name: "description", content: "Your Metana learning program overview." },
     ],
   }),
   component: ProgramPage,
 });
 
-const instructors = [
-  {
-    name: "Alex Morgan",
-    role: "Lead Instructor",
-    image:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop&crop=face",
-  },
-  {
-    name: "Priya Sharma",
-    role: "Course Director",
-    image:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&h=120&fit=crop&crop=face",
-  },
-  {
-    name: "James Chen",
-    role: "Technical Mentor",
-    image:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&h=120&fit=crop&crop=face",
-  },
-];
+function buildCourseTree(courseId: string, seededProgress: number): {
+  modules: Mod[];
+  totalLessons: number;
+  completedLessons: number;
+} {
+  const detail = courseDetails[courseId] ?? fallbackDetail;
+  const rawModules = detail.modules ?? [];
+  const modules: Mod[] = rawModules.map((m, mi) => {
+    const base = m.title.replace(/^Module\s*\d+\s*[—-]\s*/i, "").trim() || "Topic";
+    const units: Unit[] = Array.from({ length: 2 }, (_, u) => {
+      const lessonCount = 3 + ((mi + u) % 2);
+      const lessons: Lesson[] = Array.from({ length: lessonCount }, (_, l) => {
+        const kinds: LessonKind[] = ["video", "reading", "quiz", "assignment"];
+        return {
+          id: `${courseId}-m${mi}-u${u}-l${l}`,
+          title: `Lesson ${l + 1} — ${base} ${["intro", "walkthrough", "exercise", "review"][l] ?? "extra"}`,
+          duration: `${6 + ((l + u + mi) % 5) * 3} min`,
+          kind: kinds[(l + u) % kinds.length],
+          status: "available",
+        };
+      });
+      return {
+        id: `${courseId}-m${mi}-u${u}`,
+        title: `Unit 0${u + 1} — ${base} ${u === 0 ? "essentials" : "in practice"}`,
+        lessons,
+      };
+    });
+    return { id: `${courseId}-m${mi}`, title: `Module 0${mi + 1}: ${base}`, units };
+  });
+
+  const totalLessons = modules.reduce(
+    (a, m) => a + m.units.reduce((aa, u) => aa + u.lessons.length, 0),
+    0,
+  );
+  const completedLessons = Math.round((seededProgress / 100) * totalLessons);
+
+  let remaining = completedLessons;
+  let currentMarked = false;
+  for (const m of modules) {
+    for (const u of m.units) {
+      for (const l of u.lessons) {
+        if (remaining > 0) {
+          l.status = "completed";
+          remaining -= 1;
+        } else if (!currentMarked && seededProgress > 0 && seededProgress < 100) {
+          l.status = "current";
+          currentMarked = true;
+        } else {
+          l.status = "available";
+        }
+      }
+    }
+  }
+  return { modules, totalLessons, completedLessons };
+}
 
 function ProgramPage() {
   const { programSlug } = useParams({ from: "/programs/$programSlug" });
@@ -98,7 +131,6 @@ function ProgramPage() {
   const [product, setProduct] = useState<Product | undefined>(() =>
     getProductBySlug(programSlug),
   );
-  const [openCourseId, setOpenCourseId] = useState<string | null>(null);
 
   useEffect(() => {
     setProduct(getProductBySlug(programSlug));
@@ -111,19 +143,94 @@ function ProgramPage() {
     };
   }, [programSlug]);
 
+  const courses: CourseNode[] = useMemo(() => {
+    if (!product) return [];
+    const seeded: Record<string, number> = {
+      fullstack: 100,
+      solidity: 65,
+      rust: 100,
+      "ai-engineering": 30,
+      zk: 0,
+      data: 0,
+    };
+    const isLinear = (product.accessibility ?? "free") === "linear";
+    const list = product.courseIds
+      .map((id) => getCourse(id))
+      .filter(Boolean) as NonNullable<ReturnType<typeof getCourse>>[];
+
+    const built = list.map((c, i) => {
+      const prog = seeded[c.id] ?? (i === 0 ? 60 : i === 1 ? 25 : 0);
+      const { modules, totalLessons, completedLessons } = buildCourseTree(c.id, prog);
+      return {
+        id: c.id,
+        title: c.title,
+        description: c.description,
+        meta: c.meta,
+        gradient: c.gradient,
+        modules,
+        totalLessons,
+        completedLessons,
+        progress: prog,
+        status: "available" as CourseStatus,
+      };
+    });
+
+    // Apply lock logic
+    built.forEach((c, i) => {
+      if (c.progress >= 100) c.status = "completed";
+      else if (c.progress > 0) c.status = "in-progress";
+      else if (isLinear && i > 0 && built[i - 1].progress < 100) c.status = "locked";
+      else c.status = "available";
+    });
+
+    // Mark first non-completed course's first available lesson as current if not already
+    const hasCurrent = built.some((c) =>
+      c.modules.some((m) => m.units.some((u) => u.lessons.some((l) => l.status === "current"))),
+    );
+    if (!hasCurrent) {
+      const target = built.find((c) => c.status === "in-progress" || c.status === "available");
+      if (target) {
+        outer: for (const m of target.modules) {
+          for (const u of m.units) {
+            for (const l of u.lessons) {
+              if (l.status === "available") {
+                l.status = "current";
+                break outer;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Lock lessons of locked courses
+    built.forEach((c) => {
+      if (c.status === "locked") {
+        c.modules.forEach((m) =>
+          m.units.forEach((u) => u.lessons.forEach((l) => (l.status = "locked"))),
+        );
+      }
+    });
+
+    return built;
+  }, [product]);
+
   if (!product) {
     return (
-      <div className="flex min-h-screen bg-background text-foreground">
+      <div className="flex min-h-screen" style={{ background: BG }}>
         <Sidebar />
         <div className="flex min-w-0 flex-1 flex-col">
           <Topbar />
-          <main className="flex-1 p-6 lg:p-8">
-            <div className="mx-auto max-w-[800px] rounded-3xl border border-dashed border-border py-20 text-center">
-              <Package className="mx-auto h-10 w-10 text-muted-foreground" />
-              <p className="mt-4 text-body text-muted-foreground">Program not found.</p>
+          <main className="flex-1 p-6 lg:p-10">
+            <div className="mx-auto max-w-[800px] rounded-3xl border border-dashed border-border bg-white py-20 text-center">
+              <Package className="mx-auto h-10 w-10" style={{ color: MUTED }} />
+              <p className="mt-4 text-sm" style={{ color: MUTED }}>
+                Program not found.
+              </p>
               <button
                 onClick={() => navigate({ to: "/courses" })}
-                className="mt-5 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-button-primary font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+                className="mt-5 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-transform hover:-translate-y-0.5"
+                style={{ background: BRAND, color: INK }}
               >
                 <ArrowLeft className="h-4 w-4" /> Back to Courses
               </button>
@@ -134,569 +241,998 @@ function ProgramPage() {
     );
   }
 
-  const courses = product.courseIds.map(getCourse).filter(Boolean) as NonNullable<
-    ReturnType<typeof getCourse>
-  >[];
-  const accessibility = product.accessibility ?? "free";
-  const optionalIds = product.optionalIds ?? [];
-  const items: ProductItem[] =
-    product.items && product.items.length > 0
-      ? product.items
-      : product.courseIds.map((cid, i) => ({ kind: "course", id: `c-${i}`, courseId: cid }));
-  const groupCount = items.filter((it) => it.kind === "group").length;
-  const created = new Date(product.createdAt).toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-
-  // Stable pseudo per-course progress for demo realism.
-  const courseProgress: Record<string, number> = {};
-  courses.forEach((c, i) => {
-    const seeded: Record<string, number> = { fullstack: 72, solidity: 18, rust: 45, "ai-engineering": 12, zk: 0, data: 0 };
-    courseProgress[c.id] = seeded[c.id] ?? (i === 0 ? 60 : i === 1 ? 25 : 0);
-  });
-  const overallProgress = courses.length
-    ? Math.round(courses.reduce((acc, c) => acc + (courseProgress[c.id] ?? 0), 0) / courses.length)
+  const isLinear = (product.accessibility ?? "free") === "linear";
+  const totalLessons = courses.reduce((a, c) => a + c.totalLessons, 0);
+  const completedLessons = courses.reduce((a, c) => a + c.completedLessons, 0);
+  const programProgress = totalLessons
+    ? Math.round((completedLessons / totalLessons) * 100)
     : 0;
-  const totalLessons = courses.reduce((acc, c) => {
-    const d = courseDetails[c.id] ?? fallbackDetail;
-    return acc + (d.modules?.length ?? 0) * 9;
-  }, 0);
-  const nextCourse = courses.find((c) => (courseProgress[c.id] ?? 0) > 0 && (courseProgress[c.id] ?? 0) < 100) ?? courses[0];
+  const currentCourse =
+    courses.find((c) => c.status === "in-progress") ??
+    courses.find((c) => c.status === "available") ??
+    courses[0];
+
+  // Streak data
+  const weekly = [
+    { day: "Mon", v: 3 },
+    { day: "Tue", v: 2 },
+    { day: "Wed", v: 0 },
+    { day: "Thu", v: 4 },
+    { day: "Fri", v: 1 },
+    { day: "Sat", v: 5 },
+    { day: "Sun", v: 2 },
+  ];
+  const weeklyCompleted = weekly.reduce((a, d) => a + d.v, 0);
+  const currentStreakDays = 7;
+  const learningMomentum =
+    currentStreakDays * 10 + completedLessons * 2 + weeklyCompleted * 5;
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
+    <div className="flex min-h-screen" style={{ background: BG }}>
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar />
-        <main className="flex-1 p-6 lg:p-8">
-          <div className="mx-auto max-w-[1200px]">
-            <div className="mb-6 flex items-center gap-3">
+        <main className="flex-1 p-6 lg:p-10">
+          <div className="mx-auto max-w-[1280px]">
+            {/* Breadcrumb */}
+            <motion.div
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 flex items-center gap-3"
+            >
               <button
                 onClick={() => navigate({ to: "/courses" })}
-                className="grid h-10 w-10 place-items-center rounded-full hover:bg-muted transition-colors"
-                aria-label="Back to courses"
+                className="grid h-9 w-9 place-items-center rounded-full bg-white transition-colors hover:bg-neutral-100"
+                style={{ border: `1px solid ${BORDER}` }}
+                aria-label="Back"
               >
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className="h-4 w-4" style={{ color: INK_2 }} />
               </button>
-              <p className="text-small text-muted-foreground">Programs / {product.title}</p>
-            </div>
+              <p className="text-sm" style={{ color: MUTED }}>
+                Programs <span className="mx-1.5">/</span>
+                <span style={{ color: INK_2 }}>{product.title}</span>
+              </p>
+            </motion.div>
 
-            <section
-              className="relative mb-6 overflow-hidden rounded-[28px] p-8 lg:p-10 [--hero-fg:oklch(0.22_0.04_280)] [--hero-fg-muted:oklch(0.45_0.04_280)] [--hero-surface:oklch(1_0_0/0.85)]"
-              style={{
-                background:
-                  "linear-gradient(135deg, oklch(0.96 0.05 260), oklch(0.93 0.09 295) 55%, oklch(0.92 0.12 330))",
-              }}
-            >
-              {/* decorative glows */}
-              <div
-                aria-hidden
-                className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full opacity-60 blur-3xl"
-                style={{ background: "oklch(0.88 0.18 330)" }}
-              />
-              <div
-                aria-hidden
-                className="pointer-events-none absolute -left-16 bottom-[-40%] h-72 w-72 rounded-full opacity-50 blur-3xl"
-                style={{ background: "var(--brand)" }}
-              />
-              <div className="relative grid gap-8 lg:grid-cols-[1fr_320px] lg:items-stretch" style={{ color: "var(--hero-fg)" }}>
-                <div className="min-w-0">
-                  <div className="mb-4 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-smaller font-semibold uppercase tracking-wide shadow-[var(--shadow-soft)] backdrop-blur" style={{ background: "var(--hero-surface)", color: "var(--hero-fg)" }}>
-                    <Sparkles className="h-3.5 w-3.5 text-[oklch(0.65_0.2_320)]" /> Program
-                  </div>
-                  <h1 className="text-primary-header font-bold leading-[1.05] tracking-tight" style={{ color: "var(--hero-fg)" }}>
-                    {product.title}
-                  </h1>
-                  <p className="mt-3 max-w-xl text-body leading-relaxed" style={{ color: "var(--hero-fg-muted)" }}>
-                    {product.description || "No description"}
-                  </p>
+            {/* HERO */}
+            <ProgramHeroCard
+              product={product}
+              isLinear={isLinear}
+              programProgress={programProgress}
+              completedLessons={completedLessons}
+              totalLessons={totalLessons}
+              currentCourseTitle={currentCourse?.title ?? ""}
+              currentStreakDays={currentStreakDays}
+              onContinue={() =>
+                currentCourse &&
+                navigate({ to: "/courses/$courseId", params: { courseId: currentCourse.id } })
+              }
+            />
 
-                  <div className="mt-5 flex flex-wrap items-center gap-2.5">
-                    <span className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-small font-semibold shadow-[var(--shadow-soft)] backdrop-blur" style={{ background: "var(--hero-surface)", color: "var(--hero-fg)" }}>
-                      <BookOpen className="h-3.5 w-3.5" style={{ color: "var(--hero-fg-muted)" }} /> {courses.length} course
-                      {courses.length === 1 ? "" : "s"}
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-small font-semibold shadow-[var(--shadow-soft)] backdrop-blur" style={{ background: "var(--hero-surface)", color: "var(--hero-fg)" }}>
-                      <FileText className="h-3.5 w-3.5" style={{ color: "var(--hero-fg-muted)" }} /> {totalLessons}+ lessons
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-small font-semibold shadow-[var(--shadow-soft)] backdrop-blur" style={{ background: "var(--hero-surface)", color: "var(--hero-fg)" }}>
-                      {accessibility === "linear" ? (
-                        <>
-                          <Lock className="h-3.5 w-3.5" style={{ color: "var(--hero-fg-muted)" }} /> Linear path
-                        </>
-                      ) : (
-                        <>
-                          <Unlock className="h-3.5 w-3.5" style={{ color: "var(--hero-fg-muted)" }} /> Free-form
-                        </>
-                      )}
-                    </span>
-                    {groupCount > 0 && (
-                      <span className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-small font-semibold shadow-[var(--shadow-soft)] backdrop-blur" style={{ background: "var(--hero-surface)", color: "var(--hero-fg)" }}>
-                        <FolderOpen className="h-3.5 w-3.5" style={{ color: "var(--hero-fg-muted)" }} /> {groupCount} group{groupCount === 1 ? "" : "s"}
-                      </span>
-                    )}
+            {/* GRID */}
+            <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_360px] items-start">
+              {/* Curriculum */}
+              <motion.section
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                <div className="mb-4 flex items-end justify-between">
+                  <div>
+                    <h2
+                      className="text-xl font-bold tracking-tight"
+                      style={{ color: INK }}
+                    >
+                      Program Curriculum
+                    </h2>
+                    <p className="mt-1 text-sm" style={{ color: MUTED }}>
+                      {isLinear
+                        ? "Complete each course to unlock the next."
+                        : "Jump into any course — they're all unlocked for you."}
+                    </p>
                   </div>
-
-                  {/* Overall progress + CTA */}
-                  <div className="mt-7 flex flex-col gap-4 rounded-2xl p-5 shadow-[var(--shadow-soft)] backdrop-blur sm:flex-row sm:items-center sm:gap-6" style={{ background: "var(--hero-surface)" }}>
-                    <div className="min-w-0 flex-1">
-                      <div className="mb-2 flex items-center justify-between">
-                        <p className="text-smaller font-semibold uppercase tracking-wide" style={{ color: "var(--hero-fg-muted)" }}>
-                          Overall progress
-                        </p>
-                        <p className="text-small font-bold tabular-nums" style={{ color: "var(--hero-fg)" }}>{overallProgress}%</p>
-                      </div>
-                      <div className="h-2.5 w-full overflow-hidden rounded-full" style={{ background: "oklch(0.92 0.01 280)" }}>
-                        <div
-                          className="h-full rounded-full transition-[width] duration-500"
-                          style={{ width: `${overallProgress}%`, backgroundColor: "#D0FC03" }}
-                        />
-                      </div>
-                      {nextCourse && (
-                        <p className="mt-2 truncate text-smaller" style={{ color: "var(--hero-fg-muted)" }}>
-                          {(courseProgress[nextCourse.id] ?? 0) > 0 ? "Continue" : "Start"}{" "}
-                          <span className="font-semibold" style={{ color: "var(--hero-fg)" }}>{nextCourse.title}</span>
-                        </p>
-                      )}
-                    </div>
-                    {nextCourse && (
-                      <button
-                        onClick={() => setOpenCourseId(nextCourse.id)}
-                        className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full px-5 py-2.5 text-button-primary font-semibold shadow-[var(--shadow-soft)] transition-transform hover:-translate-y-0.5 hover:shadow-[var(--shadow-soft-hover)]"
-                        style={{ background: "oklch(0.22 0.04 280)", color: "oklch(0.99 0 0)" }}
-                      >
-                        <PlayCircle className="h-4 w-4" />
-                        {(courseProgress[nextCourse.id] ?? 0) > 0 ? "Continue learning" : "Start learning"}
-                      </button>
-                    )}
-                  </div>
+                  <StatusPill linear={isLinear} />
                 </div>
 
-                <div className="relative mx-auto w-full max-w-[320px] lg:h-full">
-                  {product.image ? (
-                    <div className="relative aspect-[4/5] w-full overflow-hidden rounded-3xl shadow-[0_30px_60px_-20px_oklch(0.3_0.1_300_/_0.35)] ring-1 ring-background/70 lg:aspect-auto lg:h-full">
-                      <img
-                        src={product.image}
-                        alt={product.title}
-                        className="h-full w-full object-cover"
-                      />
-                      <div
-                        aria-hidden
-                        className="absolute inset-x-0 bottom-0 h-1/3"
-                        style={{ background: "linear-gradient(to top, oklch(0.2 0.05 280 / 0.55), transparent)" }}
-                      />
-                      <div className="absolute left-4 right-4 bottom-4 flex items-center gap-2 rounded-2xl p-3 shadow-[var(--shadow-soft)] backdrop-blur" style={{ background: "oklch(1 0 0 / 0.92)", color: "var(--hero-fg)" }}>
-                        <Trophy className="h-4 w-4 text-[oklch(0.78_0.15_75)]" />
-                        <p className="text-smaller font-semibold">
-                          Certificate on completion
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="grid aspect-[4/5] w-full place-items-center rounded-3xl bg-background/80 text-foreground shadow-[var(--shadow-soft)] lg:aspect-auto lg:h-full">
-                      <Package className="h-12 w-12" />
+                <div className="space-y-3">
+                  {courses.map((c, idx) => (
+                    <CourseAccordion
+                      key={c.id}
+                      course={c}
+                      index={idx + 1}
+                      onOpenLesson={() =>
+                        navigate({ to: "/courses/$courseId", params: { courseId: c.id } })
+                      }
+                    />
+                  ))}
+                  {courses.length === 0 && (
+                    <div
+                      className="rounded-3xl bg-white p-10 text-center"
+                      style={{ border: `1px solid ${BORDER}` }}
+                    >
+                      <p className="text-sm" style={{ color: MUTED }}>
+                        No courses in this program yet.
+                      </p>
                     </div>
                   )}
                 </div>
-              </div>
-            </section>
+              </motion.section>
 
-            {/* Stats strip */}
-            <section className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-              {[
-                { icon: GraduationCap, label: "Courses", value: `${courses.length}` },
-                { icon: FileText, label: "Lessons", value: `${totalLessons}+` },
-                { icon: Clock, label: "Time invested", value: `${Math.round((overallProgress / 100) * Math.max(20, courses.length * 40))}h` },
-                { icon: Award, label: "Started", value: created },
-              ].map((s) => (
-                <div
-                  key={s.label}
-                  className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-soft)]"
-                >
-                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-muted">
-                    <s.icon className="h-4 w-4 text-foreground" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-smaller uppercase tracking-wide text-muted-foreground">{s.label}</p>
-                    <p className="truncate text-small font-bold text-foreground">{s.value}</p>
-                  </div>
-                </div>
-              ))}
-            </section>
-
-            <div className="grid gap-6 lg:grid-cols-[1fr_360px] items-start">
-              <section className="rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <h2 className="text-second-header font-semibold text-foreground">
-                      Course path
-                    </h2>
-                    <p className="mt-1 text-small text-muted-foreground">
-                      {courses.length === 0
-                        ? "No courses in this program yet."
-                        : accessibility === "linear"
-                          ? "Complete each course to unlock the next. Groups unlock together."
-                          : "You can access any course at any time."}
-                    </p>
-                  </div>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted px-3 py-1.5 text-smaller font-semibold text-foreground">
-                    {accessibility === "linear" ? (
-                      <>
-                        <Lock className="h-3.5 w-3.5" /> Linear
-                      </>
-                    ) : (
-                      <>
-                        <Unlock className="h-3.5 w-3.5" /> Free-form
-                      </>
-                    )}
-                  </span>
-                </div>
-
-                {courses.length > 0 && (() => {
-                  let pos = 0;
-                  const renderCourseItem = (
-                    courseId: string,
-                    key: string,
-                    inGroup = false,
-                  ) => {
-                    const c = getCourse(courseId);
-                    if (!c) return null;
-                    pos += 1;
-                    const idx = pos;
-                    const isOptional = optionalIds.includes(c.id);
-                    const detail = courseDetails[c.id] ?? fallbackDetail;
-                    const prog = courseProgress[c.id] ?? 0;
-                    const status: "completed" | "in-progress" | "locked" | "available" =
-                      prog >= 100
-                        ? "completed"
-                        : prog > 0
-                          ? "in-progress"
-                          : accessibility === "linear" && idx > 1
-                            ? "locked"
-                            : "available";
-                    const lessonCount = (detail.modules?.length ?? 0) * 9;
-                    return (
-                      <AccordionItem
-                        key={key}
-                        value={key}
-                        className={
-                          inGroup
-                            ? "overflow-hidden bg-transparent border-b-0"
-                            : "group overflow-hidden rounded-2xl border border-border bg-background transition-all duration-300 hover:border-foreground/20 hover:shadow-[var(--shadow-soft)]"
-                        }
-                      >
-                        <AccordionTrigger className="px-4 py-4 hover:no-underline">
-                          <div className="flex w-full items-center gap-4 text-left">
-                            <div className="relative shrink-0">
-                              <div
-                                className="grid h-14 w-14 place-items-center rounded-2xl text-foreground shadow-[var(--shadow-soft)] transition-transform duration-300 group-hover:scale-[1.04]"
-                                style={{ background: c.gradient }}
-                              >
-                                {status === "completed" ? (
-                                  <Check className="h-6 w-6 text-foreground" strokeWidth={3} />
-                                ) : status === "locked" ? (
-                                  <Lock className="h-5 w-5 text-foreground/70" />
-                                ) : (
-                                  <BookOpen className="h-5 w-5" />
-                                )}
-                              </div>
-                              <span className="absolute -right-1.5 -top-1.5 grid h-6 w-6 place-items-center rounded-full bg-background text-smaller font-bold text-foreground shadow-[var(--shadow-soft)] ring-1 ring-border">
-                                {idx}
-                              </span>
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <p className="truncate text-body font-bold text-foreground">
-                                  {c.title}
-                                </p>
-                                {status === "completed" && (
-                                  <span className="inline-flex items-center gap-1 rounded-full bg-brand px-2 py-0.5 text-smaller font-bold text-brand-foreground">
-                                    <Check className="h-3 w-3" strokeWidth={3} /> Completed
-                                  </span>
-                                )}
-                                {status === "in-progress" && (
-                                  <span className="inline-flex items-center gap-1 rounded-full bg-[oklch(0.94_0.05_240)] px-2 py-0.5 text-smaller font-bold text-foreground">
-                                    <PlayCircle className="h-3 w-3" /> In progress
-                                  </span>
-                                )}
-                                {status === "locked" && (
-                                  <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-smaller font-bold text-muted-foreground">
-                                    <Lock className="h-3 w-3" /> Locked
-                                  </span>
-                                )}
-                                {isOptional && (
-                                  <span className="inline-flex items-center gap-1 rounded-full bg-[oklch(0.94_0.05_240)] px-2 py-0.5 text-smaller font-semibold text-foreground">
-                                    <CircleDashed className="h-3 w-3" /> Optional
-                                  </span>
-                                )}
-                              </div>
-                              <p className="mt-1 truncate text-small text-muted-foreground">
-                                {c.description}
-                              </p>
-                              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-smaller font-semibold text-muted-foreground">
-                                <span className="inline-flex items-center gap-1">
-                                  <Clock className="h-3 w-3" /> {c.meta}
-                                </span>
-                                <span className="text-border">·</span>
-                                <span className="inline-flex items-center gap-1">
-                                  <FileText className="h-3 w-3" /> {lessonCount} lessons
-                                </span>
-                              </div>
-                              {status !== "locked" && (
-                                <div className="mt-3 flex items-center gap-3">
-                                  <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-                                    <div
-                                      className="h-full rounded-full transition-[width] duration-500"
-                                      style={{ width: `${prog}%`, backgroundColor: "#D0FC03" }}
-                                    />
-                                  </div>
-                                  <span className="shrink-0 text-smaller font-bold tabular-nums text-foreground">{prog}%</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </AccordionTrigger>
-                        <AccordionContent className="border-t border-border bg-muted/30 px-4 pb-4 pt-3">
-                          <CourseModulesAccordion modules={detail.modules} />
-                          <div className="mt-3 flex justify-end">
-                            <button
-                              onClick={() => setOpenCourseId(c.id)}
-                              className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-smaller font-semibold text-background transition-transform hover:-translate-y-0.5"
-                            >
-                              Open course <ArrowRight className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
-                    );
-                  };
-
-                  return (
-                    <div className="mt-5 space-y-3">
-                      {items.map((it) => {
-                        if (it.kind === "course") {
-                          return (
-                            <Accordion key={it.id} type="single" collapsible>
-                              {renderCourseItem(it.courseId, it.id)}
-                            </Accordion>
-                          );
-                        }
-                        return (
-                          <div
-                            key={it.id}
-                            className="rounded-2xl border border-dashed border-border bg-muted/30 p-3"
-                          >
-                            <div className="mb-2 flex items-center gap-2 px-1">
-                              <FolderOpen className="h-4 w-4 text-muted-foreground" />
-                              <p className="text-small font-semibold text-foreground">
-                                {it.title}
-                              </p>
-                              <span className="rounded-full bg-background px-2 py-0.5 text-smaller font-semibold text-muted-foreground">
-                                {it.courseIds.length} course
-                                {it.courseIds.length === 1 ? "" : "s"} · unlock together
-                              </span>
-                            </div>
-                            {it.courseIds.length > 0 && (
-                              <Accordion
-                                type="single"
-                                collapsible
-                                className="divide-y divide-border rounded-xl border border-border bg-background"
-                              >
-                                {it.courseIds.map((cid) =>
-                                  renderCourseItem(cid, `${it.id}-${cid}`, true),
-                                )}
-                              </Accordion>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })()}
-              </section>
-
-              <aside className="lg:sticky lg:top-6 self-start space-y-4">
-                <div className="rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="grid h-8 w-8 place-items-center rounded-lg bg-[oklch(0.95_0.05_280)]">
-                        <Users className="h-4 w-4 text-[oklch(0.5_0.15_280)]" />
-                      </div>
-                      <h3 className="text-second-header font-semibold text-foreground">
-                        Instructors
-                      </h3>
-                    </div>
-                    <span className="rounded-full bg-muted px-2 py-0.5 text-smaller font-semibold text-muted-foreground">
-                      {instructors.length}
-                    </span>
-                  </div>
-                  <div className="mt-4 space-y-2.5">
-                    {instructors.map((inst, idx) => (
-                      <div
-                        key={idx}
-                        className="group flex items-center gap-3 rounded-2xl border border-border bg-background p-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-[var(--shadow-soft)]"
-                      >
-                        <div className="relative shrink-0">
-                          <div
-                            className="rounded-full p-[2px]"
-                            style={{ background: "var(--gradient-brand)" }}
-                          >
-                            <img
-                              src={inst.image}
-                              alt={inst.name}
-                              className="h-11 w-11 rounded-full object-cover ring-2 ring-background"
-                            />
-                          </div>
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-small font-bold text-foreground">
-                            {inst.name}
-                          </p>
-                          <p className="truncate text-smaller text-muted-foreground">
-                            {inst.role}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Up next card */}
-                {nextCourse && (
-                  <div
-                    className="relative overflow-hidden rounded-3xl border border-border p-6 shadow-[var(--shadow-soft)]"
-                    style={{ background: "linear-gradient(135deg, oklch(0.97 0.02 260), oklch(0.94 0.05 280))" }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <PlayCircle className="h-4 w-4 text-foreground" />
-                      <h3 className="text-small font-bold uppercase tracking-wide text-foreground">Up next</h3>
-                    </div>
-                    <p className="mt-3 text-body font-bold text-foreground">{nextCourse.title}</p>
-                    <p className="mt-1 text-smaller text-muted-foreground line-clamp-2">{nextCourse.description}</p>
-                    <button
-                      onClick={() => setOpenCourseId(nextCourse.id)}
-                      className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-4 py-2.5 text-small font-semibold text-background transition-transform hover:-translate-y-0.5"
-                    >
-                      {(courseProgress[nextCourse.id] ?? 0) > 0 ? "Continue" : "Start"} course
-                      <ArrowRight className="h-4 w-4" />
-                    </button>
-                  </div>
-                )}
-              </aside>
+              {/* Sidebar */}
+              <motion.aside
+                initial={{ opacity: 0, x: 16 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.15 }}
+                className="space-y-5 lg:sticky lg:top-6 self-start"
+              >
+                <InstructorCard />
+                <LearningStreakCard
+                  weekly={weekly}
+                  currentStreakDays={currentStreakDays}
+                  weeklyCompleted={weeklyCompleted}
+                  learningMomentum={learningMomentum}
+                />
+                <RecommendedCourseCard />
+              </motion.aside>
             </div>
           </div>
         </main>
       </div>
-
-      <Dialog open={!!openCourseId} onOpenChange={(o) => !o && setOpenCourseId(null)}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
-          {openCourseId && (() => {
-            const c = getCourse(openCourseId);
-            if (!c) return null;
-            const detail = courseDetails[c.id] ?? fallbackDetail;
-            return (
-              <>
-                <DialogHeader>
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl text-foreground"
-                      style={{ background: c.gradient }}
-                    >
-                      <BookOpen className="h-5 w-5" />
-                    </div>
-                    <div className="min-w-0 flex-1 text-left">
-                      <DialogTitle>{c.title}</DialogTitle>
-                      <DialogDescription>{c.description}</DialogDescription>
-                    </div>
-                  </div>
-                </DialogHeader>
-                <div className="mt-4">
-                  <CourseModulesAccordion modules={detail.modules} />
-                </div>
-              </>
-            );
-          })()}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
 
-function CourseModulesAccordion({
-  modules,
+/* ============================== SUBCOMPONENTS ============================== */
+
+function StatusPill({ linear }: { linear: boolean }) {
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold"
+      style={{ border: `1px solid ${BORDER}`, color: INK_2 }}
+    >
+      <span
+        className="h-1.5 w-1.5 rounded-full"
+        style={{ background: linear ? INK_2 : BRAND }}
+      />
+      {linear ? "Linear Program" : "Self-Paced Program"}
+    </span>
+  );
+}
+
+function ProgressBar({ value, height = 8 }: { value: number; height?: number }) {
+  return (
+    <div
+      className="w-full overflow-hidden rounded-full"
+      style={{ height, background: "#EEF1EE" }}
+    >
+      <motion.div
+        initial={{ width: 0 }}
+        animate={{ width: `${value}%` }}
+        transition={{ duration: 1, ease: [0.32, 0.72, 0, 1] }}
+        className="h-full rounded-full"
+        style={{ background: BRAND }}
+      />
+    </div>
+  );
+}
+
+function ProgramHeroCard({
+  product,
+  isLinear,
+  programProgress,
+  completedLessons,
+  totalLessons,
+  currentCourseTitle,
+  currentStreakDays,
+  onContinue,
 }: {
-  modules: { title: string; description: string; duration: string }[];
+  product: Product;
+  isLinear: boolean;
+  programProgress: number;
+  completedLessons: number;
+  totalLessons: number;
+  currentCourseTitle: string;
+  currentStreakDays: number;
+  onContinue: () => void;
 }) {
-  if (!modules?.length) {
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
+      className="relative overflow-hidden rounded-[24px] bg-white p-6 lg:p-8"
+      style={{
+        border: `1px solid ${BORDER}`,
+        boxShadow:
+          "0 1px 2px rgba(20,30,50,0.04), 0 8px 28px rgba(20,30,50,0.04)",
+      }}
+    >
+      <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-center">
+        {/* Left */}
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider"
+              style={{ background: BRAND_SOFT, color: INK }}
+            >
+              <Sparkles className="h-3 w-3" /> Metana Program
+            </span>
+            <StatusPill linear={isLinear} />
+          </div>
+
+          <h1
+            className="mt-4 text-3xl font-bold leading-[1.1] tracking-tight lg:text-[34px]"
+            style={{ color: INK }}
+          >
+            {product.title}
+          </h1>
+          <p
+            className="mt-3 max-w-xl text-[15px] leading-relaxed"
+            style={{ color: MUTED }}
+          >
+            {product.description ||
+              "Master AI-powered software engineering through structured courses, projects, mentorship, and real-world workflows."}
+          </p>
+
+          {/* Progress block */}
+          <div className="mt-6">
+            <div className="mb-2 flex items-baseline justify-between">
+              <div className="flex items-baseline gap-2">
+                <span
+                  className="text-3xl font-bold tabular-nums"
+                  style={{ color: INK }}
+                >
+                  {programProgress}%
+                </span>
+                <span className="text-sm" style={{ color: MUTED }}>
+                  Complete
+                </span>
+              </div>
+              <span className="text-sm font-semibold" style={{ color: INK_2 }}>
+                {completedLessons} / {totalLessons} Lessons
+              </span>
+            </div>
+            <ProgressBar value={programProgress} />
+            {currentCourseTitle && (
+              <p className="mt-3 text-sm" style={{ color: MUTED }}>
+                Current Course:{" "}
+                <span className="font-semibold" style={{ color: INK_2 }}>
+                  {currentCourseTitle}
+                </span>
+              </p>
+            )}
+          </div>
+
+          <div className="mt-6">
+            <motion.button
+              whileHover={{ scale: 1.02, y: -1 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={onContinue}
+              className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-bold transition-shadow"
+              style={{
+                background: BRAND,
+                color: INK,
+                boxShadow: "0 6px 20px rgba(204, 246, 33, 0.45)",
+              }}
+            >
+              <PlayCircle className="h-4 w-4" />
+              Continue Learning
+            </motion.button>
+          </div>
+        </div>
+
+        {/* Right - image */}
+        <div className="relative">
+          <div
+            className="relative aspect-[5/4] w-full overflow-hidden rounded-[20px]"
+            style={{ border: `1px solid ${BORDER}` }}
+          >
+            {product.image ? (
+              <img
+                src={product.image}
+                alt={product.title}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div
+                className="flex h-full w-full items-center justify-center"
+                style={{ background: BRAND_SOFT }}
+              >
+                <Package className="h-12 w-12" style={{ color: INK_2 }} />
+              </div>
+            )}
+            <div
+              aria-hidden
+              className="absolute inset-0"
+              style={{
+                background:
+                  "linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.25))",
+              }}
+            />
+          </div>
+
+          {/* Floating streak card */}
+          <motion.div
+            animate={{ y: [0, -8, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute -bottom-4 -left-4 rounded-2xl bg-white p-3.5 pr-5"
+            style={{
+              border: `1px solid ${BORDER}`,
+              boxShadow:
+                "0 10px 30px rgba(20,30,50,0.10), 0 2px 6px rgba(20,30,50,0.04)",
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className="grid h-10 w-10 place-items-center rounded-xl"
+                style={{ background: BRAND_SOFT }}
+              >
+                <Flame className="h-5 w-5" style={{ color: "#E0742B" }} />
+              </div>
+              <div>
+                <p
+                  className="text-[10px] font-bold uppercase tracking-wider"
+                  style={{ color: MUTED }}
+                >
+                  Current Streak
+                </p>
+                <p className="text-base font-bold" style={{ color: INK }}>
+                  {currentStreakDays} Days
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </motion.section>
+  );
+}
+
+/* ---------- Curriculum ---------- */
+
+function CourseAccordion({
+  course,
+  index,
+  onOpenLesson,
+}: {
+  course: CourseNode;
+  index: number;
+  onOpenLesson: () => void;
+}) {
+  const locked = course.status === "locked";
+  const [open, setOpen] = useState(course.status === "in-progress");
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: locked ? 0.7 : 1, y: 0 }}
+      whileHover={locked ? undefined : { y: -2 }}
+      transition={{ duration: 0.25 }}
+      className="overflow-hidden rounded-[20px] bg-white"
+      style={{
+        border: `1px solid ${BORDER}`,
+        boxShadow: "0 1px 2px rgba(20,30,50,0.03), 0 4px 14px rgba(20,30,50,0.03)",
+      }}
+    >
+      <button
+        type="button"
+        disabled={locked}
+        onClick={() => !locked && setOpen((o) => !o)}
+        className={`flex w-full items-center gap-4 px-5 py-4 text-left ${locked ? "cursor-not-allowed" : "hover:bg-[#FAFCFA]"}`}
+      >
+        <div className="relative shrink-0">
+          <div
+            className="grid h-14 w-14 place-items-center rounded-2xl"
+            style={{ background: course.gradient }}
+          >
+            {course.status === "completed" ? (
+              <Check className="h-6 w-6" strokeWidth={3} style={{ color: INK }} />
+            ) : locked ? (
+              <Lock className="h-5 w-5" style={{ color: INK_2 }} />
+            ) : (
+              <BookOpen className="h-5 w-5" style={{ color: INK_2 }} />
+            )}
+          </div>
+          <span
+            className="absolute -right-1.5 -top-1.5 grid h-6 w-6 place-items-center rounded-full bg-white text-[10px] font-bold"
+            style={{ border: `1px solid ${BORDER}`, color: INK_2 }}
+          >
+            {index}
+          </span>
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="truncate text-[15px] font-bold" style={{ color: INK }}>
+              {course.title}
+            </p>
+            <CourseStatusBadge status={course.status} />
+          </div>
+          <p className="mt-0.5 truncate text-xs" style={{ color: MUTED }}>
+            {course.description}
+          </p>
+
+          <div
+            className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-semibold"
+            style={{ color: MUTED }}
+          >
+            <span className="inline-flex items-center gap-1">
+              <Clock className="h-3 w-3" /> {course.meta}
+            </span>
+            <span>·</span>
+            <span className="inline-flex items-center gap-1">
+              <FileText className="h-3 w-3" /> {course.totalLessons} lessons
+            </span>
+          </div>
+
+          <div className="mt-3 flex items-center gap-3">
+            <div
+              className="h-1.5 flex-1 overflow-hidden rounded-full"
+              style={{ background: locked ? "#EAECEA" : "#EEF1EE" }}
+            >
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${course.progress}%` }}
+                transition={{ duration: 0.9 }}
+                className="h-full rounded-full"
+                style={{ background: locked ? "#C9CDC9" : BRAND }}
+              />
+            </div>
+            <span
+              className="shrink-0 text-[11px] font-bold tabular-nums"
+              style={{ color: locked ? MUTED : INK }}
+            >
+              {course.progress}%
+            </span>
+          </div>
+
+          {locked && (
+            <p className="mt-2 text-[11px]" style={{ color: MUTED }}>
+              Complete the previous course to unlock this.
+            </p>
+          )}
+        </div>
+
+        {!locked && (
+          <motion.div
+            animate={{ rotate: open ? 180 : 0 }}
+            transition={{ duration: 0.25 }}
+            className="ml-2 grid h-8 w-8 shrink-0 place-items-center rounded-full"
+            style={{ background: "#F3F5F3" }}
+          >
+            <ChevronDown className="h-4 w-4" style={{ color: INK_2 }} />
+          </motion.div>
+        )}
+      </button>
+
+      <AnimatePresence initial={false}>
+        {open && !locked && (
+          <motion.div
+            key="content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
+            className="overflow-hidden"
+          >
+            <div
+              className="space-y-2 px-5 pb-5 pt-2"
+              style={{ borderTop: `1px solid ${BORDER}` }}
+            >
+              {course.modules.map((m, mi) => (
+                <ModuleAccordion
+                  key={m.id}
+                  mod={m}
+                  index={mi}
+                  onOpenLesson={onOpenLesson}
+                />
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+function CourseStatusBadge({ status }: { status: CourseStatus }) {
+  if (status === "completed")
     return (
-      <p className="text-small text-muted-foreground">No modules defined for this course yet.</p>
+      <span
+        className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
+        style={{ background: BRAND, color: INK }}
+      >
+        <Check className="h-3 w-3" strokeWidth={3} /> Completed
+      </span>
+    );
+  if (status === "in-progress")
+    return (
+      <span
+        className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
+        style={{ background: BRAND_SOFT, color: INK }}
+      >
+        <PlayCircle className="h-3 w-3" /> In Progress
+      </span>
+    );
+  if (status === "locked")
+    return (
+      <span
+        className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
+        style={{ background: "#F1F3F1", color: MUTED }}
+      >
+        <Lock className="h-3 w-3" /> Locked
+      </span>
+    );
+  return (
+    <span
+      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
+      style={{ background: "#F1F3F1", color: INK_2 }}
+    >
+      Not Started
+    </span>
+  );
+}
+
+function ModuleAccordion({
+  mod,
+  index,
+  onOpenLesson,
+}: {
+  mod: Mod;
+  index: number;
+  onOpenLesson: () => void;
+}) {
+  const [open, setOpen] = useState(index === 0);
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.04 }}
+      className="overflow-hidden rounded-2xl"
+      style={{ border: `1px solid ${BORDER}`, background: "#FBFCFB" }}
+    >
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-white"
+      >
+        <div
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-xs font-bold"
+          style={{ background: "#fff", border: `1px solid ${BORDER}`, color: INK_2 }}
+        >
+          {String(index + 1).padStart(2, "0")}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold" style={{ color: INK }}>
+            {mod.title}
+          </p>
+          <p className="text-[11px]" style={{ color: MUTED }}>
+            {mod.units.length} units ·{" "}
+            {mod.units.reduce((a, u) => a + u.lessons.length, 0)} lessons
+          </p>
+        </div>
+        <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
+          <ChevronDown className="h-4 w-4" style={{ color: MUTED }} />
+        </motion.div>
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.28 }}
+            className="overflow-hidden"
+          >
+            <div
+              className="space-y-1.5 px-3 pb-3 pt-2"
+              style={{ borderTop: `1px solid ${BORDER}` }}
+            >
+              {mod.units.map((u, ui) => (
+                <UnitAccordion
+                  key={u.id}
+                  unit={u}
+                  index={ui}
+                  onOpenLesson={onOpenLesson}
+                />
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+function UnitAccordion({
+  unit,
+  index,
+  onOpenLesson,
+}: {
+  unit: Unit;
+  index: number;
+  onOpenLesson: () => void;
+}) {
+  const [open, setOpen] = useState(index === 0);
+  const completed = unit.lessons.filter((l) => l.status === "completed").length;
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.04 }}
+      className="overflow-hidden rounded-xl bg-white"
+      style={{ border: `1px solid ${BORDER}` }}
+    >
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-[#FAFCFA]"
+      >
+        <FileText className="h-4 w-4 shrink-0" style={{ color: MUTED }} />
+        <p className="min-w-0 flex-1 truncate text-[13px] font-semibold" style={{ color: INK }}>
+          {unit.title}
+        </p>
+        <span className="shrink-0 text-[11px]" style={{ color: MUTED }}>
+          {completed}/{unit.lessons.length}
+        </span>
+        <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
+          <ChevronDown className="h-3.5 w-3.5" style={{ color: MUTED }} />
+        </motion.div>
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="overflow-hidden"
+          >
+            <ul className="space-y-1 px-2 pb-2 pt-1.5" style={{ borderTop: `1px solid ${BORDER}` }}>
+              {unit.lessons.map((l) => (
+                <LessonRow key={l.id} lesson={l} onClick={onOpenLesson} />
+              ))}
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+function LessonRow({ lesson, onClick }: { lesson: Lesson; onClick: () => void }) {
+  const isCurrent = lesson.status === "current";
+  const isCompleted = lesson.status === "completed";
+  const isLocked = lesson.status === "locked";
+
+  return (
+    <motion.li
+      whileHover={isLocked ? undefined : { y: -1, x: 2 }}
+      transition={{ duration: 0.15 }}
+      onClick={() => !isLocked && onClick()}
+      className={`flex items-center gap-3 rounded-lg px-3 py-2.5 ${isLocked ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
+      style={
+        isCurrent
+          ? {
+              background: BRAND_SOFT,
+              borderLeft: `3px solid ${BRAND}`,
+              boxShadow: "0 0 0 1px rgba(204,246,33,0.35)",
+            }
+          : undefined
+      }
+    >
+      <LessonStatusIcon status={lesson.status} kind={lesson.kind} />
+      <span
+        className={`min-w-0 flex-1 truncate text-[13px] ${isCompleted ? "line-through" : ""}`}
+        style={{ color: isLocked ? MUTED : isCurrent ? INK : INK_2 }}
+      >
+        {lesson.title}
+      </span>
+      <span className="shrink-0 text-[11px]" style={{ color: MUTED }}>
+        {lesson.duration}
+      </span>
+      {isCurrent && (
+        <span
+          className="shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-bold"
+          style={{ background: BRAND, color: INK }}
+        >
+          Continue
+        </span>
+      )}
+    </motion.li>
+  );
+}
+
+function LessonStatusIcon({
+  status,
+  kind,
+}: {
+  status: LessonStatus;
+  kind: LessonKind;
+}) {
+  if (status === "completed") {
+    return (
+      <span
+        className="grid h-5 w-5 shrink-0 place-items-center rounded-full"
+        style={{ background: BRAND }}
+      >
+        <Check className="h-3 w-3" strokeWidth={3} style={{ color: INK }} />
+      </span>
     );
   }
+  if (status === "locked") {
+    return <Lock className="h-4 w-4 shrink-0" style={{ color: MUTED }} />;
+  }
+  if (status === "current") {
+    return (
+      <span className="relative grid h-5 w-5 shrink-0 place-items-center">
+        <motion.span
+          animate={{ scale: [1, 1.4, 1], opacity: [0.6, 0, 0.6] }}
+          transition={{ duration: 1.6, repeat: Infinity }}
+          className="absolute inset-0 rounded-full"
+          style={{ background: BRAND }}
+        />
+        <PlayCircle className="relative h-4 w-4" style={{ color: INK }} />
+      </span>
+    );
+  }
+  // available -> kind icon
+  const Icon =
+    kind === "video"
+      ? PlayCircle
+      : kind === "quiz"
+        ? Star
+        : kind === "assignment"
+          ? FileText
+          : BookOpen;
+  return <Icon className="h-4 w-4 shrink-0" style={{ color: MUTED }} />;
+}
+
+/* ---------- Sidebar Cards ---------- */
+
+function InstructorCard() {
   return (
-    <Accordion type="single" collapsible className="space-y-2">
-      {modules.map((m, mi) => {
-        const units = buildUnits(m.title, mi);
-        return (
-          <AccordionItem
-            key={mi}
-            value={`m-${mi}`}
-            className="overflow-hidden rounded-xl border border-border bg-background"
+    <motion.div
+      whileHover={{ y: -2 }}
+      className="rounded-[20px] bg-white p-5"
+      style={{
+        border: `1px solid ${BORDER}`,
+        boxShadow: "0 1px 2px rgba(20,30,50,0.03), 0 4px 14px rgba(20,30,50,0.03)",
+      }}
+    >
+      <div className="flex items-center gap-2">
+        <div
+          className="grid h-8 w-8 place-items-center rounded-lg"
+          style={{ background: BRAND_SOFT }}
+        >
+          <Users className="h-4 w-4" style={{ color: INK }} />
+        </div>
+        <h3 className="text-base font-bold" style={{ color: INK }}>
+          Your Instructor
+        </h3>
+      </div>
+
+      <div className="mt-4 flex items-center gap-4">
+        <div
+          className="rounded-full p-[2px]"
+          style={{ background: BRAND }}
+        >
+          <img
+            src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop&crop=face"
+            alt="Ashane Perera"
+            className="h-14 w-14 rounded-full object-cover ring-2 ring-white"
+          />
+        </div>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-bold" style={{ color: INK }}>
+            Ashane Perera
+          </p>
+          <p className="truncate text-xs" style={{ color: MUTED }}>
+            AI Engineering Instructor
+          </p>
+        </div>
+      </div>
+
+      <p className="mt-3 text-xs leading-relaxed" style={{ color: MUTED }}>
+        Guides students through real-world AI workflows, software engineering
+        practices, and project-based learning.
+      </p>
+
+      <div className="mt-4 grid grid-cols-3 gap-2">
+        {[
+          { v: "4.9", l: "Rating" },
+          { v: "120+", l: "Students" },
+          { v: "AI/SE", l: "Domain" },
+        ].map((s) => (
+          <div
+            key={s.l}
+            className="rounded-xl p-2.5 text-center"
+            style={{ background: "#F7F9F7" }}
           >
-            <AccordionTrigger className="px-3 py-2.5 hover:no-underline">
-              <div className="flex w-full items-center gap-3 text-left">
-                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-muted">
-                  <Layers className="h-4 w-4 text-foreground" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-small font-semibold text-foreground">{m.title}</p>
-                  <p className="truncate text-smaller text-muted-foreground">
-                    {units.length} units · {m.duration}
-                  </p>
-                </div>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent className="border-t border-border bg-muted/20 px-3 pb-3 pt-2">
-              <Accordion type="single" collapsible className="space-y-1.5">
-                {units.map((u, ui) => (
-                  <AccordionItem
-                    key={ui}
-                    value={`u-${mi}-${ui}`}
-                    className="overflow-hidden rounded-lg border border-border bg-background"
-                  >
-                    <AccordionTrigger className="px-3 py-2 hover:no-underline">
-                      <div className="flex w-full items-center gap-2.5 text-left">
-                        <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
-                        <p className="truncate text-small font-semibold text-foreground">
-                          {u.title}
-                        </p>
-                        <span className="ml-auto text-small text-muted-foreground">
-                          {u.lessons.length} lessons
-                        </span>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="border-t border-border px-3 pb-2 pt-1.5">
-                      <ul className="space-y-1">
-                        {u.lessons.map((l, li) => (
-                          <li
-                            key={li}
-                            className="flex items-center gap-2 rounded-md px-2 py-1.5 text-small text-foreground hover:bg-muted/60"
-                          >
-                            <PlayCircle className="h-4 w-4 shrink-0 text-muted-foreground" />
-                            <span className="min-w-0 flex-1 truncate">{l.title}</span>
-                            <span className="shrink-0 text-muted-foreground">{l.duration}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            </AccordionContent>
-          </AccordionItem>
-        );
-      })}
-    </Accordion>
+            <p className="text-sm font-bold" style={{ color: INK }}>
+              {s.v}
+            </p>
+            <p className="text-[10px]" style={{ color: MUTED }}>
+              {s.l}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <button
+        className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-bold transition-transform hover:-translate-y-0.5"
+        style={{ background: INK_2, color: "#fff" }}
+      >
+        View Profile <ArrowRight className="h-3.5 w-3.5" />
+      </button>
+    </motion.div>
+  );
+}
+
+function LearningStreakCard({
+  weekly,
+  currentStreakDays,
+  weeklyCompleted,
+  learningMomentum,
+}: {
+  weekly: { day: string; v: number }[];
+  currentStreakDays: number;
+  weeklyCompleted: number;
+  learningMomentum: number;
+}) {
+  return (
+    <motion.div
+      whileHover={{ y: -2 }}
+      className="rounded-[20px] bg-white p-5"
+      style={{
+        border: `1px solid ${BORDER}`,
+        boxShadow: "0 1px 2px rgba(20,30,50,0.03), 0 4px 14px rgba(20,30,50,0.03)",
+      }}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div
+            className="grid h-8 w-8 place-items-center rounded-lg"
+            style={{ background: BRAND_SOFT }}
+          >
+            <Zap className="h-4 w-4" style={{ color: INK }} />
+          </div>
+          <h3 className="text-base font-bold" style={{ color: INK }}>
+            Learning Streak
+          </h3>
+        </div>
+        <span
+          className="rounded-full px-2.5 py-0.5 text-[10px] font-bold"
+          style={{ background: BRAND, color: INK }}
+        >
+          {currentStreakDays} Day Streak
+        </span>
+      </div>
+
+      <p className="mt-3 text-xs" style={{ color: MUTED }}>
+        {weeklyCompleted} Lessons Completed This Week
+      </p>
+
+      <div className="mt-3 h-28 w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={weekly} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+            <XAxis
+              dataKey="day"
+              tickLine={false}
+              axisLine={false}
+              tick={{ fontSize: 10, fill: MUTED }}
+            />
+            <RTooltip
+              cursor={{ fill: "rgba(0,0,0,0.03)" }}
+              contentStyle={{
+                background: "#fff",
+                border: `1px solid ${BORDER}`,
+                borderRadius: 10,
+                fontSize: 11,
+                padding: "6px 8px",
+              }}
+              labelStyle={{ color: INK_2, fontWeight: 600 }}
+              formatter={(v: number) => [`${v} lessons`, ""]}
+            />
+            <Bar dataKey="v" radius={[6, 6, 6, 6]}>
+              {weekly.map((d, i) => (
+                <Cell key={i} fill={d.v > 0 ? BRAND : "#EEF1EE"} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <div className="rounded-xl p-2.5" style={{ background: "#F7F9F7" }}>
+          <p className="text-[10px]" style={{ color: MUTED }}>
+            Streak Score
+          </p>
+          <p className="text-sm font-bold" style={{ color: INK }}>
+            {currentStreakDays * weeklyCompleted}
+          </p>
+        </div>
+        <div
+          className="group relative rounded-xl p-2.5"
+          style={{ background: BRAND_SOFT }}
+          title="Calculated using streak days, total completed lessons, and recent weekly activity."
+        >
+          <p className="text-[10px]" style={{ color: INK_2 }}>
+            Learning Momentum
+          </p>
+          <p className="text-sm font-bold" style={{ color: INK }}>
+            {learningMomentum}
+          </p>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function RecommendedCourseCard() {
+  return (
+    <motion.div
+      whileHover={{ y: -2 }}
+      className="overflow-hidden rounded-[20px] bg-white"
+      style={{
+        border: `1px solid ${BORDER}`,
+        boxShadow: "0 1px 2px rgba(20,30,50,0.03), 0 4px 14px rgba(20,30,50,0.03)",
+      }}
+    >
+      <div className="p-5 pb-3">
+        <div className="flex items-center gap-2">
+          <div
+            className="grid h-8 w-8 place-items-center rounded-lg"
+            style={{ background: BRAND_SOFT }}
+          >
+            <Sparkles className="h-4 w-4" style={{ color: INK }} />
+          </div>
+          <h3 className="text-base font-bold" style={{ color: INK }}>
+            Recommended Next
+          </h3>
+        </div>
+      </div>
+      <div className="px-5">
+        <div
+          className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl"
+          style={{ border: `1px solid ${BORDER}` }}
+        >
+          <img
+            src="https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&q=80"
+            alt="AI Agents & Automation"
+            className="h-full w-full object-cover"
+          />
+          <span
+            className="absolute left-3 top-3 rounded-full px-2.5 py-0.5 text-[10px] font-bold"
+            style={{ background: BRAND, color: INK }}
+          >
+            Recommended
+          </span>
+        </div>
+      </div>
+      <div className="p-5 pt-3">
+        <p className="text-sm font-bold" style={{ color: INK }}>
+          AI Agents & Automation
+        </p>
+        <p className="mt-1 text-xs leading-relaxed" style={{ color: MUTED }}>
+          Build tool-using AI agents and automation workflows.
+        </p>
+        <div className="mt-3 flex items-center gap-3 text-[11px] font-semibold" style={{ color: MUTED }}>
+          <span className="inline-flex items-center gap-1">
+            <Clock className="h-3 w-3" /> 12 Hours
+          </span>
+          <span>·</span>
+          <span className="inline-flex items-center gap-1">
+            <FileText className="h-3 w-3" /> 24 Lessons
+          </span>
+        </div>
+        <button
+          className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-bold transition-transform hover:-translate-y-0.5"
+          style={{ background: BRAND, color: INK }}
+        >
+          Explore Course <ArrowRight className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    </motion.div>
   );
 }
