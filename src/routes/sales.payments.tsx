@@ -560,7 +560,7 @@ function AddStudentModal({
 
   return (
     <ModalShell
-      title={createCohortMode ? "Create New Cohort" : "Add Student Access"}
+      title={createCohortMode ? "Create New Cohort" : "Create Payment Plan"}
       onClose={onClose}
       maxWidth={960}
       topAlign
