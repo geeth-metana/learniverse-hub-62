@@ -1538,11 +1538,13 @@ function ModalShell({
   onClose,
   children,
   maxWidth = 640,
+  topAlign = false,
 }: {
   title: string;
   onClose: () => void;
   children: React.ReactNode;
   maxWidth?: number;
+  topAlign?: boolean;
 }) {
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -1553,13 +1555,23 @@ function ModalShell({
   }, []);
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6"
+      className={`fixed inset-0 z-50 flex justify-center overflow-y-auto px-4 ${
+        topAlign ? "items-start" : "items-center py-6"
+      }`}
       style={{ backgroundColor: "rgba(0, 0, 0, 0.25)" }}
       onClick={onClose}
     >
-      <div
-        className="relative max-h-[90vh] w-full overflow-y-auto rounded-2xl bg-white p-6 lg:p-8"
-        style={{ maxWidth, color: TEXT_DARK, boxShadow: "0 20px 60px rgba(15,23,42,0.18)" }}
+      <motion.div
+        layout
+        transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
+        className="relative w-[90vw] rounded-2xl bg-white p-6 lg:p-8"
+        style={{
+          maxWidth,
+          marginTop: topAlign ? 72 : undefined,
+          marginBottom: topAlign ? 48 : undefined,
+          color: TEXT_DARK,
+          boxShadow: "0 20px 60px rgba(15,23,42,0.18)",
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-5 flex items-center justify-between">
@@ -1575,7 +1587,7 @@ function ModalShell({
           </button>
         </div>
         {children}
-      </div>
+      </motion.div>
     </div>
   );
 }
