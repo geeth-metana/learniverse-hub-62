@@ -430,7 +430,7 @@ function ProgramHeroCard({
   onContinue: () => void;
 }) {
   return (
-    <section className="overflow-hidden rounded-[24px] bg-white p-6 lg:p-8">
+    <section className="overflow-hidden rounded-[24px] bg-white p-6 lg:p-8 shadow-lg">
       <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-center">
         {/* Left */}
         <div className="min-w-0 order-2 lg:order-1">
