@@ -13,7 +13,6 @@ import { Route as ProductsRouteImport } from './routes/products'
 import { Route as CoursesRouteImport } from './routes/courses'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SalesPaymentsRouteImport } from './routes/sales.payments'
-import { Route as SalesExternalUserManagementRouteImport } from './routes/sales.external-user-management'
 import { Route as ProgramsProgramSlugRouteImport } from './routes/programs.$programSlug'
 import { Route as ProductsNewRouteImport } from './routes/products.new'
 import { Route as ProductsProductIdRouteImport } from './routes/products.$productId'
@@ -42,12 +41,6 @@ const SalesPaymentsRoute = SalesPaymentsRouteImport.update({
   path: '/sales/payments',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SalesExternalUserManagementRoute =
-  SalesExternalUserManagementRouteImport.update({
-    id: '/sales/external-user-management',
-    path: '/sales/external-user-management',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const ProgramsProgramSlugRoute = ProgramsProgramSlugRouteImport.update({
   id: '/programs/$programSlug',
   path: '/programs/$programSlug',
@@ -94,7 +87,6 @@ export interface FileRoutesByFullPath {
   '/products/$productId': typeof ProductsProductIdRoute
   '/products/new': typeof ProductsNewRoute
   '/programs/$programSlug': typeof ProgramsProgramSlugRoute
-  '/sales/external-user-management': typeof SalesExternalUserManagementRoute
   '/sales/payments': typeof SalesPaymentsRoute
   '/courses/learn/$courseId': typeof CoursesLearnCourseIdRoute
 }
@@ -108,7 +100,6 @@ export interface FileRoutesByTo {
   '/products/$productId': typeof ProductsProductIdRoute
   '/products/new': typeof ProductsNewRoute
   '/programs/$programSlug': typeof ProgramsProgramSlugRoute
-  '/sales/external-user-management': typeof SalesExternalUserManagementRoute
   '/sales/payments': typeof SalesPaymentsRoute
   '/courses/learn/$courseId': typeof CoursesLearnCourseIdRoute
 }
@@ -123,7 +114,6 @@ export interface FileRoutesById {
   '/products/$productId': typeof ProductsProductIdRoute
   '/products/new': typeof ProductsNewRoute
   '/programs/$programSlug': typeof ProgramsProgramSlugRoute
-  '/sales/external-user-management': typeof SalesExternalUserManagementRoute
   '/sales/payments': typeof SalesPaymentsRoute
   '/courses/learn/$courseId': typeof CoursesLearnCourseIdRoute
 }
@@ -139,7 +129,6 @@ export interface FileRouteTypes {
     | '/products/$productId'
     | '/products/new'
     | '/programs/$programSlug'
-    | '/sales/external-user-management'
     | '/sales/payments'
     | '/courses/learn/$courseId'
   fileRoutesByTo: FileRoutesByTo
@@ -153,7 +142,6 @@ export interface FileRouteTypes {
     | '/products/$productId'
     | '/products/new'
     | '/programs/$programSlug'
-    | '/sales/external-user-management'
     | '/sales/payments'
     | '/courses/learn/$courseId'
   id:
@@ -167,7 +155,6 @@ export interface FileRouteTypes {
     | '/products/$productId'
     | '/products/new'
     | '/programs/$programSlug'
-    | '/sales/external-user-management'
     | '/sales/payments'
     | '/courses/learn/$courseId'
   fileRoutesById: FileRoutesById
@@ -179,7 +166,6 @@ export interface RootRouteChildren {
   BootcampsNewRoute: typeof BootcampsNewRoute
   CheckoutCourseIdRoute: typeof CheckoutCourseIdRoute
   ProgramsProgramSlugRoute: typeof ProgramsProgramSlugRoute
-  SalesExternalUserManagementRoute: typeof SalesExternalUserManagementRoute
   SalesPaymentsRoute: typeof SalesPaymentsRoute
 }
 
@@ -211,13 +197,6 @@ declare module '@tanstack/react-router' {
       path: '/sales/payments'
       fullPath: '/sales/payments'
       preLoaderRoute: typeof SalesPaymentsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sales/external-user-management': {
-      id: '/sales/external-user-management'
-      path: '/sales/external-user-management'
-      fullPath: '/sales/external-user-management'
-      preLoaderRoute: typeof SalesExternalUserManagementRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/programs/$programSlug': {
@@ -306,9 +285,18 @@ const rootRouteChildren: RootRouteChildren = {
   BootcampsNewRoute: BootcampsNewRoute,
   CheckoutCourseIdRoute: CheckoutCourseIdRoute,
   ProgramsProgramSlugRoute: ProgramsProgramSlugRoute,
-  SalesExternalUserManagementRoute: SalesExternalUserManagementRoute,
   SalesPaymentsRoute: SalesPaymentsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
