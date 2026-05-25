@@ -644,22 +644,34 @@ function StepIndicator({ step, labels }: { step: Step; labels: string[] }) {
         return (
           <div key={label} className="flex flex-1 items-center gap-2">
             <div
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-small font-semibold"
-              style={{
-                backgroundColor: active || done ? BRAND : SOFT,
-                color: TEXT_DARK,
-              }}
+              className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-small font-semibold"
+              style={{ backgroundColor: done ? BRAND : SOFT, color: TEXT_DARK }}
             >
-              {done ? <Check className="h-4 w-4" /> : n}
+              {active && (
+                <motion.span
+                  layoutId="active-step-pill"
+                  transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                  className="absolute inset-0 rounded-full"
+                  style={{ backgroundColor: BRAND }}
+                />
+              )}
+              <span className="relative z-10">
+                {done ? <Check className="h-4 w-4" /> : n}
+              </span>
             </div>
-            <span
+            <motion.span
+              animate={{ color: active ? TEXT_DARK : TEXT_MUTED }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
               className="hidden text-smaller font-medium lg:inline"
-              style={{ color: active ? TEXT_DARK : TEXT_MUTED }}
             >
               {label}
-            </span>
+            </motion.span>
             {i < labels.length - 1 && (
-              <div className="h-px flex-1" style={{ backgroundColor: done ? BRAND : BORDER }} />
+              <motion.div
+                animate={{ backgroundColor: done ? BRAND : BORDER }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="h-px flex-1"
+              />
             )}
           </div>
         );
