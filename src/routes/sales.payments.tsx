@@ -2638,3 +2638,221 @@ function Timeline({
     </ol>
   );
 }
+
+// ============= Installment list =============
+
+type InstallmentStatus =
+  | "Approved"
+  | "Pending Review"
+  | "Proof Required"
+  | "Rejected"
+  | "Upcoming";
+
+type InstallmentRow = {
+  id: string;
+  label: string; // "Installment 01"
+  number: number;
+  dueDate: string;
+  amount: number;
+  status: InstallmentStatus;
+  proof: ProofFile | null;
+};
+
+function addMonthsFormatted(start: Date, months: number): string {
+  const d = new Date(start.getTime());
+  d.setMonth(d.getMonth() + months);
+  return d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  });
+}
+
+function seedInstallments(
+  details: { timePeriodMonths: number; monthlyPayment: number },
+  cohortDate: string,
+): InstallmentRow[] {
+  const start = new Date(cohortDate);
+  const validStart = isNaN(start.getTime()) ? new Date() : start;
+  const count = Math.max(1, details.timePeriodMonths);
+  const rows: InstallmentRow[] = [];
+  for (let i = 0; i < count; i++) {
+    const number = i + 1;
+    let status: InstallmentStatus = "Upcoming";
+    let proof: ProofFile | null = null;
+    if (i === 0) {
+      status = "Approved";
+      proof = { name: `installment-01.pdf`, uploadedAt: "Uploaded earlier" };
+    } else if (i === 1) {
+      status = "Pending Review";
+      proof = { name: `installment-02-proof.pdf`, uploadedAt: "Uploaded Jun 15, 2026" };
+    } else if (i === 2) {
+      status = "Proof Required";
+    }
+    rows.push({
+      id: `inst-${number}`,
+      label: `Installment ${String(number).padStart(2, "0")}`,
+      number,
+      dueDate: addMonthsFormatted(validStart, i),
+      amount: details.monthlyPayment,
+      status,
+      proof,
+    });
+  }
+  return rows;
+}
+
+function InstallmentStatusPill({ status }: { status: InstallmentStatus }) {
+  const map: Record<InstallmentStatus, { bg: string; color: string }> = {
+    Approved: { bg: "rgba(204,246,33,0.45)", color: "#3F5C00" },
+    "Pending Review": { bg: "#FEF3C7", color: "#92400E" },
+    "Proof Required": { bg: "#F3F4F6", color: "#4B5563" },
+    Rejected: { bg: "#FEE2E2", color: "#991B1B" },
+    Upcoming: { bg: "#F3F4F6", color: "#6B7280" },
+  };
+  const s = map[status];
+  return (
+    <span
+      className="inline-flex items-center rounded-full px-2.5 py-1 text-smaller font-semibold"
+      style={{ backgroundColor: s.bg, color: s.color }}
+    >
+      {status}
+    </span>
+  );
+}
+
+function InstallmentCard({
+  row,
+  onUpload,
+  onRemove,
+  onApprove,
+  onReject,
+}: {
+  row: InstallmentRow;
+  onUpload: (file: File | undefined) => void;
+  onRemove: () => void;
+  onApprove: () => void;
+  onReject: () => void;
+}) {
+  const inputId = `proof-${row.id}`;
+  const isUpcoming = row.status === "Upcoming";
+  const isApproved = row.status === "Approved";
+  const canApprove = row.status === "Pending Review";
+
+  return (
+    <div
+      className="rounded-xl bg-white p-4"
+      style={{ border: `1px solid ${BORDER}` }}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-small font-semibold" style={{ color: TEXT_DARK }}>
+            {row.label}
+          </p>
+          <p className="mt-0.5 text-smaller" style={{ color: TEXT_MUTED }}>
+            Due {row.dueDate} · ${row.amount.toLocaleString()}
+          </p>
+        </div>
+        <InstallmentStatusPill status={row.status} />
+      </div>
+
+      {/* Proof area */}
+      <div className="mt-3">
+        {row.proof ? (
+          <div
+            className="flex items-center gap-3 rounded-xl px-3 py-2.5"
+            style={{ border: `1px solid ${BORDER}`, backgroundColor: "#FAFAFA" }}
+          >
+            <span
+              className="grid h-9 w-9 place-items-center rounded-lg"
+              style={{ backgroundColor: SOFT, color: TEXT_DARK }}
+            >
+              <FileText className="h-4 w-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-small font-medium" style={{ color: TEXT_DARK }}>
+                {row.proof.name}
+              </p>
+              <p className="text-smaller" style={{ color: TEXT_MUTED }}>
+                {row.proof.uploadedAt}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => toast.info("Preview not available in demo")}
+              className="rounded-full px-3 py-1.5 text-small font-medium hover:bg-[#F3F4F6]"
+              style={{ color: TEXT_DARK }}
+            >
+              View
+            </button>
+            {!isApproved && (
+              <button
+                type="button"
+                onClick={onRemove}
+                className="grid h-8 w-8 place-items-center rounded-full hover:bg-[#FEE2E2]"
+                style={{ color: "#B42318" }}
+                aria-label="Remove"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        ) : (
+          <label
+            htmlFor={inputId}
+            className={`flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 ${
+              isUpcoming ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:bg-[#F9FAFB]"
+            }`}
+            style={{ border: `1.5px dashed ${BORDER}`, backgroundColor: "#FFFFFF" }}
+          >
+            <span className="flex items-center gap-2">
+              <Upload className="h-4 w-4" style={{ color: TEXT_MUTED }} />
+              <span className="text-small font-medium" style={{ color: TEXT_DARK }}>
+                {isUpcoming ? "Not available yet" : "Upload Proof"}
+              </span>
+            </span>
+            <span className="text-smaller" style={{ color: TEXT_MUTED }}>
+              PDF, PNG, JPG · 10MB
+            </span>
+            <input
+              id={inputId}
+              type="file"
+              accept=".pdf,.png,.jpg,.jpeg"
+              className="hidden"
+              disabled={isUpcoming}
+              onChange={(e) => onUpload(e.target.files?.[0] ?? undefined)}
+            />
+          </label>
+        )}
+      </div>
+
+      {/* Actions */}
+      {!isUpcoming && !isApproved && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={onApprove}
+            disabled={!canApprove}
+            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+            style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+          >
+            <CheckCircle2 className="h-4 w-4" /> Approve Payment
+          </button>
+          <button
+            type="button"
+            onClick={onReject}
+            disabled={!canApprove}
+            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+            style={{
+              backgroundColor: "#FFFFFF",
+              color: "#B42318",
+              border: "1px solid #FECDCA",
+            }}
+          >
+            <AlertCircle className="h-4 w-4" /> Reject Payment
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
