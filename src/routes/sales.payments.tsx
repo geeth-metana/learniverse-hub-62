@@ -49,15 +49,15 @@ const SOFT = "#F3F4F6";
 export const Route = createFileRoute("/sales/payments")({
   head: () => ({
     meta: [
-      { title: "External User Management — Metana" },
+      { title: "Payment — Metana" },
       {
         name: "description",
         content:
-          "Manage assigned students, grant course access, select plans, and send pre-filled checkout invitations.",
+          "Create and manage student payment plans, checkout links, and invitations.",
       },
     ],
   }),
-  component: ExternalUserManagementPage,
+  component: PaymentPage,
 });
 
 function statusPill(status: InvitationStatus) {
