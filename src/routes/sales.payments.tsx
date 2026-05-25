@@ -125,15 +125,6 @@ function PaymentPage() {
     );
   }, [invitations, query]);
 
-  const stats = useMemo(() => {
-    return {
-      total: invitations.length,
-      sent: invitations.filter((i) => i.status === "Invite Sent").length,
-      paid: invitations.filter((i) => i.status === "Paid").length,
-      pending: invitations.filter((i) => i.status === "Pending").length,
-    };
-  }, [invitations]);
-
   return (
     <div className="flex min-h-screen" style={{ backgroundColor: PAGE_BG, color: TEXT_DARK }}>
       <Sidebar />
