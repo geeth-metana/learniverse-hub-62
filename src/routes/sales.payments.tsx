@@ -300,6 +300,61 @@ function copyLink(link: string) {
   );
 }
 
+function StatCard({
+  label,
+  value,
+  Icon,
+}: {
+  label: string;
+  value: number;
+  Icon: React.ComponentType<{ className?: string }>;
+}) {
+  return (
+    <div
+      className="flex items-center gap-4 rounded-2xl bg-white p-5"
+      style={{ border: `1px solid ${BORDER}` }}
+    >
+      <span
+        className="grid h-11 w-11 shrink-0 place-items-center rounded-full"
+        style={{ backgroundColor: SOFT, color: TEXT_DARK }}
+      >
+        <Icon className="h-5 w-5" />
+      </span>
+      <div className="min-w-0">
+        <p className="text-second-header font-bold leading-tight" style={{ color: TEXT_DARK }}>
+          {value.toLocaleString()}
+        </p>
+        <p className="mt-0.5 text-small" style={{ color: TEXT_MUTED }}>
+          {label}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function IconAction({
+  label,
+  onClick,
+  children,
+}: {
+  label: string;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={label}
+      aria-label={label}
+      className="grid h-9 w-9 place-items-center rounded-full transition-colors hover:bg-[#F3F4F6]"
+      style={{ color: TEXT_MUTED }}
+    >
+      {children}
+    </button>
+  );
+}
+
 function SelectPill({
   value,
   options,
