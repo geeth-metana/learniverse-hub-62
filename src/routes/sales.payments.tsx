@@ -37,8 +37,8 @@ import {
   type SalesCourse,
 } from "@/lib/invitations-store";
 
-import { SlidersHorizontal, Eye, CheckCircle, Clock } from "lucide-react";
-import { DollarSign, TrendingUp } from "lucide-react";
+import { SlidersHorizontal, Eye, Clock, Wallet, Users } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -51,8 +51,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  AreaChart,
-  Area,
 } from "recharts";
 
 const BRAND = "#CCF621";
