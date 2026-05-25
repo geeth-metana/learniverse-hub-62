@@ -65,6 +65,8 @@ export type Invitation = {
 
 const STORAGE_KEY = "metana:invitations";
 const EVT = "metana:invitations-changed";
+const COHORT_KEY = "metana:custom-cohorts";
+const COHORT_EVT = "metana:custom-cohorts-changed";
 
 const seed: Invitation[] = [
   {
@@ -85,6 +87,14 @@ const seed: Invitation[] = [
     status: "Invite Sent",
     checkoutLink: "https://metana.io/checkout/prefilled?invite=INV-10001",
     createdAt: Date.now() - 86400000 * 4,
+    paymentMethod: "Upfront",
+    paymentDetails: {
+      paymentType: "Upfront",
+      planName: "Plan 01",
+      planAmount: 12370,
+      discountPercent: 20,
+      checkoutAmount: 9896,
+    },
   },
   {
     id: "INV-10002",
@@ -104,6 +114,15 @@ const seed: Invitation[] = [
     status: "Pending",
     checkoutLink: "https://metana.io/checkout/prefilled?invite=INV-10002",
     createdAt: Date.now() - 86400000 * 2,
+    paymentMethod: "Installment",
+    paymentDetails: {
+      paymentType: "Installment",
+      fullAmount: 14000,
+      initialDownPayment: 2000,
+      timePeriodMonths: 6,
+      monthlyPayment: 2000,
+      totalAmount: 14000,
+    },
   },
   {
     id: "INV-10003",
@@ -123,6 +142,14 @@ const seed: Invitation[] = [
     status: "Paid",
     checkoutLink: "https://metana.io/checkout/prefilled?invite=INV-10003",
     createdAt: Date.now() - 86400000 * 8,
+    paymentMethod: "Upfront",
+    paymentDetails: {
+      paymentType: "Upfront",
+      planName: "Plan 01",
+      planAmount: 12370,
+      discountPercent: 20,
+      checkoutAmount: 9896,
+    },
   },
 ];
 
