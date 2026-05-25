@@ -38,7 +38,19 @@ import {
 } from "@/lib/invitations-store";
 
 import { SlidersHorizontal, Eye, Clock, Users } from "lucide-react";
-import { TrendingUp } from "lucide-react";
+import {
+  TrendingUp,
+  FileText,
+  Upload,
+  Trash2,
+  CheckCircle2,
+  Circle,
+  Mail,
+  MousePointerClick,
+  CreditCard,
+  ShieldCheck,
+  AlertCircle,
+} from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -75,11 +87,22 @@ export const Route = createFileRoute("/sales/payments")({
 });
 
 function statusPill(status: InvitationStatus) {
+  const paid = { bg: "rgba(204, 246, 33, 0.35)", color: "#3F5C00" };
+  const pending = { bg: "#F3F4F6", color: "#4B5563" };
+  const rejected = { bg: "#FEE2E2", color: "#991B1B" };
+  const invite = { bg: "#FEF9C3", color: "#854D0E" };
   const map: Record<InvitationStatus, { bg: string; color: string }> = {
-    Pending: { bg: "#F3F4F6", color: "#4B5563" },
-    "Invite Sent": { bg: "#FEF9C3", color: "#854D0E" },
-    Paid: { bg: "rgba(204, 246, 33, 0.35)", color: "#3F5C00" },
-    Expired: { bg: "#FEE2E2", color: "#991B1B" },
+    Pending: pending,
+    "Invite Sent": invite,
+    Paid: paid,
+    Expired: rejected,
+    "Installment Pending Approval": pending,
+    "Installment Approved": paid,
+    "Installment Rejected": rejected,
+    "Bank Transfer Pending": pending,
+    "Bank Transfer Confirmed": paid,
+    "Loan Pending": pending,
+    "Loan Approved": paid,
   };
   const s = map[status];
   return (
