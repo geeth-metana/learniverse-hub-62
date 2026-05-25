@@ -497,7 +497,7 @@ function ProgramHeroCard({
           >
             {product.image ? (
               <img
-                src={product.image}
+                src="/hero-image.png"
                 alt={product.title}
                 className="h-full w-full object-cover border-white"
               />
