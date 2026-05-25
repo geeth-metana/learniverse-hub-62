@@ -37,7 +37,23 @@ import {
   type SalesCourse,
 } from "@/lib/invitations-store";
 
-import { SlidersHorizontal, Eye, FileText, CheckCircle, Clock } from "lucide-react";
+import { SlidersHorizontal, Eye, CheckCircle, Clock } from "lucide-react";
+import { DollarSign, TrendingUp } from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  AreaChart,
+  Area,
+} from "recharts";
 
 const BRAND = "#CCF621";
 const PAGE_BG = "#FFFFFF";
@@ -109,15 +125,6 @@ function PaymentPage() {
     );
   }, [invitations, query]);
 
-  const stats = useMemo(() => {
-    return {
-      total: invitations.length,
-      sent: invitations.filter((i) => i.status === "Invite Sent").length,
-      paid: invitations.filter((i) => i.status === "Paid").length,
-      pending: invitations.filter((i) => i.status === "Pending").length,
-    };
-  }, [invitations]);
-
   return (
     <div className="flex min-h-screen" style={{ backgroundColor: PAGE_BG, color: TEXT_DARK }}>
       <Sidebar />
@@ -130,16 +137,11 @@ function PaymentPage() {
                 Payment
               </h1>
               <p className="mt-1 text-body" style={{ color: TEXT_MUTED }}>
-                Create and manage student payment plans, checkout links, and invitations.
+                Track sales payments, create payment plans, and manage student checkout invitations.
               </p>
             </div>
 
-            <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <StatCard label="Total Payment Plans" value={stats.total} Icon={FileText} />
-              <StatCard label="Invite Sent" value={stats.sent} Icon={Send} />
-              <StatCard label="Paid Students" value={stats.paid} Icon={CheckCircle} />
-              <StatCard label="Pending Payments" value={stats.pending} Icon={Clock} />
-            </div>
+            <AnalyticsSection />
 
             <div className="mb-4 flex flex-wrap items-center gap-3">
               <div
@@ -150,7 +152,7 @@ function PaymentPage() {
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search by student, email, or course"
+                  placeholder="Search by student, email, course, or payment type"
                   className="w-full bg-transparent text-body outline-none"
                   style={{ color: TEXT_DARK }}
                 />
@@ -300,38 +302,6 @@ function copyLink(link: string) {
   );
 }
 
-function StatCard({
-  label,
-  value,
-  Icon,
-}: {
-  label: string;
-  value: number;
-  Icon: React.ComponentType<{ className?: string }>;
-}) {
-  return (
-    <div
-      className="flex items-center gap-4 rounded-2xl bg-white p-5"
-      style={{ border: `1px solid ${BORDER}` }}
-    >
-      <span
-        className="grid h-11 w-11 shrink-0 place-items-center rounded-full"
-        style={{ backgroundColor: SOFT, color: TEXT_DARK }}
-      >
-        <Icon className="h-5 w-5" />
-      </span>
-      <div className="min-w-0">
-        <p className="text-second-header font-bold leading-tight" style={{ color: TEXT_DARK }}>
-          {value.toLocaleString()}
-        </p>
-        <p className="mt-0.5 text-small" style={{ color: TEXT_MUTED }}>
-          {label}
-        </p>
-      </div>
-    </div>
-  );
-}
-
 function IconAction({
   label,
   onClick,
@@ -352,6 +322,272 @@ function IconAction({
     >
       {children}
     </button>
+  );
+}
+
+// ===================== Analytics =====================
+
+const INCOMING_DATA = [
+  { month: "Jan", Upfront: 42000, Installment: 18000 },
+  { month: "Feb", Upfront: 38000, Installment: 22000 },
+  { month: "Mar", Upfront: 52000, Installment: 26000 },
+  { month: "Apr", Upfront: 46000, Installment: 31000 },
+  { month: "May", Upfront: 61000, Installment: 34000 },
+  { month: "Jun", Upfront: 72000, Installment: 39000 },
+];
+
+const PAYMENT_SPLIT = [
+  { name: "Upfront", value: 42, color: "#CCF621" },
+  { name: "Installment", value: 34, color: "#1A1A1A" },
+  { name: "Bank", value: 14, color: "#A3E635" },
+  { name: "Loan", value: 10, color: "#6B7280" },
+];
+
+const ANNUAL_DATA = [
+  { month: "Jan", Collected: 52000, Pending: 18000 },
+  { month: "Feb", Collected: 61000, Pending: 22000 },
+  { month: "Mar", Collected: 74000, Pending: 26000 },
+  { month: "Apr", Collected: 68000, Pending: 31000 },
+  { month: "May", Collected: 82000, Pending: 29000 },
+  { month: "Jun", Collected: 96000, Pending: 34000 },
+  { month: "Jul", Collected: 88000, Pending: 41000 },
+  { month: "Aug", Collected: 104000, Pending: 39000 },
+  { month: "Sep", Collected: 112000, Pending: 45000 },
+  { month: "Oct", Collected: 121000, Pending: 42000 },
+  { month: "Nov", Collected: 135000, Pending: 48000 },
+  { month: "Dec", Collected: 148000, Pending: 52000 },
+];
+
+const REVENUE_ROWS = [
+  { label: "Upfront Revenue", value: 168400, pct: 59, color: "#CCF621" },
+  { label: "Installment Revenue", value: 86200, pct: 30, color: "#1A1A1A" },
+  { label: "Bank Transfer", value: 21000, pct: 7, color: "#A3E635" },
+  { label: "Loan Redirect", value: 9000, pct: 4, color: "#6B7280" },
+];
+
+function AnalyticsSection() {
+  return (
+    <div className="mb-6 flex flex-col gap-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <KpiCard
+          label="Total Sales Revenue"
+          value="$284,600"
+          subtext="+18% from last month"
+          Icon={DollarSign}
+          accent="#CCF621"
+        />
+        <KpiCard
+          label="Incoming Payments"
+          value="$72,400"
+          subtext="Expected in next 30 days"
+          Icon={TrendingUp}
+          accent="#A3E635"
+        />
+        <KpiCard
+          label="Pending Payments"
+          value="$41,250"
+          subtext="23 students pending"
+          Icon={Clock}
+          accent="#FACC15"
+        />
+        <KpiCard
+          label="Paid Students"
+          value="39"
+          subtext="68% invite-to-paid conversion"
+          Icon={CheckCircle}
+          accent="#1A1A1A"
+          accentTextWhite
+        />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <ChartCard
+          className="lg:col-span-2"
+          title="Incoming Payments"
+          subtitle="Upfront and installment revenue expected over the next 6 months."
+        >
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={INCOMING_DATA} barGap={6}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
+              <XAxis dataKey="month" stroke="#6B7280" tickLine={false} axisLine={false} />
+              <YAxis stroke="#6B7280" tickLine={false} axisLine={false} tickFormatter={(v) => `$${v / 1000}k`} />
+              <Tooltip
+                cursor={{ fill: "rgba(0,0,0,0.04)" }}
+                contentStyle={{ borderRadius: 12, border: `1px solid ${BORDER}` }}
+                formatter={(v: number) => `$${v.toLocaleString()}`}
+              />
+              <Legend iconType="circle" wrapperStyle={{ paddingTop: 8 }} />
+              <Bar dataKey="Upfront" fill="#CCF621" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="Installment" fill="#1A1A1A" radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartCard>
+
+        <ChartCard title="Payment Type Split" subtitle="Breakdown of active payment plans by method.">
+          <ResponsiveContainer width="100%" height={280}>
+            <PieChart>
+              <Tooltip
+                contentStyle={{ borderRadius: 12, border: `1px solid ${BORDER}` }}
+                formatter={(v: number) => `${v}%`}
+              />
+              <Pie
+                data={PAYMENT_SPLIT}
+                dataKey="value"
+                nameKey="name"
+                innerRadius={55}
+                outerRadius={95}
+                paddingAngle={2}
+                label={(e: { name: string; value: number }) => `${e.value}%`}
+              >
+                {PAYMENT_SPLIT.map((s) => (
+                  <Cell key={s.name} fill={s.color} />
+                ))}
+              </Pie>
+              <Legend iconType="circle" />
+            </PieChart>
+          </ResponsiveContainer>
+        </ChartCard>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <ChartCard
+          className="lg:col-span-2"
+          title="Annual Payments Overview"
+          subtitle="Revenue collected and pending across the year."
+        >
+          <ResponsiveContainer width="100%" height={280}>
+            <AreaChart data={ANNUAL_DATA}>
+              <defs>
+                <linearGradient id="g-collected" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#CCF621" stopOpacity={0.55} />
+                  <stop offset="100%" stopColor="#CCF621" stopOpacity={0.05} />
+                </linearGradient>
+                <linearGradient id="g-pending" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#6B7280" stopOpacity={0.35} />
+                  <stop offset="100%" stopColor="#6B7280" stopOpacity={0.05} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
+              <XAxis dataKey="month" stroke="#6B7280" tickLine={false} axisLine={false} />
+              <YAxis stroke="#6B7280" tickLine={false} axisLine={false} tickFormatter={(v) => `$${v / 1000}k`} />
+              <Tooltip
+                contentStyle={{ borderRadius: 12, border: `1px solid ${BORDER}` }}
+                formatter={(v: number) => `$${v.toLocaleString()}`}
+              />
+              <Legend iconType="circle" wrapperStyle={{ paddingTop: 8 }} />
+              <Area type="monotone" dataKey="Collected" stroke="#1A1A1A" strokeWidth={2} fill="url(#g-collected)" />
+              <Area type="monotone" dataKey="Pending" stroke="#6B7280" strokeWidth={2} fill="url(#g-pending)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </ChartCard>
+
+        <div
+          className="flex flex-col gap-4 rounded-2xl bg-white p-5"
+          style={{ border: `1px solid ${BORDER}` }}
+        >
+          <div>
+            <h3 className="text-second-header font-semibold" style={{ color: TEXT_DARK }}>
+              Revenue Breakdown
+            </h3>
+            <p className="mt-1 text-small" style={{ color: TEXT_MUTED }}>
+              Performance by payment channel.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3">
+            {REVENUE_ROWS.map((r) => (
+              <div key={r.label} className="flex flex-col gap-1.5">
+                <div className="flex items-center justify-between text-small">
+                  <span style={{ color: TEXT_DARK }} className="font-medium">{r.label}</span>
+                  <span style={{ color: TEXT_MUTED }}>${r.value.toLocaleString()} · {r.pct}%</span>
+                </div>
+                <div className="h-1.5 w-full overflow-hidden rounded-full" style={{ backgroundColor: "#F3F4F6" }}>
+                  <div className="h-full rounded-full" style={{ width: `${r.pct}%`, backgroundColor: r.color }} />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-2 grid grid-cols-2 gap-3 pt-3" style={{ borderTop: `1px solid ${BORDER}` }}>
+            <div>
+              <p className="text-small" style={{ color: TEXT_MUTED }}>Avg Deal Size</p>
+              <p className="mt-0.5 font-semibold" style={{ color: TEXT_DARK }}>$8,940</p>
+            </div>
+            <div>
+              <p className="text-small" style={{ color: TEXT_MUTED }}>Projected Monthly</p>
+              <p className="mt-0.5 font-semibold" style={{ color: TEXT_DARK }}>$72,400</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function KpiCard({
+  label,
+  value,
+  subtext,
+  Icon,
+  accent,
+  accentTextWhite,
+}: {
+  label: string;
+  value: string;
+  subtext: string;
+  Icon: React.ComponentType<{ className?: string }>;
+  accent: string;
+  accentTextWhite?: boolean;
+}) {
+  return (
+    <div
+      className="flex items-start gap-4 rounded-2xl bg-white p-5"
+      style={{ border: `1px solid ${BORDER}` }}
+    >
+      <span
+        className="grid h-11 w-11 shrink-0 place-items-center rounded-full"
+        style={{
+          backgroundColor: accent + (accentTextWhite ? "" : "33"),
+          color: accentTextWhite ? "#FFFFFF" : TEXT_DARK,
+        }}
+      >
+        <Icon className="h-5 w-5" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-small font-medium" style={{ color: TEXT_MUTED }}>{label}</p>
+        <p className="mt-0.5 text-second-header font-bold leading-tight" style={{ color: TEXT_DARK }}>
+          {value}
+        </p>
+        <p className="mt-1 text-small" style={{ color: TEXT_MUTED }}>{subtext}</p>
+      </div>
+    </div>
+  );
+}
+
+function ChartCard({
+  title,
+  subtitle,
+  children,
+  className = "",
+}: {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`flex flex-col gap-4 rounded-2xl bg-white p-5 ${className}`}
+      style={{ border: `1px solid ${BORDER}` }}
+    >
+      <div>
+        <h3 className="text-second-header font-semibold" style={{ color: TEXT_DARK }}>
+          {title}
+        </h3>
+        {subtitle && (
+          <p className="mt-1 text-small" style={{ color: TEXT_MUTED }}>{subtitle}</p>
+        )}
+      </div>
+      <div className="flex-1">{children}</div>
+    </div>
   );
 }
 
@@ -861,8 +1097,8 @@ function Step2({
               key={`${c.date}-${c.time}`}
               type="button"
               onClick={() => setCohort(c)}
-              className="flex items-start justify-between rounded-xl bg-white p-4 text-left transition-colors"
-              style={{ border: `2px solid ${active ? BRAND : BORDER}` }}
+              className={`flex items-start justify-between rounded-xl bg-white p-4 text-left transition-colors ${active ? "" : "hover:bg-[#F3F4F6]"}`}
+              style={{ border: `2px solid ${active ? TEXT_DARK : BORDER}` }}
             >
               <div>
                 <p className="font-semibold" style={{ color: TEXT_DARK }}>{c.date}</p>
@@ -875,10 +1111,13 @@ function Step2({
               </div>
               <span
                 className="grid h-5 w-5 place-items-center rounded-full"
-                style={{ border: `2px solid ${active ? BRAND : BORDER}` }}
+                style={{
+                  border: `2px solid ${active ? TEXT_DARK : BORDER}`,
+                  backgroundColor: active ? TEXT_DARK : "transparent",
+                }}
               >
                 {active && (
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: BRAND }} />
+                  <Check className="h-3 w-3" style={{ color: "#FFFFFF" }} />
                 )}
               </span>
             </button>
@@ -1016,8 +1255,8 @@ function Step3PaymentMethod({
               key={o.id}
               type="button"
               onClick={() => setMethod(o.id)}
-              className="relative flex items-start gap-3 rounded-xl bg-white p-4 text-left transition-colors"
-              style={{ border: `2px solid ${active ? BRAND : BORDER}` }}
+              className={`relative flex items-start gap-3 rounded-xl bg-white p-4 text-left transition-colors ${active ? "" : "hover:bg-[#F3F4F6]"}`}
+              style={{ border: `2px solid ${active ? TEXT_DARK : BORDER}` }}
             >
               <span
                 className="grid h-10 w-10 shrink-0 place-items-center rounded-lg"
@@ -1032,7 +1271,7 @@ function Step3PaymentMethod({
               {active && (
                 <span
                   className="grid h-6 w-6 place-items-center rounded-full"
-                  style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+                  style={{ backgroundColor: TEXT_DARK, color: "#FFFFFF" }}
                 >
                   <Check className="h-4 w-4" />
                 </span>
@@ -1084,8 +1323,8 @@ function Step4PlanSetup(props: {
               <div
                 key={p.id}
                 onClick={() => props.setUpfrontPlanId(p.id)}
-                className="relative cursor-pointer rounded-2xl bg-white p-5 transition-colors"
-                style={{ border: `2px solid ${active ? BRAND : BORDER}` }}
+                className={`relative cursor-pointer rounded-2xl bg-white p-5 transition-colors ${active ? "" : "hover:bg-[#F3F4F6]"}`}
+                style={{ border: `2px solid ${active ? TEXT_DARK : BORDER}` }}
               >
                 <div className="flex items-center justify-between">
                   <p className="font-semibold" style={{ color: TEXT_DARK }}>{p.name}</p>
@@ -1129,7 +1368,7 @@ function Step4PlanSetup(props: {
                 {active && (
                   <span
                     className="absolute right-4 top-4 grid h-6 w-6 place-items-center rounded-full"
-                    style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+                    style={{ backgroundColor: TEXT_DARK, color: "#FFFFFF" }}
                   >
                     <Check className="h-4 w-4" />
                   </span>
