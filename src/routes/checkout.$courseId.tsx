@@ -3,11 +3,15 @@ import { useState, useRef, useEffect } from "react";
 import { z } from "zod";
 import { plans, getCourse, type PlanId } from "@/lib/courses-data";
 import { useEnrollments } from "@/lib/enrollment";
+import { getInvitation } from "@/lib/invitations-store";
 import { toast } from "sonner";
 import { CreditCard, DollarSign, Building2, Lock, ArrowLeft } from "lucide-react";
 
 export const Route = createFileRoute("/checkout/$courseId")({
-  validateSearch: z.object({ plan: z.enum(["plan-01", "plan-02"]).optional() }),
+  validateSearch: z.object({
+    plan: z.enum(["plan-01", "plan-02"]).optional(),
+    invite: z.string().optional(),
+  }),
   head: () => ({ meta: [{ title: "Checkout — Metana" }] }),
   component: CheckoutPage,
 });
@@ -35,7 +39,8 @@ function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [billing, setBilling] = useState<"upfront" | "installment">("upfront");
   const [showPlan, setShowPlan] = useState(false);
-  const [prefilled, setPrefilled] = useState(false);
+  const invitation = search.invite ? getInvitation(search.invite) : undefined;
+  const [prefilled, setPrefilled] = useState(Boolean(invitation));
 
   const TEXT_MAIN = "#24324A";
   const TEXT_DARK = "#1A1A1A";
@@ -76,10 +81,14 @@ function CheckoutPage() {
     );
   }
 
-  const effectivePlanId: PlanId = prefilled ? "plan-01" : plan;
+  const effectivePlanId: PlanId = prefilled ? (invitation?.planId ?? "plan-01") : plan;
   const selectedPlan = plans.find((p) => p.id === effectivePlanId)!;
-  const effectiveBilling = prefilled ? "upfront" : billing;
-  const effectiveEmail = prefilled ? "student@example.com" : email;
+  const effectiveBilling = prefilled
+    ? invitation?.paymentType === "Installment"
+      ? "installment"
+      : "upfront"
+    : billing;
+  const effectiveEmail = prefilled ? (invitation?.studentEmail ?? "student@example.com") : email;
 
   const planAmount =
     effectiveBilling === "installment"
@@ -422,14 +431,15 @@ function CheckoutPage() {
                   <div className="bg-white rounded-2xl p-6 lg:p-8">
                     <dl className="flex flex-col">
                       {([
-                        ["Course", "AI Builder Pack"],
-                        ["Access Type", "Full Program Access"],
-                        ["Payment Type", "Upfront"],
+                        ["Course", invitation?.course ?? course.title ?? "AI Builder Pack"],
+                        ["Access Type", invitation?.accessType ?? "Full Program Access"],
+                        ["Cohort Date", invitation?.cohortDate ?? "Jun 12, 2026"],
+                        ["Payment Type", invitation?.paymentType ?? (effectiveBilling === "installment" ? "Installment" : "Upfront")],
                         ["Lessons", "70 Lessons"],
                         ["Duration", "4 Months"],
                         ["Weekly Commitment", "22H / Week"],
                         ["Support", "Instructor-led guidance"],
-                        ["Certificate", "Included"],
+                        ["Certificate", invitation?.certificateIncluded === false ? "Not included" : "Included"],
                       ] as const).map(([k, v], i, arr) => (
                         <div
                           key={k}
