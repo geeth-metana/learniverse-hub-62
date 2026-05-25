@@ -27,7 +27,8 @@ function CheckoutPage() {
   const [exp, setExp] = useState("");
   const [cvc, setCvc] = useState("");
   const [promo, setPromo] = useState("");
-  const [showPromo, setShowPromo] = useState(false);
+  const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
+  const [promoError, setPromoError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [billing, setBilling] = useState<"upfront" | "installment">("upfront");
   const [showPlan, setShowPlan] = useState(false);
@@ -76,10 +77,80 @@ function CheckoutPage() {
   const selectedPlan = plans.find((p) => p.id === effectivePlanId)!;
   const effectiveBilling = prefilled ? "upfront" : billing;
   const effectiveEmail = prefilled ? "student@example.com" : email;
-  const effectivePromo = prefilled ? "" : promo;
-  const baseAmount = effectiveBilling === "installment" ? selectedPlan.monthlyEnrollment : selectedPlan.price;
-  const discount = effectivePromo.trim().toUpperCase() === "METANA10" ? Math.round(baseAmount * 0.1) : 0;
-  const total = baseAmount - discount;
+
+  const planAmount =
+    effectiveBilling === "installment"
+      ? selectedPlan.monthlyEnrollment
+      : (selectedPlan.original ?? selectedPlan.price);
+  const baseDiscountPercent = 20;
+  const subtotalAfterBase = planAmount * (1 - baseDiscountPercent / 100);
+  const promoDiscount = appliedPromo === "METANA" ? subtotalAfterBase * 0.1 : 0;
+  const total = subtotalAfterBase - promoDiscount;
+
+  const fmt = (n: number) => {
+    const rounded = Math.round(n * 100) / 100;
+    return rounded % 1 === 0
+      ? `$${rounded.toLocaleString()}`
+      : `$${rounded.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
+  const handleApplyPromo = () => {
+    const code = promo.trim().toUpperCase();
+    if (!code) {
+      setPromoError("Please enter a promo code.");
+      setAppliedPromo(null);
+      return;
+    }
+    if (code === "METANA") {
+      setAppliedPromo("METANA");
+      setPromoError(null);
+      setPromo("METANA");
+    } else {
+      setAppliedPromo(null);
+      setPromoError("Invalid promo code. Please check and try again.");
+    }
+  };
+
+  const PromoField = () => (
+    <div className="w-full" style={{ maxWidth: 280 }}>
+      <div
+        className="flex items-center gap-1 rounded-full pl-4 pr-1 py-1"
+        style={{ backgroundColor: PAGE_BG }}
+      >
+        <input
+          value={promo}
+          onChange={(e) => {
+            setPromo(e.target.value);
+            if (promoError) setPromoError(null);
+            if (appliedPromo) setAppliedPromo(null);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleApplyPromo();
+            }
+          }}
+          placeholder="Enter promo code"
+          className="flex-1 bg-transparent outline-none text-small py-1.5"
+          style={{ color: TEXT_DARK }}
+        />
+        <button
+          type="button"
+          onClick={handleApplyPromo}
+          className="px-3 py-1.5 rounded-full text-small font-semibold"
+          style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+        >
+          {appliedPromo === "METANA" ? "Applied" : "Apply"}
+        </button>
+      </div>
+      {promoError && (
+        <p className="mt-1.5 text-smaller" style={{ color: "#DC2626" }}>{promoError}</p>
+      )}
+      {appliedPromo === "METANA" && !promoError && (
+        <p className="mt-1.5 text-smaller" style={{ color: "#16A34A" }}>Promo code applied successfully.</p>
+      )}
+    </div>
+  );
 
   const validate = () => {
     if (!effectiveEmail.includes("@")) return "Please enter a valid billing email.";
