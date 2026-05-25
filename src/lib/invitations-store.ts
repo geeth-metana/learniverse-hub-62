@@ -2,6 +2,44 @@ import { useEffect, useState } from "react";
 
 export type InvitationStatus = "Pending" | "Invite Sent" | "Paid" | "Expired";
 
+export type PaymentMethod = "Upfront" | "Installment" | "Bank" | "Loan";
+
+export type UpfrontDetails = {
+  paymentType: "Upfront";
+  planName: string;
+  planAmount: number;
+  discountPercent: number;
+  checkoutAmount: number;
+};
+export type InstallmentDetails = {
+  paymentType: "Installment";
+  fullAmount: number;
+  initialDownPayment: number;
+  timePeriodMonths: number;
+  monthlyPayment: number;
+  totalAmount: number;
+};
+export type BankDetails = {
+  paymentType: "Bank";
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+  routingNumber: string;
+  swiftCode: string;
+  referenceNote: string;
+};
+export type LoanDetails = {
+  paymentType: "Loan";
+  loanProviderName: string;
+  loanApplicationLink: string;
+  redirectRequired: true;
+};
+export type PaymentDetails =
+  | UpfrontDetails
+  | InstallmentDetails
+  | BankDetails
+  | LoanDetails;
+
 export type Invitation = {
   id: string; // e.g. INV-10294
   studentName?: string;
@@ -9,12 +47,15 @@ export type Invitation = {
   course: string; // course title
   courseId: string; // courses-data id
   cohortDate: string; // formatted, e.g. "Jun 12, 2026"
+  // Back-compat (used by existing checkout pre-fill for Upfront/Installment plans)
   plan: "Plan 01" | "Plan 02";
   planId: "plan-01" | "plan-02";
-  paymentType: "Upfront" | "Installment";
+  paymentType: PaymentMethod;
   planAmount: number;
   discountPercent: number;
   checkoutAmount: number;
+  paymentMethod: PaymentMethod;
+  paymentDetails: PaymentDetails;
   accessType: string;
   certificateIncluded: boolean;
   status: InvitationStatus;
