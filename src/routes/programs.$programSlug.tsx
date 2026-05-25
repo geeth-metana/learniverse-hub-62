@@ -22,6 +22,8 @@ import {
   User,
   Users,
   Zap,
+  Download,
+  Award,
 } from "lucide-react";
 import {
   Bar,
@@ -272,11 +274,13 @@ function ProgramPage() {
     { day: "Sat", v: 5 },
     { day: "Sun", v: 2 },
   ];
-  const weeklyCompleted = weekly.reduce((a, d) => a + d.v, 0);
+  const lessonsCompletedLast7Days = weekly.reduce((a, d) => a + d.v, 0);
   const currentStreakDays = 7;
   const streakScore = currentStreakDays * completedLessons;
   const learningMomentum =
-    currentStreakDays * 10 + completedLessons * 2 + weeklyCompleted * 5;
+    currentStreakDays * 10 + completedLessons * 2 + lessonsCompletedLast7Days * 5;
+
+  const isProgramCompleted = programProgress === 100;
 
   return (
     <div className="flex min-h-screen" style={{ background: BG }}>
@@ -308,6 +312,7 @@ function ProgramPage() {
               completedLessons={completedLessons}
               totalLessons={totalLessons}
               currentCourseTitle={currentCourse?.title ?? ""}
+              isProgramCompleted={isProgramCompleted}
               onContinue={() =>
                 currentCourse &&
                 navigate({ to: "/courses/$courseId", params: { courseId: currentCourse.id } })
@@ -333,12 +338,16 @@ function ProgramPage() {
                   )}
                   <CurriculumList
                     courses={courses}
-                    defaultOpenCourseId={currentCourse?.id}
+                    defaultOpenCourseId={isProgramCompleted ? undefined : currentCourse?.id}
                     onOpenLesson={(courseId) =>
                       navigate({ to: "/courses/$courseId", params: { courseId } })
                     }
                   />
                 </div>
+
+                {isProgramCompleted && (
+                  <CertificatePreview programName={product.title} />
+                )}
               </section>
 
               <aside className="space-y-5 self-start lg:sticky lg:top-6">
@@ -346,7 +355,7 @@ function ProgramPage() {
                 <LearningStreakCard
                   weekly={weekly}
                   currentStreakDays={currentStreakDays}
-                  weeklyCompleted={weeklyCompleted}
+                  lessonsCompletedLast7Days={lessonsCompletedLast7Days}
                   streakScore={streakScore}
                   learningMomentum={learningMomentum}
                 />
