@@ -512,7 +512,7 @@ function CheckoutPage() {
                 className="mt-6 w-full py-3.5 rounded-full font-semibold hover:opacity-90 disabled:opacity-60"
                 style={{ backgroundColor: BRAND, color: TEXT_DARK }}
               >
-                {submitting ? "Processing..." : `Purchase Now · $${total.toLocaleString()}`}
+                {submitting ? "Processing..." : `Purchase Now · ${fmt(total)}`}
               </button>
 
               <div className="mt-4 flex items-center justify-center gap-2 text-small" style={{ color: TEXT_MUTED }}>
