@@ -471,7 +471,9 @@ function AddStudentModal({
           : 0;
     const discountPercent = details.paymentType === "Upfront" ? details.discountPercent : 0;
     const planLabel: "Plan 01" | "Plan 02" =
-      details.paymentType === "Upfront" ? details.planName : "Plan 01";
+      details.paymentType === "Upfront"
+        ? (details.planName as "Plan 01" | "Plan 02")
+        : "Plan 01";
     const planId: "plan-01" | "plan-02" =
       details.paymentType === "Upfront" ? upfrontPlanId : "plan-01";
 
