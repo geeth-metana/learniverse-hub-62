@@ -1,6 +1,17 @@
 import { useEffect, useState } from "react";
 
-export type InvitationStatus = "Pending" | "Invite Sent" | "Paid" | "Expired";
+export type InvitationStatus =
+  | "Pending"
+  | "Invite Sent"
+  | "Paid"
+  | "Expired"
+  | "Installment Pending Approval"
+  | "Installment Approved"
+  | "Installment Rejected"
+  | "Bank Transfer Pending"
+  | "Bank Transfer Confirmed"
+  | "Loan Pending"
+  | "Loan Approved";
 
 export type PaymentMethod = "Upfront" | "Installment" | "Bank" | "Loan";
 

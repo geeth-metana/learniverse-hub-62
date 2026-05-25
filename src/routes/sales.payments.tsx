@@ -38,7 +38,19 @@ import {
 } from "@/lib/invitations-store";
 
 import { SlidersHorizontal, Eye, Clock, Users } from "lucide-react";
-import { TrendingUp } from "lucide-react";
+import {
+  TrendingUp,
+  FileText,
+  Upload,
+  Trash2,
+  CheckCircle2,
+  Circle,
+  Mail,
+  MousePointerClick,
+  CreditCard,
+  ShieldCheck,
+  AlertCircle,
+} from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -75,11 +87,22 @@ export const Route = createFileRoute("/sales/payments")({
 });
 
 function statusPill(status: InvitationStatus) {
+  const paid = { bg: "rgba(204, 246, 33, 0.35)", color: "#3F5C00" };
+  const pending = { bg: "#F3F4F6", color: "#4B5563" };
+  const rejected = { bg: "#FEE2E2", color: "#991B1B" };
+  const invite = { bg: "#FEF9C3", color: "#854D0E" };
   const map: Record<InvitationStatus, { bg: string; color: string }> = {
-    Pending: { bg: "#F3F4F6", color: "#4B5563" },
-    "Invite Sent": { bg: "#FEF9C3", color: "#854D0E" },
-    Paid: { bg: "rgba(204, 246, 33, 0.35)", color: "#3F5C00" },
-    Expired: { bg: "#FEE2E2", color: "#991B1B" },
+    Pending: pending,
+    "Invite Sent": invite,
+    Paid: paid,
+    Expired: rejected,
+    "Installment Pending Approval": pending,
+    "Installment Approved": paid,
+    "Installment Rejected": rejected,
+    "Bank Transfer Pending": pending,
+    "Bank Transfer Confirmed": paid,
+    "Loan Pending": pending,
+    "Loan Approved": paid,
   };
   const s = map[status];
   return (
@@ -110,6 +133,7 @@ function PaymentPage() {
   const invitations = useInvitations();
   const [addOpen, setAddOpen] = useState(false);
   const [inviteResult, setInviteResult] = useState<Invitation | null>(null);
+  const [viewDetailsId, setViewDetailsId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
@@ -122,6 +146,11 @@ function PaymentPage() {
         i.course.toLowerCase().includes(q),
     );
   }, [invitations, query]);
+
+  const viewing = useMemo(
+    () => invitations.find((i) => i.id === viewDetailsId) ?? null,
+    [invitations, viewDetailsId],
+  );
 
   return (
     <div className="flex min-h-screen" style={{ backgroundColor: PAGE_BG, color: TEXT_DARK }}>
@@ -259,7 +288,7 @@ function PaymentPage() {
                               </IconAction>
                               <IconAction
                                 label="View Details"
-                                onClick={() => setInviteResult(row)}
+                                onClick={() => setViewDetailsId(row.id)}
                               >
                                 <Eye className="h-4 w-4" />
                               </IconAction>
@@ -288,6 +317,13 @@ function PaymentPage() {
 
       {inviteResult && (
         <InvitationModal invitation={inviteResult} onClose={() => setInviteResult(null)} />
+      )}
+
+      {viewing && (
+        <PaymentOverviewDrawer
+          invitation={viewing}
+          onClose={() => setViewDetailsId(null)}
+        />
       )}
     </div>
   );
@@ -366,6 +402,7 @@ function AnalyticsSection() {
           label="Pending Payments"
           description="Payments waiting to be completed or confirmed."
           value="$41,250"
+          subValue="23 Students"
           Icon={Clock}
         />
         <KpiCard
@@ -388,16 +425,16 @@ function AnalyticsSection() {
               <CartesianGrid strokeDasharray="3 3" stroke="#EEF2E8" vertical={false} />
               <XAxis
                 dataKey="month"
-                stroke="#6B7280"
+                stroke={TEXT_DARK}
                 tickLine={false}
                 axisLine={false}
-                tick={{ fontSize: 12 }}
+                tick={{ fontSize: 12, fill: TEXT_DARK }}
               />
               <YAxis
-                stroke="#6B7280"
+                stroke={TEXT_DARK}
                 tickLine={false}
                 axisLine={false}
-                tick={{ fontSize: 12 }}
+                tick={{ fontSize: 12, fill: TEXT_DARK }}
                 tickFormatter={(v) => `$${v / 1000}k`}
               />
               <Tooltip
@@ -409,13 +446,16 @@ function AnalyticsSection() {
                   boxShadow: "0 8px 24px rgba(17, 24, 39, 0.08)",
                   padding: "10px 12px",
                 }}
-                labelStyle={{ color: TEXT_MUTED, fontSize: 12, marginBottom: 4 }}
+                labelStyle={{ color: TEXT_DARK, fontSize: 12, marginBottom: 4, fontWeight: 600 }}
                 itemStyle={{ color: TEXT_DARK, fontSize: 13, fontWeight: 500 }}
                 formatter={(v: number, name: string) => [`$${v.toLocaleString()}`, name]}
               />
               <Legend
                 iconType="circle"
-                wrapperStyle={{ paddingTop: 12, fontSize: 12, color: TEXT_MUTED }}
+                wrapperStyle={{ paddingTop: 12, fontSize: 12, color: TEXT_DARK }}
+                formatter={(value: string) => (
+                  <span style={{ color: TEXT_DARK }}>{value}</span>
+                )}
               />
               <Bar dataKey="Upfront" fill="#CCF621" radius={[8, 8, 0, 0]} maxBarSize={22} />
               <Bar dataKey="Installment" fill="#A3E635" radius={[8, 8, 0, 0]} maxBarSize={22} />
@@ -435,6 +475,8 @@ function AnalyticsSection() {
                   background: "#FFFFFF",
                   boxShadow: "0 8px 24px rgba(17, 24, 39, 0.08)",
                 }}
+                labelStyle={{ color: TEXT_DARK, fontWeight: 600 }}
+                itemStyle={{ color: TEXT_DARK }}
                 formatter={(v: number) => `${v}%`}
               />
               <Pie
@@ -447,6 +489,7 @@ function AnalyticsSection() {
                 stroke="#FFFFFF"
                 strokeWidth={2}
                 label={(e: { value: number }) => `${e.value}%`}
+                labelLine={{ stroke: TEXT_DARK }}
               >
                 {PAYMENT_SPLIT.map((s) => (
                   <Cell key={s.name} fill={s.color} />
@@ -454,7 +497,10 @@ function AnalyticsSection() {
               </Pie>
               <Legend
                 iconType="circle"
-                wrapperStyle={{ paddingTop: 8, fontSize: 12, color: TEXT_MUTED }}
+                wrapperStyle={{ paddingTop: 8, fontSize: 12, color: TEXT_DARK }}
+                formatter={(value: string) => (
+                  <span style={{ color: TEXT_DARK }}>{value}</span>
+                )}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -464,25 +510,36 @@ function AnalyticsSection() {
   );
 }
 
-const KPI_TONES: Record<KpiTone, { bg: string; glow: string; icon: string }> = {
+const KPI_TONES: Record<
+  KpiTone,
+  { bgFull: string; bgSoft: string; glowFull: string; glowSoft: string; icon: string }
+> = {
   lime: {
-    bg: "linear-gradient(135deg, #F7FFD6 0%, #ECFBC0 100%)",
-    glow: "radial-gradient(circle at top right, rgba(204,246,33,0.55), transparent 65%)",
+    bgFull: "linear-gradient(135deg, #F7FFD6 0%, #ECFBC0 100%)",
+    bgSoft: "linear-gradient(135deg, rgba(247,255,214,0.45) 0%, rgba(236,251,192,0.45) 100%)",
+    glowFull: "radial-gradient(circle at top right, rgba(204,246,33,0.55), transparent 65%)",
+    glowSoft: "radial-gradient(circle at top right, rgba(204,246,33,0.22), transparent 65%)",
     icon: "#9BBF14",
   },
   mint: {
-    bg: "linear-gradient(135deg, #EAFBE7 0%, #DAF5D2 100%)",
-    glow: "radial-gradient(circle at top right, rgba(132,204,22,0.45), transparent 65%)",
+    bgFull: "linear-gradient(135deg, #EAFBE7 0%, #DAF5D2 100%)",
+    bgSoft: "linear-gradient(135deg, rgba(234,251,231,0.45) 0%, rgba(218,245,210,0.45) 100%)",
+    glowFull: "radial-gradient(circle at top right, rgba(132,204,22,0.45), transparent 65%)",
+    glowSoft: "radial-gradient(circle at top right, rgba(132,204,22,0.18), transparent 65%)",
     icon: "#6BAE2A",
   },
   yellow: {
-    bg: "linear-gradient(135deg, #FBFBD6 0%, #F4F5B5 100%)",
-    glow: "radial-gradient(circle at top right, rgba(234,225,80,0.55), transparent 65%)",
+    bgFull: "linear-gradient(135deg, #FBFBD6 0%, #F4F5B5 100%)",
+    bgSoft: "linear-gradient(135deg, rgba(251,251,214,0.45) 0%, rgba(244,245,181,0.45) 100%)",
+    glowFull: "radial-gradient(circle at top right, rgba(234,225,80,0.55), transparent 65%)",
+    glowSoft: "radial-gradient(circle at top right, rgba(234,225,80,0.22), transparent 65%)",
     icon: "#B7A60C",
   },
   teal: {
-    bg: "linear-gradient(135deg, #E0F5EE 0%, #CFEDE4 100%)",
-    glow: "radial-gradient(circle at top right, rgba(45,212,168,0.4), transparent 65%)",
+    bgFull: "linear-gradient(135deg, #E0F5EE 0%, #CFEDE4 100%)",
+    bgSoft: "linear-gradient(135deg, rgba(224,245,238,0.45) 0%, rgba(207,237,228,0.45) 100%)",
+    glowFull: "radial-gradient(circle at top right, rgba(45,212,168,0.4), transparent 65%)",
+    glowSoft: "radial-gradient(circle at top right, rgba(45,212,168,0.18), transparent 65%)",
     icon: "#3F9C84",
   },
 };
@@ -492,24 +549,37 @@ function KpiCard({
   label,
   description,
   value,
+  subValue,
   Icon,
 }: {
   tone: KpiTone;
   label: string;
   description: string;
   value: string;
+  subValue?: string;
   Icon: React.ComponentType<{ className?: string }>;
 }) {
   const t = KPI_TONES[tone];
+  const [hover, setHover] = useState(false);
   return (
     <div
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
       className="relative flex h-full flex-col gap-3 overflow-hidden rounded-2xl p-5"
-      style={{ background: t.bg, border: `1px solid ${BORDER}` }}
+      style={{
+        background: hover ? t.bgFull : t.bgSoft,
+        border: `1px solid ${BORDER}`,
+        transition: "background 0.25s ease, transform 0.25s ease",
+        transform: hover ? "translateY(-2px)" : "translateY(0)",
+      }}
     >
       <div
         aria-hidden
         className="pointer-events-none absolute -right-10 -top-10 h-32 w-32"
-        style={{ background: t.glow }}
+        style={{
+          background: hover ? t.glowFull : t.glowSoft,
+          transition: "background 0.25s ease",
+        }}
       />
       <span
         className="relative grid h-10 w-10 place-items-center rounded-full bg-white/70 backdrop-blur"
@@ -525,12 +595,16 @@ function KpiCard({
           {description}
         </p>
       </div>
-      <p
-        className="relative mt-auto text-second-header font-bold leading-tight"
-        style={{ color: TEXT_DARK }}
-      >
-        {value}
-      </p>
+      <div className="relative mt-auto">
+        <p className="text-second-header font-bold leading-tight" style={{ color: TEXT_DARK }}>
+          {value}
+        </p>
+        {subValue && (
+          <p className="mt-0.5 text-small font-medium" style={{ color: TEXT_MUTED }}>
+            {subValue}
+          </p>
+        )}
+      </div>
     </div>
   );
 }
@@ -1854,5 +1928,582 @@ function ModalShell({
         {children}
       </motion.div>
     </div>
+  );
+}
+
+// ===================== Payment Overview Drawer =====================
+
+type ProofFile = { name: string; uploadedAt: string };
+
+type ApprovalState = "Pending Review" | "Approved" | "Rejected";
+
+function deriveApproval(status: InvitationStatus): ApprovalState {
+  if (status === "Installment Approved") return "Approved";
+  if (status === "Installment Rejected") return "Rejected";
+  return "Pending Review";
+}
+
+function PaymentOverviewDrawer({
+  invitation,
+  onClose,
+}: {
+  invitation: Invitation;
+  onClose: () => void;
+}) {
+  const inv = invitation;
+  const [approval, setApproval] = useState<ApprovalState>(deriveApproval(inv.status));
+  const [approvalNote, setApprovalNote] = useState("");
+  const [proof, setProof] = useState<ProofFile | null>(null);
+  const [dragOver, setDragOver] = useState(false);
+
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
+  const isInstallment = inv.paymentDetails.paymentType === "Installment";
+
+  const handleApprove = () => {
+    setApproval("Approved");
+    updateInvitation(inv.id, { status: "Installment Approved" });
+    toast.success("Installment approved");
+  };
+  const handleReject = () => {
+    setApproval("Rejected");
+    updateInvitation(inv.id, { status: "Installment Rejected" });
+    toast.success("Installment rejected");
+  };
+
+  const onFile = (file: File | undefined) => {
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File must be 10MB or smaller");
+      return;
+    }
+    const today = new Date().toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    });
+    setProof({ name: file.name, uploadedAt: `Uploaded ${today}` });
+    toast.success("Proof uploaded");
+  };
+
+  const createdDate = new Date(inv.createdAt).toLocaleDateString("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  });
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex justify-end"
+      style={{ backgroundColor: "rgba(0, 0, 0, 0.35)" }}
+      onClick={onClose}
+    >
+      <motion.aside
+        initial={{ x: "100%" }}
+        animate={{ x: 0 }}
+        exit={{ x: "100%" }}
+        transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+        onClick={(e) => e.stopPropagation()}
+        className="flex h-full w-full max-w-[640px] flex-col bg-white"
+        style={{ boxShadow: "-20px 0 60px rgba(15,23,42,0.18)" }}
+      >
+        {/* Header */}
+        <div
+          className="flex items-start justify-between px-6 py-5"
+          style={{ borderBottom: `1px solid ${BORDER}` }}
+        >
+          <div>
+            <h3 className="text-main-header font-bold" style={{ color: TEXT_DARK }}>
+              Payment Overview
+            </h3>
+            <p className="mt-1 text-small" style={{ color: TEXT_MUTED }}>
+              Student and payment plan details
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="grid h-9 w-9 place-items-center rounded-full hover:bg-[#F3F4F6]"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" style={{ color: TEXT_MUTED }} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="flex-1 space-y-4 overflow-y-auto p-6" style={{ backgroundColor: "#FAFAFA" }}>
+          {/* Student Details */}
+          <DrawerSection title="Student Details">
+            <Row label="Student Name" value={inv.studentName ?? "—"} />
+            <Row label="Email" value={inv.studentEmail} />
+            <Row label="Assigned Salesperson" value="John Miller" />
+            <Row label="Status" value={<span>{statusPill(inv.status)}</span>} />
+            <Row label="Created Date" value={createdDate} last />
+          </DrawerSection>
+
+          {/* Course Access */}
+          <DrawerSection title="Course Access Details">
+            <Row label="Course" value={inv.course} />
+            <Row label="Access Type" value={inv.accessType} />
+            <Row label="Cohort Date" value={inv.cohortDate} />
+            <Row label="Duration" value="4 Months" />
+            <Row label="Lessons" value="70 Lessons" />
+            <Row
+              label="Certificate"
+              value={inv.certificateIncluded ? "Included" : "Not included"}
+              last
+            />
+          </DrawerSection>
+
+          {/* Payment Details */}
+          <DrawerSection title="Payment Details">
+            <PaymentDetailsBlock invitation={inv} />
+          </DrawerSection>
+
+          {/* Timeline */}
+          <DrawerSection title="Payment Status Timeline">
+            <Timeline invitation={inv} approval={approval} />
+          </DrawerSection>
+
+          {/* Installment Approval */}
+          {isInstallment && inv.paymentDetails.paymentType === "Installment" && (
+            <DrawerSection title="Installment Approval">
+              <p className="text-small" style={{ color: TEXT_MUTED }}>
+                Students pay installments through a third-party provider. Verify the setup
+                before approving access.
+              </p>
+              <div
+                className="mt-3 flex items-center justify-between rounded-xl px-4 py-3"
+                style={{ backgroundColor: SOFT }}
+              >
+                <span className="text-small font-semibold" style={{ color: TEXT_DARK }}>
+                  Approval Status
+                </span>
+                <ApprovalPill state={approval} />
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <MiniStat
+                  label="Initial Down Payment"
+                  value={`$${inv.paymentDetails.initialDownPayment.toLocaleString()}`}
+                />
+                <MiniStat
+                  label="Monthly Payment"
+                  value={`$${inv.paymentDetails.monthlyPayment.toLocaleString()} / mo`}
+                />
+                <MiniStat
+                  label="Time Period"
+                  value={`${inv.paymentDetails.timePeriodMonths} Months`}
+                />
+                <MiniStat
+                  label="Full Amount"
+                  value={`$${inv.paymentDetails.fullAmount.toLocaleString()}`}
+                />
+              </div>
+              <div className="mt-4">
+                <label
+                  className="mb-1.5 block text-small font-medium"
+                  style={{ color: TEXT_DARK }}
+                >
+                  Approval Note
+                </label>
+                <textarea
+                  value={approvalNote}
+                  onChange={(e) => setApprovalNote(e.target.value)}
+                  placeholder="Add an internal note about this approval"
+                  rows={3}
+                  className="w-full resize-none rounded-xl bg-white px-3 py-2 text-small outline-none"
+                  style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
+                />
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  onClick={handleApprove}
+                  disabled={approval === "Approved"}
+                  className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold disabled:opacity-60"
+                  style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+                >
+                  <CheckCircle2 className="h-4 w-4" /> Approve Installment
+                </button>
+                <button
+                  onClick={handleReject}
+                  disabled={approval === "Rejected"}
+                  className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold disabled:opacity-60"
+                  style={{
+                    backgroundColor: "#FFFFFF",
+                    color: "#B42318",
+                    border: "1px solid #FECDCA",
+                  }}
+                >
+                  <AlertCircle className="h-4 w-4" /> Reject Installment
+                </button>
+              </div>
+            </DrawerSection>
+          )}
+
+          {/* Proof Upload */}
+          <DrawerSection title="Payment Proof">
+            <p className="text-small" style={{ color: TEXT_MUTED }}>
+              Upload proof of payment, bank transfer receipt, installment approval PDF, or
+              other supporting documents.
+            </p>
+            <label
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragOver(true);
+              }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragOver(false);
+                onFile(e.dataTransfer.files?.[0]);
+              }}
+              className="mt-3 flex cursor-pointer flex-col items-center justify-center rounded-xl px-4 py-8 text-center transition-colors"
+              style={{
+                border: `1.5px dashed ${dragOver ? TEXT_DARK : BORDER}`,
+                backgroundColor: dragOver ? "rgba(204,246,33,0.08)" : "#FFFFFF",
+              }}
+            >
+              <Upload className="h-5 w-5" style={{ color: TEXT_MUTED }} />
+              <p className="mt-2 text-small font-medium" style={{ color: TEXT_DARK }}>
+                Drop file here or click to upload
+              </p>
+              <p className="mt-0.5 text-smaller" style={{ color: TEXT_MUTED }}>
+                PDF, PNG, JPG up to 10MB
+              </p>
+              <input
+                type="file"
+                accept=".pdf,.png,.jpg,.jpeg"
+                className="hidden"
+                onChange={(e) => onFile(e.target.files?.[0] ?? undefined)}
+              />
+            </label>
+            {proof && (
+              <div
+                className="mt-3 flex items-center gap-3 rounded-xl bg-white px-3 py-2.5"
+                style={{ border: `1px solid ${BORDER}` }}
+              >
+                <span
+                  className="grid h-9 w-9 place-items-center rounded-lg"
+                  style={{ backgroundColor: SOFT, color: TEXT_DARK }}
+                >
+                  <FileText className="h-4 w-4" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p
+                    className="truncate text-small font-medium"
+                    style={{ color: TEXT_DARK }}
+                  >
+                    {proof.name}
+                  </p>
+                  <p className="text-smaller" style={{ color: TEXT_MUTED }}>
+                    {proof.uploadedAt}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => toast.info("Preview not available in demo")}
+                  className="rounded-full px-3 py-1.5 text-small font-medium hover:bg-[#F3F4F6]"
+                  style={{ color: TEXT_DARK }}
+                >
+                  View
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProof(null)}
+                  className="grid h-8 w-8 place-items-center rounded-full hover:bg-[#FEE2E2]"
+                  style={{ color: "#B42318" }}
+                  aria-label="Remove"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+          </DrawerSection>
+        </div>
+      </motion.aside>
+    </div>
+  );
+}
+
+function DrawerSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section
+      className="rounded-2xl bg-white p-5"
+      style={{ border: `1px solid ${BORDER}` }}
+    >
+      <h4 className="mb-3 text-second-header font-semibold" style={{ color: TEXT_DARK }}>
+        {title}
+      </h4>
+      {children}
+    </section>
+  );
+}
+
+function Row({
+  label,
+  value,
+  last,
+}: {
+  label: string;
+  value: React.ReactNode;
+  last?: boolean;
+}) {
+  return (
+    <div
+      className="flex items-center justify-between gap-4 py-2.5"
+      style={{ borderBottom: last ? undefined : `1px solid ${BORDER}` }}
+    >
+      <span className="text-small" style={{ color: TEXT_MUTED }}>
+        {label}
+      </span>
+      <span
+        className="text-small font-medium text-right"
+        style={{ color: TEXT_DARK, wordBreak: "break-word" }}
+      >
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function MiniStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl px-3 py-2.5" style={{ backgroundColor: SOFT }}>
+      <p className="text-smaller" style={{ color: TEXT_MUTED }}>
+        {label}
+      </p>
+      <p className="mt-0.5 text-small font-semibold" style={{ color: TEXT_DARK }}>
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function ApprovalPill({ state }: { state: ApprovalState }) {
+  const map: Record<ApprovalState, { bg: string; color: string }> = {
+    "Pending Review": { bg: "#F3F4F6", color: "#4B5563" },
+    Approved: { bg: "rgba(204, 246, 33, 0.45)", color: "#3F5C00" },
+    Rejected: { bg: "#FEE2E2", color: "#991B1B" },
+  };
+  const s = map[state];
+  return (
+    <span
+      className="inline-flex items-center rounded-full px-2.5 py-1 text-smaller font-semibold"
+      style={{ backgroundColor: s.bg, color: s.color }}
+    >
+      {state}
+    </span>
+  );
+}
+
+function PaymentDetailsBlock({ invitation }: { invitation: Invitation }) {
+  const d = invitation.paymentDetails;
+  if (d.paymentType === "Upfront") {
+    return (
+      <>
+        <Row label="Payment Method" value="Upfront" />
+        <Row label="Plan" value={d.planName} />
+        <Row label="Plan Amount" value={`$${d.planAmount.toLocaleString()}`} />
+        <Row label="Discount" value={`${d.discountPercent}%`} />
+        <Row label="Promo Code Discount" value="$0" />
+        <Row label="Total Amount" value={`$${d.checkoutAmount.toLocaleString()}`} />
+        <Row
+          label="Payment Status"
+          value={statusPill(invitation.status)}
+          last
+        />
+      </>
+    );
+  }
+  if (d.paymentType === "Installment") {
+    return (
+      <>
+        <Row label="Payment Method" value="Installment" />
+        <Row label="Full Amount" value={`$${d.fullAmount.toLocaleString()}`} />
+        <Row
+          label="Initial Down Payment"
+          value={`$${d.initialDownPayment.toLocaleString()}`}
+        />
+        <Row label="Time Period" value={`${d.timePeriodMonths} Months`} />
+        <Row
+          label="Monthly Payment"
+          value={`$${d.monthlyPayment.toLocaleString()} / month`}
+        />
+        <Row label="Installment Status" value={statusPill(invitation.status)} />
+        <Row label="Next Payment Due" value="Jul 12, 2026" last />
+      </>
+    );
+  }
+  if (d.paymentType === "Bank") {
+    return (
+      <>
+        <Row label="Payment Method" value="Bank" />
+        <Row label="Bank Name" value={d.bankName} />
+        <Row label="Account Name" value={d.accountName} />
+        <Row label="Reference Note" value={d.referenceNote} />
+        <Row label="Transfer Status" value={statusPill(invitation.status)} last />
+      </>
+    );
+  }
+  return (
+    <>
+      <Row label="Payment Method" value="Loan" />
+      <Row label="Loan Provider" value={d.loanProviderName} />
+      <Row
+        label="Loan Link"
+        value={
+          <a
+            href={d.loanApplicationLink}
+            target="_blank"
+            rel="noreferrer"
+            className="underline"
+            style={{ color: TEXT_DARK }}
+          >
+            {d.loanApplicationLink}
+          </a>
+        }
+      />
+      <Row label="Loan Status" value={statusPill(invitation.status)} last />
+    </>
+  );
+}
+
+type TimelineState = "done" | "current" | "pending";
+
+function Timeline({
+  invitation,
+  approval,
+}: {
+  invitation: Invitation;
+  approval: ApprovalState;
+}) {
+  const status = invitation.status;
+  const isInstallment = invitation.paymentDetails.paymentType === "Installment";
+
+  const items: { label: string; icon: React.ComponentType<{ className?: string }>; state: TimelineState }[] = [
+    { label: "Payment plan created", icon: FileText, state: "done" },
+    {
+      label: "Invitation sent",
+      icon: Mail,
+      state:
+        status === "Pending"
+          ? "current"
+          : "done",
+    },
+    {
+      label: "Student opened link",
+      icon: MousePointerClick,
+      state:
+        status === "Pending"
+          ? "pending"
+          : status === "Invite Sent"
+            ? "current"
+            : "done",
+    },
+    {
+      label: "Payment submitted",
+      icon: CreditCard,
+      state:
+        status === "Paid" ||
+        status === "Installment Approved" ||
+        status === "Bank Transfer Confirmed" ||
+        status === "Loan Approved"
+          ? "done"
+          : status === "Installment Pending Approval" ||
+              status === "Bank Transfer Pending" ||
+              status === "Loan Pending"
+            ? "current"
+            : "pending",
+    },
+    {
+      label: isInstallment
+        ? approval === "Approved"
+          ? "Installment approved"
+          : approval === "Rejected"
+            ? "Installment rejected"
+            : "Payment approved"
+        : "Payment approved",
+      icon: ShieldCheck,
+      state:
+        status === "Paid" ||
+        status === "Installment Approved" ||
+        status === "Bank Transfer Confirmed" ||
+        status === "Loan Approved"
+          ? "done"
+          : status === "Installment Rejected"
+            ? "current"
+            : "pending",
+    },
+  ];
+
+  return (
+    <ol className="relative space-y-3">
+      {items.map((it, idx) => {
+        const isLast = idx === items.length - 1;
+        const tone =
+          it.state === "done"
+            ? { bg: BRAND, color: TEXT_DARK, text: TEXT_DARK }
+            : it.state === "current"
+              ? { bg: SOFT, color: TEXT_DARK, text: TEXT_DARK }
+              : { bg: "#FFFFFF", color: TEXT_MUTED, text: TEXT_MUTED };
+        const Icon = it.state === "done" ? CheckCircle2 : it.state === "current" ? it.icon : Circle;
+        return (
+          <li key={it.label} className="relative flex items-start gap-3">
+            <span
+              className="relative z-10 grid h-8 w-8 shrink-0 place-items-center rounded-full"
+              style={{
+                backgroundColor: tone.bg,
+                color: tone.color,
+                border: it.state === "pending" ? `1px solid ${BORDER}` : "none",
+              }}
+            >
+              <Icon className="h-4 w-4" />
+            </span>
+            {!isLast && (
+              <span
+                aria-hidden
+                className="absolute left-4 top-8 h-full w-px"
+                style={{ backgroundColor: BORDER }}
+              />
+            )}
+            <div className="flex flex-1 items-center justify-between pt-1.5">
+              <span className="text-small font-medium" style={{ color: tone.text }}>
+                {it.label}
+              </span>
+              <span
+                className="rounded-full px-2 py-0.5 text-smaller font-semibold capitalize"
+                style={{
+                  backgroundColor:
+                    it.state === "done"
+                      ? "rgba(204,246,33,0.35)"
+                      : it.state === "current"
+                        ? SOFT
+                        : "transparent",
+                  color:
+                    it.state === "done"
+                      ? "#3F5C00"
+                      : it.state === "current"
+                        ? TEXT_DARK
+                        : TEXT_MUTED,
+                }}
+              >
+                {it.state}
+              </span>
+            </div>
+          </li>
+        );
+      })}
+    </ol>
   );
 }
