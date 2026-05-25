@@ -2501,7 +2501,44 @@ function Timeline({
           ? "current"
           : "done",
     },
-    {
+  ];
+
+  if (isInstallment) {
+    items.push({
+      label: "Initial down payment submitted",
+      icon: CreditCard,
+      state: "done",
+    });
+    items.push({
+      label: "Initial down payment approved",
+      icon: ShieldCheck,
+      state: "done",
+    });
+    for (const inst of installments) {
+      const state: TimelineState =
+        inst.status === "Approved" || inst.status === "Rejected"
+          ? "done"
+          : inst.status === "Pending Review"
+            ? "current"
+            : "pending";
+      const suffix =
+        inst.status === "Approved"
+          ? "approved"
+          : inst.status === "Rejected"
+            ? "rejected"
+            : inst.status === "Pending Review"
+              ? "pending review"
+              : inst.status === "Proof Required"
+                ? "proof required"
+                : "upcoming";
+      items.push({
+        label: `${inst.label} ${suffix}`,
+        icon: inst.status === "Approved" ? ShieldCheck : CreditCard,
+        state,
+      });
+    }
+  } else {
+    items.push({
       label: "Student opened link",
       icon: MousePointerClick,
       state:
@@ -2510,42 +2547,36 @@ function Timeline({
           : status === "Invite Sent"
             ? "current"
             : "done",
-    },
-    {
+    });
+    items.push({
       label: "Payment submitted",
       icon: CreditCard,
       state:
         status === "Paid" ||
-        status === "Installment Approved" ||
         status === "Bank Transfer Confirmed" ||
         status === "Loan Approved"
           ? "done"
-          : status === "Installment Pending Approval" ||
-              status === "Bank Transfer Pending" ||
-              status === "Loan Pending"
+          : status === "Bank Transfer Pending" || status === "Loan Pending"
             ? "current"
             : "pending",
-    },
-    {
-      label: isInstallment
-        ? approval === "Approved"
-          ? "Installment approved"
-          : approval === "Rejected"
-            ? "Installment rejected"
-            : "Payment approved"
-        : "Payment approved",
+    });
+    items.push({
+      label: "Payment approved",
       icon: ShieldCheck,
       state:
         status === "Paid" ||
-        status === "Installment Approved" ||
         status === "Bank Transfer Confirmed" ||
         status === "Loan Approved"
           ? "done"
-          : status === "Installment Rejected"
-            ? "current"
-            : "pending",
-    },
-  ];
+          : "pending",
+    });
+  }
+
+  for (const ev of extraEvents) {
+    items.push({ label: ev, icon: CheckCircle2, state: "done" });
+  }
+  // suppress unused-var warning for approval (kept for API parity)
+  void approval;
 
   return (
     <ol className="relative space-y-3">
