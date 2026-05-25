@@ -24,7 +24,7 @@ import {
   GraduationCap,
   UserSquare2,
   TrendingUp,
-  Users,
+  Wallet,
   Check,
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -51,7 +51,7 @@ const platform = [
   { to: "/calendar", label: "Calendar", icon: Calendar },
   { to: "/courses", label: "Courses", icon: BookOpen },
   { to: "/products", label: "Products", icon: Package },
-  { to: "/sales/external-user-management", label: "External Users", icon: Users },
+  { to: "/sales/payments", label: "Payment", icon: Wallet },
   { to: "/announcement", label: "Announcement", icon: Megaphone },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
@@ -133,7 +133,7 @@ export function Sidebar() {
             viewMode === "student"
               ? platform.filter((i) => ["Dashboard", "Calendar", "Courses", "Announcement", "Settings"].includes(i.label))
               : viewMode === "sales"
-              ? platform.filter((i) => ["Dashboard", "Calendar", "Products", "External Users", "Announcement", "Settings"].includes(i.label))
+              ? platform.filter((i) => ["Dashboard", "Calendar", "Products", "Payment", "Announcement", "Settings"].includes(i.label))
               : platform
           }
           collapsed={false}

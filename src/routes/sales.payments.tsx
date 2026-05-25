@@ -37,25 +37,27 @@ import {
   type SalesCourse,
 } from "@/lib/invitations-store";
 
+import { SlidersHorizontal, Eye, FileText, CheckCircle, Clock } from "lucide-react";
+
 const BRAND = "#CCF621";
-const PAGE_BG = "#FAFAFA";
+const PAGE_BG = "#FFFFFF";
 const TEXT_DARK = "#1A1A1A";
 const TEXT_MUTED = "#6B7280";
 const BORDER = "#EAEAEA";
 const SOFT = "#F3F4F6";
 
-export const Route = createFileRoute("/sales/external-user-management")({
+export const Route = createFileRoute("/sales/payments")({
   head: () => ({
     meta: [
-      { title: "External User Management — Metana" },
+      { title: "Payment — Metana" },
       {
         name: "description",
         content:
-          "Manage assigned students, grant course access, select plans, and send pre-filled checkout invitations.",
+          "Create and manage student payment plans, checkout links, and invitations.",
       },
     ],
   }),
-  component: ExternalUserManagementPage,
+  component: PaymentPage,
 });
 
 function statusPill(status: InvitationStatus) {
@@ -90,36 +92,31 @@ function planSetupLabel(inv: Invitation): string {
   }
 }
 
-function ExternalUserManagementPage() {
+function PaymentPage() {
   const invitations = useInvitations();
   const [addOpen, setAddOpen] = useState(false);
   const [inviteResult, setInviteResult] = useState<Invitation | null>(null);
   const [query, setQuery] = useState("");
-  const [courseFilter, setCourseFilter] = useState("All Courses");
-  const [statusFilter, setStatusFilter] = useState<"All Statuses" | InvitationStatus>(
-    "All Statuses",
-  );
 
   const filtered = useMemo(() => {
-    return invitations.filter((i) => {
-      if (statusFilter !== "All Statuses" && i.status !== statusFilter) return false;
-      if (courseFilter !== "All Courses" && i.course !== courseFilter) return false;
-      if (query.trim()) {
-        const q = query.toLowerCase();
-        if (
-          !i.studentEmail.toLowerCase().includes(q) &&
-          !(i.studentName?.toLowerCase().includes(q) ?? false)
-        )
-          return false;
-      }
-      return true;
-    });
-  }, [invitations, query, courseFilter, statusFilter]);
+    if (!query.trim()) return invitations;
+    const q = query.toLowerCase();
+    return invitations.filter(
+      (i) =>
+        i.studentEmail.toLowerCase().includes(q) ||
+        (i.studentName?.toLowerCase().includes(q) ?? false) ||
+        i.course.toLowerCase().includes(q),
+    );
+  }, [invitations, query]);
 
-  const courseOptions = useMemo(
-    () => ["All Courses", ...Array.from(new Set(invitations.map((i) => i.course)))],
-    [invitations],
-  );
+  const stats = useMemo(() => {
+    return {
+      total: invitations.length,
+      sent: invitations.filter((i) => i.status === "Invite Sent").length,
+      paid: invitations.filter((i) => i.status === "Paid").length,
+      pending: invitations.filter((i) => i.status === "Pending").length,
+    };
+  }, [invitations]);
 
   return (
     <div className="flex min-h-screen" style={{ backgroundColor: PAGE_BG, color: TEXT_DARK }}>
@@ -128,44 +125,50 @@ function ExternalUserManagementPage() {
         <Topbar />
         <main className="flex-1 p-6 lg:p-8">
           <div className="mx-auto max-w-[1480px]">
-            <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <h1 className="text-primary-header font-bold" style={{ color: TEXT_DARK }}>
-                  External User Management
-                </h1>
-                <p className="mt-1 text-body" style={{ color: TEXT_MUTED }}>
-                  Manage assigned students, grant course access, select plans, and send pre-filled checkout invitations.
-                </p>
-              </div>
-              <button
-                onClick={() => setAddOpen(true)}
-                className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-button-primary font-semibold transition-opacity hover:opacity-90"
-                style={{ backgroundColor: BRAND, color: TEXT_DARK }}
-              >
-                <Plus className="h-4 w-4" /> Add Student
-              </button>
+            <div className="mb-6">
+              <h1 className="text-primary-header font-bold" style={{ color: TEXT_DARK }}>
+                Payment
+              </h1>
+              <p className="mt-1 text-body" style={{ color: TEXT_MUTED }}>
+                Create and manage student payment plans, checkout links, and invitations.
+              </p>
             </div>
 
-            <div className="mb-4 grid gap-3 sm:grid-cols-[1fr_auto_auto]">
+            <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <StatCard label="Total Payment Plans" value={stats.total} Icon={FileText} />
+              <StatCard label="Invite Sent" value={stats.sent} Icon={Send} />
+              <StatCard label="Paid Students" value={stats.paid} Icon={CheckCircle} />
+              <StatCard label="Pending Payments" value={stats.pending} Icon={Clock} />
+            </div>
+
+            <div className="mb-4 flex flex-wrap items-center gap-3">
               <div
-                className="flex items-center gap-2 rounded-full bg-white px-4 py-2.5"
+                className="flex min-w-[260px] flex-1 items-center gap-2 rounded-full bg-white px-4 py-2.5"
                 style={{ border: `1px solid ${BORDER}` }}
               >
                 <Search className="h-4 w-4" style={{ color: TEXT_MUTED }} />
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search by name or email"
+                  placeholder="Search by student, email, or course"
                   className="w-full bg-transparent text-body outline-none"
                   style={{ color: TEXT_DARK }}
                 />
               </div>
-              <SelectPill value={courseFilter} options={courseOptions} onChange={setCourseFilter} />
-              <SelectPill
-                value={statusFilter}
-                options={["All Statuses", "Pending", "Invite Sent", "Paid", "Expired"]}
-                onChange={(v) => setStatusFilter(v as typeof statusFilter)}
-              />
+              <button
+                aria-label="Filters"
+                className="grid h-10 w-10 place-items-center rounded-full transition-colors hover:bg-[#F3F4F6]"
+                style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setAddOpen(true)}
+                className="ml-auto inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-button-primary font-semibold transition-opacity hover:opacity-90"
+                style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+              >
+                <Plus className="h-4 w-4" /> Create Payment Plan
+              </button>
             </div>
 
             <section
@@ -195,7 +198,6 @@ function ExternalUserManagementPage() {
                         "Payment Method",
                         "Plan / Setup",
                         "Status",
-                        "Invitation",
                         "Actions",
                       ].map((h) => (
                         <th
@@ -212,7 +214,7 @@ function ExternalUserManagementPage() {
                     {filtered.length === 0 ? (
                       <tr>
                         <td
-                          colSpan={9}
+                          colSpan={8}
                           className="px-6 py-14 text-center text-body"
                           style={{ color: TEXT_MUTED }}
                         >
@@ -223,6 +225,7 @@ function ExternalUserManagementPage() {
                       filtered.map((row, idx) => (
                         <tr
                           key={row.id}
+                          className="transition-colors hover:bg-[#F8F8F8]"
                           style={{
                             borderBottom:
                               idx < filtered.length - 1 ? `1px solid ${BORDER}` : undefined,
@@ -238,36 +241,28 @@ function ExternalUserManagementPage() {
                           <td className="px-6 py-4" style={{ color: TEXT_DARK }}>{planSetupLabel(row)}</td>
                           <td className="px-6 py-4">{statusPill(row.status)}</td>
                           <td className="px-6 py-4">
-                            <button
-                              onClick={() => copyLink(row.checkoutLink)}
-                              className="inline-flex items-center gap-1.5 text-small font-medium hover:underline"
-                              style={{ color: TEXT_DARK }}
-                            >
-                              <Link2 className="h-3.5 w-3.5" />
-                              {row.status === "Paid" ? "Open Link" : "Copy Link"}
-                            </button>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-3 text-small">
-                              <button
-                                onClick={() => setInviteResult(row)}
-                                className="hover:underline"
-                                style={{ color: TEXT_DARK }}
+                            <div className="flex items-center gap-1">
+                              <IconAction
+                                label={row.status === "Invite Sent" ? "Resend Invitation" : "Send Invitation"}
+                                onClick={() => {
+                                  updateInvitation(row.id, { status: "Invite Sent" });
+                                  toast.success(`Invitation sent to ${row.studentEmail}`);
+                                }}
                               >
-                                View
-                              </button>
-                              {row.status !== "Paid" && (
-                                <button
-                                  onClick={() => {
-                                    updateInvitation(row.id, { status: "Invite Sent" });
-                                    toast.success(`Invitation sent to ${row.studentEmail}`);
-                                  }}
-                                  className="hover:underline"
-                                  style={{ color: TEXT_DARK }}
-                                >
-                                  {row.status === "Invite Sent" ? "Resend" : "Send"}
-                                </button>
-                              )}
+                                <Send className="h-4 w-4" />
+                              </IconAction>
+                              <IconAction
+                                label="Copy Link"
+                                onClick={() => copyLink(row.checkoutLink)}
+                              >
+                                <Link2 className="h-4 w-4" />
+                              </IconAction>
+                              <IconAction
+                                label="View Details"
+                                onClick={() => setInviteResult(row)}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </IconAction>
                             </div>
                           </td>
                         </tr>
@@ -302,6 +297,61 @@ function copyLink(link: string) {
   navigator.clipboard?.writeText(link).then(
     () => toast.success("Link copied"),
     () => toast.error("Could not copy link"),
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  Icon,
+}: {
+  label: string;
+  value: number;
+  Icon: React.ComponentType<{ className?: string }>;
+}) {
+  return (
+    <div
+      className="flex items-center gap-4 rounded-2xl bg-white p-5"
+      style={{ border: `1px solid ${BORDER}` }}
+    >
+      <span
+        className="grid h-11 w-11 shrink-0 place-items-center rounded-full"
+        style={{ backgroundColor: SOFT, color: TEXT_DARK }}
+      >
+        <Icon className="h-5 w-5" />
+      </span>
+      <div className="min-w-0">
+        <p className="text-second-header font-bold leading-tight" style={{ color: TEXT_DARK }}>
+          {value.toLocaleString()}
+        </p>
+        <p className="mt-0.5 text-small" style={{ color: TEXT_MUTED }}>
+          {label}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function IconAction({
+  label,
+  onClick,
+  children,
+}: {
+  label: string;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={label}
+      aria-label={label}
+      className="grid h-9 w-9 place-items-center rounded-full transition-colors hover:bg-[#F3F4F6]"
+      style={{ color: TEXT_MUTED }}
+    >
+      {children}
+    </button>
   );
 }
 
@@ -510,7 +560,7 @@ function AddStudentModal({
 
   return (
     <ModalShell
-      title={createCohortMode ? "Create New Cohort" : "Add Student Access"}
+      title={createCohortMode ? "Create New Cohort" : "Create Payment Plan"}
       onClose={onClose}
       maxWidth={960}
       topAlign
@@ -644,18 +694,21 @@ function StepIndicator({ step, labels }: { step: Step; labels: string[] }) {
         return (
           <div key={label} className="flex flex-1 items-center gap-2">
             <div
-              className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-small font-semibold"
-              style={{ backgroundColor: done ? BRAND : SOFT, color: TEXT_DARK }}
+              className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-small font-semibold transition-colors hover:bg-[#F3F4F6]"
+              style={{
+                backgroundColor: done ? TEXT_DARK : SOFT,
+                color: done ? "#FFFFFF" : TEXT_DARK,
+              }}
             >
               {active && (
                 <motion.span
                   layoutId="active-step-pill"
                   transition={{ type: "spring", stiffness: 400, damping: 32 }}
                   className="absolute inset-0 rounded-full"
-                  style={{ backgroundColor: BRAND }}
+                  style={{ backgroundColor: TEXT_DARK }}
                 />
               )}
-              <span className="relative z-10">
+              <span className="relative z-10" style={{ color: active ? "#FFFFFF" : undefined }}>
                 {done ? <Check className="h-4 w-4" /> : n}
               </span>
             </div>
@@ -668,7 +721,7 @@ function StepIndicator({ step, labels }: { step: Step; labels: string[] }) {
             </motion.span>
             {i < labels.length - 1 && (
               <motion.div
-                animate={{ backgroundColor: done ? BRAND : BORDER }}
+                animate={{ backgroundColor: done ? TEXT_DARK : BORDER }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
                 className="h-px flex-1"
               />
@@ -1567,7 +1620,7 @@ function ModalShell({
         className="relative w-[90vw] rounded-2xl bg-white p-6 lg:p-8"
         style={{
           maxWidth,
-          marginTop: topAlign ? 72 : undefined,
+          marginTop: topAlign ? "10vh" : undefined,
           marginBottom: topAlign ? 48 : undefined,
           color: TEXT_DARK,
           boxShadow: "0 20px 60px rgba(15,23,42,0.18)",
