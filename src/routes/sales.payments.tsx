@@ -632,29 +632,6 @@ function ChartCard({
   );
 }
 
-function _IconActionPlaceholder({
-  label,
-  onClick,
-  children,
-}: {
-  label: string;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      title={label}
-      aria-label={label}
-      className="grid h-9 w-9 place-items-center rounded-full transition-colors hover:bg-[#F3F4F6]"
-      style={{ color: TEXT_MUTED }}
-    >
-      {children}
-    </button>
-  );
-}
-
 function SelectPill({
   value,
   options,
