@@ -289,7 +289,7 @@ function ProgramPage() {
             <div className="mb-6 flex items-center gap-3">
               <button
                 onClick={() => navigate({ to: "/courses" })}
-                className="grid h-9 w-9 place-items-center rounded-full bg-white transition-colors hover:bg-neutral-50"
+                className="grid h-9 w-9 place-items-center rounded-full bg-white transition-colors hover:bg-neutral-50 border-white"
                 style={{ border: `1px solid ${BORDER}` }}
                 aria-label="Back"
               >
