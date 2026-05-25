@@ -2405,6 +2405,7 @@ function PaymentDetailsBlock({ invitation }: { invitation: Invitation }) {
     );
   }
   if (d.paymentType === "Installment") {
+    const summary = installmentSummary;
     return (
       <>
         <Row label="Payment Method" value="Installment" />
@@ -2413,13 +2414,19 @@ function PaymentDetailsBlock({ invitation }: { invitation: Invitation }) {
           label="Initial Down Payment"
           value={`$${d.initialDownPayment.toLocaleString()}`}
         />
-        <Row label="Time Period" value={`${d.timePeriodMonths} Months`} />
         <Row
           label="Monthly Payment"
           value={`$${d.monthlyPayment.toLocaleString()} / month`}
         />
-        <Row label="Installment Status" value={statusPill(invitation.status)} />
-        <Row label="Next Payment Due" value="Jul 12, 2026" last />
+        <Row
+          label="Payment Status"
+          value={
+            summary
+              ? `${summary.approvedCount} of ${summary.totalCount} Installments Approved`
+              : statusPill(invitation.status)
+          }
+        />
+        <Row label="Next Payment Due" value={summary?.nextDue ?? "—"} last />
       </>
     );
   }
