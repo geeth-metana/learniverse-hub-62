@@ -425,16 +425,16 @@ function AnalyticsSection() {
               <CartesianGrid strokeDasharray="3 3" stroke="#EEF2E8" vertical={false} />
               <XAxis
                 dataKey="month"
-                stroke="#6B7280"
+                stroke={TEXT_DARK}
                 tickLine={false}
                 axisLine={false}
-                tick={{ fontSize: 12 }}
+                tick={{ fontSize: 12, fill: TEXT_DARK }}
               />
               <YAxis
-                stroke="#6B7280"
+                stroke={TEXT_DARK}
                 tickLine={false}
                 axisLine={false}
-                tick={{ fontSize: 12 }}
+                tick={{ fontSize: 12, fill: TEXT_DARK }}
                 tickFormatter={(v) => `$${v / 1000}k`}
               />
               <Tooltip
