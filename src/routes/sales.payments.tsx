@@ -92,36 +92,31 @@ function planSetupLabel(inv: Invitation): string {
   }
 }
 
-function ExternalUserManagementPage() {
+function PaymentPage() {
   const invitations = useInvitations();
   const [addOpen, setAddOpen] = useState(false);
   const [inviteResult, setInviteResult] = useState<Invitation | null>(null);
   const [query, setQuery] = useState("");
-  const [courseFilter, setCourseFilter] = useState("All Courses");
-  const [statusFilter, setStatusFilter] = useState<"All Statuses" | InvitationStatus>(
-    "All Statuses",
-  );
 
   const filtered = useMemo(() => {
-    return invitations.filter((i) => {
-      if (statusFilter !== "All Statuses" && i.status !== statusFilter) return false;
-      if (courseFilter !== "All Courses" && i.course !== courseFilter) return false;
-      if (query.trim()) {
-        const q = query.toLowerCase();
-        if (
-          !i.studentEmail.toLowerCase().includes(q) &&
-          !(i.studentName?.toLowerCase().includes(q) ?? false)
-        )
-          return false;
-      }
-      return true;
-    });
-  }, [invitations, query, courseFilter, statusFilter]);
+    if (!query.trim()) return invitations;
+    const q = query.toLowerCase();
+    return invitations.filter(
+      (i) =>
+        i.studentEmail.toLowerCase().includes(q) ||
+        (i.studentName?.toLowerCase().includes(q) ?? false) ||
+        i.course.toLowerCase().includes(q),
+    );
+  }, [invitations, query]);
 
-  const courseOptions = useMemo(
-    () => ["All Courses", ...Array.from(new Set(invitations.map((i) => i.course)))],
-    [invitations],
-  );
+  const stats = useMemo(() => {
+    return {
+      total: invitations.length,
+      sent: invitations.filter((i) => i.status === "Invite Sent").length,
+      paid: invitations.filter((i) => i.status === "Paid").length,
+      pending: invitations.filter((i) => i.status === "Pending").length,
+    };
+  }, [invitations]);
 
   return (
     <div className="flex min-h-screen" style={{ backgroundColor: PAGE_BG, color: TEXT_DARK }}>
@@ -130,44 +125,50 @@ function ExternalUserManagementPage() {
         <Topbar />
         <main className="flex-1 p-6 lg:p-8">
           <div className="mx-auto max-w-[1480px]">
-            <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <h1 className="text-primary-header font-bold" style={{ color: TEXT_DARK }}>
-                  External User Management
-                </h1>
-                <p className="mt-1 text-body" style={{ color: TEXT_MUTED }}>
-                  Manage assigned students, grant course access, select plans, and send pre-filled checkout invitations.
-                </p>
-              </div>
-              <button
-                onClick={() => setAddOpen(true)}
-                className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-button-primary font-semibold transition-opacity hover:opacity-90"
-                style={{ backgroundColor: BRAND, color: TEXT_DARK }}
-              >
-                <Plus className="h-4 w-4" /> Add Student
-              </button>
+            <div className="mb-6">
+              <h1 className="text-primary-header font-bold" style={{ color: TEXT_DARK }}>
+                Payment
+              </h1>
+              <p className="mt-1 text-body" style={{ color: TEXT_MUTED }}>
+                Create and manage student payment plans, checkout links, and invitations.
+              </p>
             </div>
 
-            <div className="mb-4 grid gap-3 sm:grid-cols-[1fr_auto_auto]">
+            <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <StatCard label="Total Payment Plans" value={stats.total} Icon={FileText} />
+              <StatCard label="Invite Sent" value={stats.sent} Icon={Send} />
+              <StatCard label="Paid Students" value={stats.paid} Icon={CheckCircle} />
+              <StatCard label="Pending Payments" value={stats.pending} Icon={Clock} />
+            </div>
+
+            <div className="mb-4 flex flex-wrap items-center gap-3">
               <div
-                className="flex items-center gap-2 rounded-full bg-white px-4 py-2.5"
+                className="flex min-w-[260px] flex-1 items-center gap-2 rounded-full bg-white px-4 py-2.5"
                 style={{ border: `1px solid ${BORDER}` }}
               >
                 <Search className="h-4 w-4" style={{ color: TEXT_MUTED }} />
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search by name or email"
+                  placeholder="Search by student, email, or course"
                   className="w-full bg-transparent text-body outline-none"
                   style={{ color: TEXT_DARK }}
                 />
               </div>
-              <SelectPill value={courseFilter} options={courseOptions} onChange={setCourseFilter} />
-              <SelectPill
-                value={statusFilter}
-                options={["All Statuses", "Pending", "Invite Sent", "Paid", "Expired"]}
-                onChange={(v) => setStatusFilter(v as typeof statusFilter)}
-              />
+              <button
+                aria-label="Filters"
+                className="grid h-10 w-10 place-items-center rounded-full transition-colors hover:bg-[#F3F4F6]"
+                style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setAddOpen(true)}
+                className="ml-auto inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-button-primary font-semibold transition-opacity hover:opacity-90"
+                style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+              >
+                <Plus className="h-4 w-4" /> Create Payment Plan
+              </button>
             </div>
 
             <section
@@ -197,7 +198,6 @@ function ExternalUserManagementPage() {
                         "Payment Method",
                         "Plan / Setup",
                         "Status",
-                        "Invitation",
                         "Actions",
                       ].map((h) => (
                         <th
@@ -214,7 +214,7 @@ function ExternalUserManagementPage() {
                     {filtered.length === 0 ? (
                       <tr>
                         <td
-                          colSpan={9}
+                          colSpan={8}
                           className="px-6 py-14 text-center text-body"
                           style={{ color: TEXT_MUTED }}
                         >
@@ -225,6 +225,7 @@ function ExternalUserManagementPage() {
                       filtered.map((row, idx) => (
                         <tr
                           key={row.id}
+                          className="transition-colors hover:bg-[#F8F8F8]"
                           style={{
                             borderBottom:
                               idx < filtered.length - 1 ? `1px solid ${BORDER}` : undefined,
@@ -240,36 +241,28 @@ function ExternalUserManagementPage() {
                           <td className="px-6 py-4" style={{ color: TEXT_DARK }}>{planSetupLabel(row)}</td>
                           <td className="px-6 py-4">{statusPill(row.status)}</td>
                           <td className="px-6 py-4">
-                            <button
-                              onClick={() => copyLink(row.checkoutLink)}
-                              className="inline-flex items-center gap-1.5 text-small font-medium hover:underline"
-                              style={{ color: TEXT_DARK }}
-                            >
-                              <Link2 className="h-3.5 w-3.5" />
-                              {row.status === "Paid" ? "Open Link" : "Copy Link"}
-                            </button>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-3 text-small">
-                              <button
-                                onClick={() => setInviteResult(row)}
-                                className="hover:underline"
-                                style={{ color: TEXT_DARK }}
+                            <div className="flex items-center gap-1">
+                              <IconAction
+                                label={row.status === "Invite Sent" ? "Resend Invitation" : "Send Invitation"}
+                                onClick={() => {
+                                  updateInvitation(row.id, { status: "Invite Sent" });
+                                  toast.success(`Invitation sent to ${row.studentEmail}`);
+                                }}
                               >
-                                View
-                              </button>
-                              {row.status !== "Paid" && (
-                                <button
-                                  onClick={() => {
-                                    updateInvitation(row.id, { status: "Invite Sent" });
-                                    toast.success(`Invitation sent to ${row.studentEmail}`);
-                                  }}
-                                  className="hover:underline"
-                                  style={{ color: TEXT_DARK }}
-                                >
-                                  {row.status === "Invite Sent" ? "Resend" : "Send"}
-                                </button>
-                              )}
+                                <Send className="h-4 w-4" />
+                              </IconAction>
+                              <IconAction
+                                label="Copy Link"
+                                onClick={() => copyLink(row.checkoutLink)}
+                              >
+                                <Link2 className="h-4 w-4" />
+                              </IconAction>
+                              <IconAction
+                                label="View Details"
+                                onClick={() => setInviteResult(row)}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </IconAction>
                             </div>
                           </td>
                         </tr>
