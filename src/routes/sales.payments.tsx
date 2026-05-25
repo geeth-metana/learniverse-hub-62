@@ -133,6 +133,7 @@ function PaymentPage() {
   const invitations = useInvitations();
   const [addOpen, setAddOpen] = useState(false);
   const [inviteResult, setInviteResult] = useState<Invitation | null>(null);
+  const [viewDetailsId, setViewDetailsId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
@@ -145,6 +146,11 @@ function PaymentPage() {
         i.course.toLowerCase().includes(q),
     );
   }, [invitations, query]);
+
+  const viewing = useMemo(
+    () => invitations.find((i) => i.id === viewDetailsId) ?? null,
+    [invitations, viewDetailsId],
+  );
 
   return (
     <div className="flex min-h-screen" style={{ backgroundColor: PAGE_BG, color: TEXT_DARK }}>
@@ -282,7 +288,7 @@ function PaymentPage() {
                               </IconAction>
                               <IconAction
                                 label="View Details"
-                                onClick={() => setInviteResult(row)}
+                                onClick={() => setViewDetailsId(row.id)}
                               >
                                 <Eye className="h-4 w-4" />
                               </IconAction>
@@ -311,6 +317,13 @@ function PaymentPage() {
 
       {inviteResult && (
         <InvitationModal invitation={inviteResult} onClose={() => setInviteResult(null)} />
+      )}
+
+      {viewing && (
+        <PaymentOverviewDrawer
+          invitation={viewing}
+          onClose={() => setViewDetailsId(null)}
+        />
       )}
     </div>
   );
