@@ -429,6 +429,80 @@ function CheckoutPage() {
 
               {prefilled && (
                 <>
+                  {isBankInvite && invitation?.paymentDetails.paymentType === "Bank" && (
+                    <>
+                      <h3 className="text-second-header font-bold mt-8 mb-4 inline-flex items-center gap-2" style={{ color: TEXT_DARK }}>
+                        <Landmark className="h-5 w-5" /> Bank Transfer Details
+                      </h3>
+                      <div className="bg-white rounded-2xl p-6 lg:p-8">
+                        <dl className="flex flex-col">
+                          {([
+                            ["Bank Name", invitation.paymentDetails.bankName],
+                            ["Account Name", invitation.paymentDetails.accountName],
+                            ["Account Number", invitation.paymentDetails.accountNumber],
+                            ["Routing Number", invitation.paymentDetails.routingNumber],
+                            ["SWIFT Code", invitation.paymentDetails.swiftCode],
+                            ["Reference Note", invitation.paymentDetails.referenceNote],
+                          ] as const).map(([k, v], i, arr) => (
+                            <div
+                              key={k}
+                              className="flex items-center justify-between py-3"
+                              style={{ borderBottom: i < arr.length - 1 ? "1px solid #F0F0F0" : undefined }}
+                            >
+                              <dt style={{ color: TEXT_MUTED }}>{k}</dt>
+                              <dd className="font-semibold text-right break-all" style={{ color: TEXT_DARK }}>{v}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                      </div>
+                    </>
+                  )}
+                  {isLoanInvite && invitation?.paymentDetails.paymentType === "Loan" && (
+                    <>
+                      <h3 className="text-second-header font-bold mt-8 mb-4 inline-flex items-center gap-2" style={{ color: TEXT_DARK }}>
+                        <Banknote className="h-5 w-5" /> Loan Application
+                      </h3>
+                      <div className="bg-white rounded-2xl p-6 lg:p-8">
+                        <p style={{ color: TEXT_MUTED }}>
+                          You'll be redirected to{" "}
+                          <span className="font-semibold" style={{ color: TEXT_DARK }}>
+                            {invitation.paymentDetails.loanProviderName}
+                          </span>{" "}
+                          to complete financing before accessing the course.
+                        </p>
+                        <p className="mt-3 break-all text-small" style={{ color: TEXT_DARK }}>
+                          {invitation.paymentDetails.loanApplicationLink}
+                        </p>
+                      </div>
+                    </>
+                  )}
+                  {isInstallmentInvite && invitation?.paymentDetails.paymentType === "Installment" && (
+                    <>
+                      <h3 className="text-second-header font-bold mt-8 mb-4" style={{ color: TEXT_DARK }}>
+                        Installment Schedule
+                      </h3>
+                      <div className="bg-white rounded-2xl p-6 lg:p-8">
+                        <dl className="flex flex-col">
+                          {([
+                            ["Full Amount", `$${invitation.paymentDetails.fullAmount.toLocaleString()}`],
+                            ["Initial Down Payment", `$${invitation.paymentDetails.initialDownPayment.toLocaleString()}`],
+                            ["Time Period", `${invitation.paymentDetails.timePeriodMonths} months`],
+                            ["Monthly Payment", `$${invitation.paymentDetails.monthlyPayment.toLocaleString()} / month`],
+                            ["Total Amount", `$${invitation.paymentDetails.totalAmount.toLocaleString()}`],
+                          ] as const).map(([k, v], i, arr) => (
+                            <div
+                              key={k}
+                              className="flex items-center justify-between py-3"
+                              style={{ borderBottom: i < arr.length - 1 ? "1px solid #F0F0F0" : undefined }}
+                            >
+                              <dt style={{ color: TEXT_MUTED }}>{k}</dt>
+                              <dd className="font-semibold text-right" style={{ color: TEXT_DARK }}>{v}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                      </div>
+                    </>
+                  )}
                   <h3 className="text-second-header font-bold mt-8 mb-4" style={{ color: TEXT_DARK }}>
                     Product Details
                   </h3>
