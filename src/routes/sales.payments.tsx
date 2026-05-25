@@ -37,7 +37,7 @@ import {
   type SalesCourse,
 } from "@/lib/invitations-store";
 
-import { SlidersHorizontal, Eye, FileText, CheckCircle, Clock } from "lucide-react";
+import { SlidersHorizontal, Eye, CheckCircle, Clock } from "lucide-react";
 import { DollarSign, TrendingUp } from "lucide-react";
 import {
   BarChart,
