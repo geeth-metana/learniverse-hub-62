@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useRef, useState, useEffect } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Topbar } from "@/components/dashboard/Topbar";
 import {
@@ -335,7 +336,7 @@ function SelectPill({
 
 // ===================== Add Student Modal =====================
 
-type Step = 1 | 2 | 3 | 4 | 5 | 6;
+type Step = 1 | 2 | 3 | 4 | 5;
 
 type UpfrontPlanState = {
   id: "plan-01" | "plan-02";
@@ -496,7 +497,7 @@ function AddStudentModal({
       status: "Pending",
     });
     setCreatedInvitation(inv);
-    setStep(6);
+    onConfirm(inv);
   };
 
   const stepperLabels = [
@@ -505,17 +506,21 @@ function AddStudentModal({
     "Payment Method",
     "Plan Setup",
     "Preview & Confirm",
-    "Send Invitation",
   ];
 
   return (
     <ModalShell
       title={createCohortMode ? "Create New Cohort" : "Add Student Access"}
       onClose={onClose}
-      maxWidth={820}
+      maxWidth={960}
+      topAlign
     >
       <StepIndicator step={step} labels={stepperLabels} />
-      <div className="mt-6">
+      <motion.div
+        layout
+        transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
+        className="mt-6"
+      >
         {createCohortMode && course ? (
           <CreateCohortView
             course={course}
@@ -528,7 +533,14 @@ function AddStudentModal({
             }}
           />
         ) : (
-          <>
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.22, ease: "easeInOut" }}
+            >
             {step === 1 && (
               <Step1
                 email={email}
@@ -580,17 +592,12 @@ function AddStudentModal({
                 details={buildPaymentDetails()}
               />
             )}
-            {step === 6 && createdInvitation && (
-              <Step6Send
-                invitation={createdInvitation}
-                onDone={() => onConfirm(createdInvitation)}
-              />
-            )}
-          </>
+            </motion.div>
+          </AnimatePresence>
         )}
-      </div>
+      </motion.div>
 
-      {!createCohortMode && step < 6 && (
+      {!createCohortMode && (
         <div
           className="mt-8 flex items-center justify-end gap-3 pt-5"
           style={{ borderTop: `1px solid ${BORDER}` }}
@@ -637,22 +644,34 @@ function StepIndicator({ step, labels }: { step: Step; labels: string[] }) {
         return (
           <div key={label} className="flex flex-1 items-center gap-2">
             <div
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-small font-semibold"
-              style={{
-                backgroundColor: active || done ? BRAND : SOFT,
-                color: TEXT_DARK,
-              }}
+              className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-small font-semibold"
+              style={{ backgroundColor: done ? BRAND : SOFT, color: TEXT_DARK }}
             >
-              {done ? <Check className="h-4 w-4" /> : n}
+              {active && (
+                <motion.span
+                  layoutId="active-step-pill"
+                  transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                  className="absolute inset-0 rounded-full"
+                  style={{ backgroundColor: BRAND }}
+                />
+              )}
+              <span className="relative z-10">
+                {done ? <Check className="h-4 w-4" /> : n}
+              </span>
             </div>
-            <span
+            <motion.span
+              animate={{ color: active ? TEXT_DARK : TEXT_MUTED }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
               className="hidden text-smaller font-medium lg:inline"
-              style={{ color: active ? TEXT_DARK : TEXT_MUTED }}
             >
               {label}
-            </span>
+            </motion.span>
             {i < labels.length - 1 && (
-              <div className="h-px flex-1" style={{ backgroundColor: done ? BRAND : BORDER }} />
+              <motion.div
+                animate={{ backgroundColor: done ? BRAND : BORDER }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="h-px flex-1"
+              />
             )}
           </div>
         );
@@ -1519,11 +1538,13 @@ function ModalShell({
   onClose,
   children,
   maxWidth = 640,
+  topAlign = false,
 }: {
   title: string;
   onClose: () => void;
   children: React.ReactNode;
   maxWidth?: number;
+  topAlign?: boolean;
 }) {
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -1534,13 +1555,23 @@ function ModalShell({
   }, []);
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6"
+      className={`fixed inset-0 z-50 flex justify-center overflow-y-auto px-4 ${
+        topAlign ? "items-start" : "items-center py-6"
+      }`}
       style={{ backgroundColor: "rgba(0, 0, 0, 0.25)" }}
       onClick={onClose}
     >
-      <div
-        className="relative max-h-[90vh] w-full overflow-y-auto rounded-2xl bg-white p-6 lg:p-8"
-        style={{ maxWidth, color: TEXT_DARK, boxShadow: "0 20px 60px rgba(15,23,42,0.18)" }}
+      <motion.div
+        layout
+        transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
+        className="relative w-[90vw] rounded-2xl bg-white p-6 lg:p-8"
+        style={{
+          maxWidth,
+          marginTop: topAlign ? 72 : undefined,
+          marginBottom: topAlign ? 48 : undefined,
+          color: TEXT_DARK,
+          boxShadow: "0 20px 60px rgba(15,23,42,0.18)",
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-5 flex items-center justify-between">
@@ -1556,7 +1587,7 @@ function ModalShell({
           </button>
         </div>
         {children}
-      </div>
+      </motion.div>
     </div>
   );
 }
