@@ -510,25 +510,36 @@ function AnalyticsSection() {
   );
 }
 
-const KPI_TONES: Record<KpiTone, { bg: string; glow: string; icon: string }> = {
+const KPI_TONES: Record<
+  KpiTone,
+  { bgFull: string; bgSoft: string; glowFull: string; glowSoft: string; icon: string }
+> = {
   lime: {
-    bg: "linear-gradient(135deg, #F7FFD6 0%, #ECFBC0 100%)",
-    glow: "radial-gradient(circle at top right, rgba(204,246,33,0.55), transparent 65%)",
+    bgFull: "linear-gradient(135deg, #F7FFD6 0%, #ECFBC0 100%)",
+    bgSoft: "linear-gradient(135deg, rgba(247,255,214,0.45) 0%, rgba(236,251,192,0.45) 100%)",
+    glowFull: "radial-gradient(circle at top right, rgba(204,246,33,0.55), transparent 65%)",
+    glowSoft: "radial-gradient(circle at top right, rgba(204,246,33,0.22), transparent 65%)",
     icon: "#9BBF14",
   },
   mint: {
-    bg: "linear-gradient(135deg, #EAFBE7 0%, #DAF5D2 100%)",
-    glow: "radial-gradient(circle at top right, rgba(132,204,22,0.45), transparent 65%)",
+    bgFull: "linear-gradient(135deg, #EAFBE7 0%, #DAF5D2 100%)",
+    bgSoft: "linear-gradient(135deg, rgba(234,251,231,0.45) 0%, rgba(218,245,210,0.45) 100%)",
+    glowFull: "radial-gradient(circle at top right, rgba(132,204,22,0.45), transparent 65%)",
+    glowSoft: "radial-gradient(circle at top right, rgba(132,204,22,0.18), transparent 65%)",
     icon: "#6BAE2A",
   },
   yellow: {
-    bg: "linear-gradient(135deg, #FBFBD6 0%, #F4F5B5 100%)",
-    glow: "radial-gradient(circle at top right, rgba(234,225,80,0.55), transparent 65%)",
+    bgFull: "linear-gradient(135deg, #FBFBD6 0%, #F4F5B5 100%)",
+    bgSoft: "linear-gradient(135deg, rgba(251,251,214,0.45) 0%, rgba(244,245,181,0.45) 100%)",
+    glowFull: "radial-gradient(circle at top right, rgba(234,225,80,0.55), transparent 65%)",
+    glowSoft: "radial-gradient(circle at top right, rgba(234,225,80,0.22), transparent 65%)",
     icon: "#B7A60C",
   },
   teal: {
-    bg: "linear-gradient(135deg, #E0F5EE 0%, #CFEDE4 100%)",
-    glow: "radial-gradient(circle at top right, rgba(45,212,168,0.4), transparent 65%)",
+    bgFull: "linear-gradient(135deg, #E0F5EE 0%, #CFEDE4 100%)",
+    bgSoft: "linear-gradient(135deg, rgba(224,245,238,0.45) 0%, rgba(207,237,228,0.45) 100%)",
+    glowFull: "radial-gradient(circle at top right, rgba(45,212,168,0.4), transparent 65%)",
+    glowSoft: "radial-gradient(circle at top right, rgba(45,212,168,0.18), transparent 65%)",
     icon: "#3F9C84",
   },
 };
@@ -538,24 +549,37 @@ function KpiCard({
   label,
   description,
   value,
+  subValue,
   Icon,
 }: {
   tone: KpiTone;
   label: string;
   description: string;
   value: string;
+  subValue?: string;
   Icon: React.ComponentType<{ className?: string }>;
 }) {
   const t = KPI_TONES[tone];
+  const [hover, setHover] = useState(false);
   return (
     <div
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
       className="relative flex h-full flex-col gap-3 overflow-hidden rounded-2xl p-5"
-      style={{ background: t.bg, border: `1px solid ${BORDER}` }}
+      style={{
+        background: hover ? t.bgFull : t.bgSoft,
+        border: `1px solid ${BORDER}`,
+        transition: "background 0.25s ease, transform 0.25s ease",
+        transform: hover ? "translateY(-2px)" : "translateY(0)",
+      }}
     >
       <div
         aria-hidden
         className="pointer-events-none absolute -right-10 -top-10 h-32 w-32"
-        style={{ background: t.glow }}
+        style={{
+          background: hover ? t.glowFull : t.glowSoft,
+          transition: "background 0.25s ease",
+        }}
       />
       <span
         className="relative grid h-10 w-10 place-items-center rounded-full bg-white/70 backdrop-blur"
@@ -571,12 +595,16 @@ function KpiCard({
           {description}
         </p>
       </div>
-      <p
-        className="relative mt-auto text-second-header font-bold leading-tight"
-        style={{ color: TEXT_DARK }}
-      >
-        {value}
-      </p>
+      <div className="relative mt-auto">
+        <p className="text-second-header font-bold leading-tight" style={{ color: TEXT_DARK }}>
+          {value}
+        </p>
+        {subValue && (
+          <p className="mt-0.5 text-small font-medium" style={{ color: TEXT_MUTED }}>
+            {subValue}
+          </p>
+        )}
+      </div>
     </div>
   );
 }
