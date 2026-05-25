@@ -1946,7 +1946,6 @@ function PaymentOverviewDrawer({
 }) {
   const inv = invitation;
   const [approval, setApproval] = useState<ApprovalState>(deriveApproval(inv.status));
-  const [approvalNote, setApprovalNote] = useState("");
   const [proof, setProof] = useState<ProofFile | null>(null);
   const [dragOver, setDragOver] = useState(false);
 
@@ -1960,15 +1959,92 @@ function PaymentOverviewDrawer({
 
   const isInstallment = inv.paymentDetails.paymentType === "Installment";
 
-  const handleApprove = () => {
+  const [installments, setInstallments] = useState<InstallmentRow[]>(() =>
+    isInstallment && inv.paymentDetails.paymentType === "Installment"
+      ? seedInstallments(inv.paymentDetails, inv.cohortDate)
+      : [],
+  );
+
+  const approvedCount = installments.filter((i) => i.status === "Approved").length;
+  const totalCount = installments.length;
+  const progressPct = totalCount ? Math.round((approvedCount / totalCount) * 100) : 0;
+
+  const overallInstallmentStatus = (() => {
+    if (!totalCount) return "Awaiting Installments";
+    if (approvedCount === totalCount) return "Fully Approved";
+    if (installments.some((i) => i.status === "Pending Review")) return "Pending Review";
+    if (approvedCount > 0) return "Partially Approved";
+    return "Awaiting Installments";
+  })();
+
+  const nextDue = installments.find((i) => i.status !== "Approved")?.dueDate ?? "—";
+
+  const [timelineLog, setTimelineLog] = useState<string[]>([]);
+
+  const approveInstallment = (id: string) => {
+    setInstallments((prev) => {
+      const next = prev.map((it) =>
+        it.id === id ? { ...it, status: "Approved" as InstallmentStatus } : it,
+      );
+      const target = next.find((i) => i.id === id);
+      if (target) {
+        setTimelineLog((log) => [...log, `${target.label} approved`]);
+        // sync overall invitation status
+        const allApproved = next.every((i) => i.status === "Approved");
+        if (allApproved) updateInvitation(inv.id, { status: "Installment Approved" });
+        else updateInvitation(inv.id, { status: "Installment Pending Approval" });
+      }
+      return next;
+    });
     setApproval("Approved");
-    updateInvitation(inv.id, { status: "Installment Approved" });
     toast.success("Installment approved");
   };
-  const handleReject = () => {
-    setApproval("Rejected");
-    updateInvitation(inv.id, { status: "Installment Rejected" });
+
+  const rejectInstallment = (id: string) => {
+    setInstallments((prev) => {
+      const next = prev.map((it) =>
+        it.id === id
+          ? { ...it, status: "Rejected" as InstallmentStatus, proof: null }
+          : it,
+      );
+      const target = next.find((i) => i.id === id);
+      if (target) setTimelineLog((log) => [...log, `${target.label} rejected`]);
+      return next;
+    });
     toast.success("Installment rejected");
+  };
+
+  const uploadInstallmentProof = (id: string, file: File | undefined) => {
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File must be 10MB or smaller");
+      return;
+    }
+    const today = new Date().toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    });
+    setInstallments((prev) =>
+      prev.map((it) =>
+        it.id === id
+          ? {
+              ...it,
+              proof: { name: file.name, uploadedAt: `Uploaded ${today}` },
+              status: it.status === "Upcoming" ? "Pending Review" : "Pending Review",
+            }
+          : it,
+      ),
+    );
+    toast.success("Proof uploaded");
+  };
+
+  const removeInstallmentProof = (id: string) => {
+    setInstallments((prev) =>
+      prev.map((it) =>
+        it.id === id ? { ...it, proof: null, status: "Proof Required" } : it,
+      ),
+    );
   };
 
   const onFile = (file: File | undefined) => {
