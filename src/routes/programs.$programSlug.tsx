@@ -417,6 +417,7 @@ function ProgramHeroCard({
   completedLessons,
   totalLessons,
   currentCourseTitle,
+  isProgramCompleted,
   onContinue,
 }: {
   product: Product;
@@ -425,6 +426,7 @@ function ProgramHeroCard({
   completedLessons: number;
   totalLessons: number;
   currentCourseTitle: string;
+  isProgramCompleted: boolean;
   onContinue: () => void;
 }) {
   return (
@@ -484,8 +486,17 @@ function ProgramHeroCard({
               className="inline-flex h-12 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-full px-6 text-sm font-bold transition-colors hover:brightness-95"
               style={{ background: BRAND, color: INK }}
             >
-              <PlayCircle className="h-4 w-4" />
-              Continue Learning
+              {isProgramCompleted ? (
+                <>
+                  <Download className="h-4 w-4" />
+                  Download Certificate
+                </>
+              ) : (
+                <>
+                  <PlayCircle className="h-4 w-4" />
+                  Continue Learning
+                </>
+              )}
             </button>
 
             <MetaInfoRow
