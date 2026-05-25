@@ -559,14 +559,32 @@ function CheckoutPage() {
                 </p>
               )}
 
-              <button
-                type="submit"
-                disabled={submitting}
-                className="mt-6 w-full py-3.5 rounded-full font-semibold hover:opacity-90 disabled:opacity-60"
-                style={{ backgroundColor: BRAND, color: TEXT_DARK }}
-              >
-                {submitting ? "Processing..." : `Purchase Now · ${fmt(total)}`}
-              </button>
+              {isLoanInvite && invitation?.paymentDetails.paymentType === "Loan" ? (
+                <a
+                  href={invitation.paymentDetails.loanApplicationLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-6 inline-flex w-full items-center justify-center gap-2 py-3.5 rounded-full font-semibold hover:opacity-90"
+                  style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+                >
+                  Continue to Loan Application <ExternalLink className="h-4 w-4" />
+                </a>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="mt-6 w-full py-3.5 rounded-full font-semibold hover:opacity-90 disabled:opacity-60"
+                  style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+                >
+                  {submitting
+                    ? "Processing..."
+                    : isBankInvite
+                      ? "I Have Made the Transfer"
+                      : isInstallmentInvite && invitation?.paymentDetails.paymentType === "Installment"
+                        ? `Pay Initial Down Payment · $${invitation.paymentDetails.initialDownPayment.toLocaleString()}`
+                        : `Purchase Now · ${fmt(total)}`}
+                </button>
+              )}
 
               <div className="mt-4 flex items-center justify-center gap-2 text-small" style={{ color: TEXT_MUTED }}>
                 <Lock className="h-3 w-3" /> Powered by <span className="font-bold" style={{ color: TEXT_DARK }}>stripe</span>
