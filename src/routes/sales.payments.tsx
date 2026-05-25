@@ -560,25 +560,19 @@ function KpiCard({
   Icon: React.ComponentType<{ className?: string }>;
 }) {
   const t = KPI_TONES[tone];
-  const [hover, setHover] = useState(false);
   return (
     <div
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
       className="relative flex h-full flex-col gap-3 overflow-hidden rounded-2xl p-5"
       style={{
-        background: hover ? t.bgFull : t.bgSoft,
+        background: t.bgSoft,
         border: `1px solid ${BORDER}`,
-        transition: "background 0.25s ease, transform 0.25s ease",
-        transform: hover ? "translateY(-2px)" : "translateY(0)",
       }}
     >
       <div
         aria-hidden
         className="pointer-events-none absolute -right-10 -top-10 h-32 w-32"
         style={{
-          background: hover ? t.glowFull : t.glowSoft,
-          transition: "background 0.25s ease",
+          background: t.glowSoft,
         }}
       />
       <span
@@ -1952,7 +1946,6 @@ function PaymentOverviewDrawer({
 }) {
   const inv = invitation;
   const [approval, setApproval] = useState<ApprovalState>(deriveApproval(inv.status));
-  const [approvalNote, setApprovalNote] = useState("");
   const [proof, setProof] = useState<ProofFile | null>(null);
   const [dragOver, setDragOver] = useState(false);
 
@@ -1966,15 +1959,92 @@ function PaymentOverviewDrawer({
 
   const isInstallment = inv.paymentDetails.paymentType === "Installment";
 
-  const handleApprove = () => {
+  const [installments, setInstallments] = useState<InstallmentRow[]>(() =>
+    isInstallment && inv.paymentDetails.paymentType === "Installment"
+      ? seedInstallments(inv.paymentDetails, inv.cohortDate)
+      : [],
+  );
+
+  const approvedCount = installments.filter((i) => i.status === "Approved").length;
+  const totalCount = installments.length;
+  const progressPct = totalCount ? Math.round((approvedCount / totalCount) * 100) : 0;
+
+  const overallInstallmentStatus = (() => {
+    if (!totalCount) return "Awaiting Installments";
+    if (approvedCount === totalCount) return "Fully Approved";
+    if (installments.some((i) => i.status === "Pending Review")) return "Pending Review";
+    if (approvedCount > 0) return "Partially Approved";
+    return "Awaiting Installments";
+  })();
+
+  const nextDue = installments.find((i) => i.status !== "Approved")?.dueDate ?? "—";
+
+  const [timelineLog, setTimelineLog] = useState<string[]>([]);
+
+  const approveInstallment = (id: string) => {
+    setInstallments((prev) => {
+      const next = prev.map((it) =>
+        it.id === id ? { ...it, status: "Approved" as InstallmentStatus } : it,
+      );
+      const target = next.find((i) => i.id === id);
+      if (target) {
+        setTimelineLog((log) => [...log, `${target.label} approved`]);
+        // sync overall invitation status
+        const allApproved = next.every((i) => i.status === "Approved");
+        if (allApproved) updateInvitation(inv.id, { status: "Installment Approved" });
+        else updateInvitation(inv.id, { status: "Installment Pending Approval" });
+      }
+      return next;
+    });
     setApproval("Approved");
-    updateInvitation(inv.id, { status: "Installment Approved" });
     toast.success("Installment approved");
   };
-  const handleReject = () => {
-    setApproval("Rejected");
-    updateInvitation(inv.id, { status: "Installment Rejected" });
+
+  const rejectInstallment = (id: string) => {
+    setInstallments((prev) => {
+      const next = prev.map((it) =>
+        it.id === id
+          ? { ...it, status: "Rejected" as InstallmentStatus, proof: null }
+          : it,
+      );
+      const target = next.find((i) => i.id === id);
+      if (target) setTimelineLog((log) => [...log, `${target.label} rejected`]);
+      return next;
+    });
     toast.success("Installment rejected");
+  };
+
+  const uploadInstallmentProof = (id: string, file: File | undefined) => {
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File must be 10MB or smaller");
+      return;
+    }
+    const today = new Date().toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    });
+    setInstallments((prev) =>
+      prev.map((it) =>
+        it.id === id
+          ? {
+              ...it,
+              proof: { name: file.name, uploadedAt: `Uploaded ${today}` },
+              status: it.status === "Upcoming" ? "Pending Review" : "Pending Review",
+            }
+          : it,
+      ),
+    );
+    toast.success("Proof uploaded");
+  };
+
+  const removeInstallmentProof = (id: string) => {
+    setInstallments((prev) =>
+      prev.map((it) =>
+        it.id === id ? { ...it, proof: null, status: "Proof Required" } : it,
+      ),
+    );
   };
 
   const onFile = (file: File | undefined) => {
@@ -2062,90 +2132,97 @@ function PaymentOverviewDrawer({
 
           {/* Payment Details */}
           <DrawerSection title="Payment Details">
-            <PaymentDetailsBlock invitation={inv} />
+            <PaymentDetailsBlock
+              invitation={inv}
+              installmentSummary={
+                isInstallment
+                  ? {
+                      approvedCount,
+                      totalCount,
+                      overall: overallInstallmentStatus,
+                      nextDue,
+                    }
+                  : undefined
+              }
+            />
           </DrawerSection>
 
           {/* Timeline */}
           <DrawerSection title="Payment Status Timeline">
-            <Timeline invitation={inv} approval={approval} />
+            <Timeline
+              invitation={inv}
+              approval={approval}
+              installments={installments}
+              extraEvents={timelineLog}
+            />
           </DrawerSection>
 
-          {/* Installment Approval */}
+          {/* Installment Payments — only for installment plans */}
           {isInstallment && inv.paymentDetails.paymentType === "Installment" && (
-            <DrawerSection title="Installment Approval">
+            <DrawerSection title="Installment Payments">
               <p className="text-small" style={{ color: TEXT_MUTED }}>
-                Students pay installments through a third-party provider. Verify the setup
-                before approving access.
+                Review each monthly installment, upload proof, and approve payments one by one.
               </p>
-              <div
-                className="mt-3 flex items-center justify-between rounded-xl px-4 py-3"
-                style={{ backgroundColor: SOFT }}
-              >
-                <span className="text-small font-semibold" style={{ color: TEXT_DARK }}>
-                  Approval Status
-                </span>
-                <ApprovalPill state={approval} />
-              </div>
-              <div className="mt-3 grid grid-cols-2 gap-3">
+
+              {/* Summary */}
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <MiniStat
+                  label="Full Amount"
+                  value={`$${inv.paymentDetails.fullAmount.toLocaleString()}`}
+                />
                 <MiniStat
                   label="Initial Down Payment"
                   value={`$${inv.paymentDetails.initialDownPayment.toLocaleString()}`}
                 />
                 <MiniStat
                   label="Monthly Payment"
-                  value={`$${inv.paymentDetails.monthlyPayment.toLocaleString()} / mo`}
+                  value={`$${inv.paymentDetails.monthlyPayment.toLocaleString()} / month`}
                 />
                 <MiniStat
-                  label="Time Period"
-                  value={`${inv.paymentDetails.timePeriodMonths} Months`}
-                />
-                <MiniStat
-                  label="Full Amount"
-                  value={`$${inv.paymentDetails.fullAmount.toLocaleString()}`}
+                  label="Payment Status"
+                  value={`${approvedCount} of ${totalCount} Approved`}
                 />
               </div>
-              <div className="mt-4">
-                <label
-                  className="mb-1.5 block text-small font-medium"
-                  style={{ color: TEXT_DARK }}
-                >
-                  Approval Note
-                </label>
-                <textarea
-                  value={approvalNote}
-                  onChange={(e) => setApprovalNote(e.target.value)}
-                  placeholder="Add an internal note about this approval"
-                  rows={3}
-                  className="w-full resize-none rounded-xl bg-white px-3 py-2 text-small outline-none"
-                  style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
-                />
+
+              {/* Progress */}
+              <div
+                className="mt-4 rounded-xl p-4"
+                style={{ backgroundColor: SOFT }}
+              >
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-small font-semibold" style={{ color: TEXT_DARK }}>
+                    Installment Progress
+                  </span>
+                  <span className="text-small font-medium" style={{ color: TEXT_DARK }}>
+                    {approvedCount} / {totalCount} Approved · {progressPct}%
+                  </span>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full" style={{ backgroundColor: "#E5E7EB" }}>
+                  <div
+                    className="h-full rounded-full transition-all"
+                    style={{ width: `${progressPct}%`, backgroundColor: BRAND }}
+                  />
+                </div>
               </div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <button
-                  onClick={handleApprove}
-                  disabled={approval === "Approved"}
-                  className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold disabled:opacity-60"
-                  style={{ backgroundColor: BRAND, color: TEXT_DARK }}
-                >
-                  <CheckCircle2 className="h-4 w-4" /> Approve Installment
-                </button>
-                <button
-                  onClick={handleReject}
-                  disabled={approval === "Rejected"}
-                  className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold disabled:opacity-60"
-                  style={{
-                    backgroundColor: "#FFFFFF",
-                    color: "#B42318",
-                    border: "1px solid #FECDCA",
-                  }}
-                >
-                  <AlertCircle className="h-4 w-4" /> Reject Installment
-                </button>
+
+              {/* Installment list */}
+              <div className="mt-4 space-y-3">
+                {installments.map((it) => (
+                  <InstallmentCard
+                    key={it.id}
+                    row={it}
+                    onUpload={(file) => uploadInstallmentProof(it.id, file)}
+                    onRemove={() => removeInstallmentProof(it.id)}
+                    onApprove={() => approveInstallment(it.id)}
+                    onReject={() => rejectInstallment(it.id)}
+                  />
+                ))}
               </div>
             </DrawerSection>
           )}
 
-          {/* Proof Upload */}
+          {/* Proof Upload — only for non-installment plans */}
+          {!isInstallment && (
           <DrawerSection title="Payment Proof">
             <p className="text-small" style={{ color: TEXT_MUTED }}>
               Upload proof of payment, bank transfer receipt, installment approval PDF, or
@@ -2224,6 +2301,7 @@ function PaymentOverviewDrawer({
               </div>
             )}
           </DrawerSection>
+          )}
         </div>
       </motion.aside>
     </div>
@@ -2307,7 +2385,18 @@ function ApprovalPill({ state }: { state: ApprovalState }) {
   );
 }
 
-function PaymentDetailsBlock({ invitation }: { invitation: Invitation }) {
+function PaymentDetailsBlock({
+  invitation,
+  installmentSummary,
+}: {
+  invitation: Invitation;
+  installmentSummary?: {
+    approvedCount: number;
+    totalCount: number;
+    overall: string;
+    nextDue: string;
+  };
+}) {
   const d = invitation.paymentDetails;
   if (d.paymentType === "Upfront") {
     return (
@@ -2327,6 +2416,7 @@ function PaymentDetailsBlock({ invitation }: { invitation: Invitation }) {
     );
   }
   if (d.paymentType === "Installment") {
+    const summary = installmentSummary;
     return (
       <>
         <Row label="Payment Method" value="Installment" />
@@ -2335,13 +2425,19 @@ function PaymentDetailsBlock({ invitation }: { invitation: Invitation }) {
           label="Initial Down Payment"
           value={`$${d.initialDownPayment.toLocaleString()}`}
         />
-        <Row label="Time Period" value={`${d.timePeriodMonths} Months`} />
         <Row
           label="Monthly Payment"
           value={`$${d.monthlyPayment.toLocaleString()} / month`}
         />
-        <Row label="Installment Status" value={statusPill(invitation.status)} />
-        <Row label="Next Payment Due" value="Jul 12, 2026" last />
+        <Row
+          label="Payment Status"
+          value={
+            summary
+              ? `${summary.approvedCount} of ${summary.totalCount} Installments Approved`
+              : statusPill(invitation.status)
+          }
+        />
+        <Row label="Next Payment Due" value={summary?.nextDue ?? "—"} last />
       </>
     );
   }
@@ -2384,9 +2480,13 @@ type TimelineState = "done" | "current" | "pending";
 function Timeline({
   invitation,
   approval,
+  installments = [],
+  extraEvents = [],
 }: {
   invitation: Invitation;
   approval: ApprovalState;
+  installments?: InstallmentRow[];
+  extraEvents?: string[];
 }) {
   const status = invitation.status;
   const isInstallment = invitation.paymentDetails.paymentType === "Installment";
@@ -2401,7 +2501,44 @@ function Timeline({
           ? "current"
           : "done",
     },
-    {
+  ];
+
+  if (isInstallment) {
+    items.push({
+      label: "Initial down payment submitted",
+      icon: CreditCard,
+      state: "done",
+    });
+    items.push({
+      label: "Initial down payment approved",
+      icon: ShieldCheck,
+      state: "done",
+    });
+    for (const inst of installments) {
+      const state: TimelineState =
+        inst.status === "Approved" || inst.status === "Rejected"
+          ? "done"
+          : inst.status === "Pending Review"
+            ? "current"
+            : "pending";
+      const suffix =
+        inst.status === "Approved"
+          ? "approved"
+          : inst.status === "Rejected"
+            ? "rejected"
+            : inst.status === "Pending Review"
+              ? "pending review"
+              : inst.status === "Proof Required"
+                ? "proof required"
+                : "upcoming";
+      items.push({
+        label: `${inst.label} ${suffix}`,
+        icon: inst.status === "Approved" ? ShieldCheck : CreditCard,
+        state,
+      });
+    }
+  } else {
+    items.push({
       label: "Student opened link",
       icon: MousePointerClick,
       state:
@@ -2410,42 +2547,36 @@ function Timeline({
           : status === "Invite Sent"
             ? "current"
             : "done",
-    },
-    {
+    });
+    items.push({
       label: "Payment submitted",
       icon: CreditCard,
       state:
         status === "Paid" ||
-        status === "Installment Approved" ||
         status === "Bank Transfer Confirmed" ||
         status === "Loan Approved"
           ? "done"
-          : status === "Installment Pending Approval" ||
-              status === "Bank Transfer Pending" ||
-              status === "Loan Pending"
+          : status === "Bank Transfer Pending" || status === "Loan Pending"
             ? "current"
             : "pending",
-    },
-    {
-      label: isInstallment
-        ? approval === "Approved"
-          ? "Installment approved"
-          : approval === "Rejected"
-            ? "Installment rejected"
-            : "Payment approved"
-        : "Payment approved",
+    });
+    items.push({
+      label: "Payment approved",
       icon: ShieldCheck,
       state:
         status === "Paid" ||
-        status === "Installment Approved" ||
         status === "Bank Transfer Confirmed" ||
         status === "Loan Approved"
           ? "done"
-          : status === "Installment Rejected"
-            ? "current"
-            : "pending",
-    },
-  ];
+          : "pending",
+    });
+  }
+
+  for (const ev of extraEvents) {
+    items.push({ label: ev, icon: CheckCircle2, state: "done" });
+  }
+  // suppress unused-var warning for approval (kept for API parity)
+  void approval;
 
   return (
     <ol className="relative space-y-3">
@@ -2505,5 +2636,223 @@ function Timeline({
         );
       })}
     </ol>
+  );
+}
+
+// ============= Installment list =============
+
+type InstallmentStatus =
+  | "Approved"
+  | "Pending Review"
+  | "Proof Required"
+  | "Rejected"
+  | "Upcoming";
+
+type InstallmentRow = {
+  id: string;
+  label: string; // "Installment 01"
+  number: number;
+  dueDate: string;
+  amount: number;
+  status: InstallmentStatus;
+  proof: ProofFile | null;
+};
+
+function addMonthsFormatted(start: Date, months: number): string {
+  const d = new Date(start.getTime());
+  d.setMonth(d.getMonth() + months);
+  return d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  });
+}
+
+function seedInstallments(
+  details: { timePeriodMonths: number; monthlyPayment: number },
+  cohortDate: string,
+): InstallmentRow[] {
+  const start = new Date(cohortDate);
+  const validStart = isNaN(start.getTime()) ? new Date() : start;
+  const count = Math.max(1, details.timePeriodMonths);
+  const rows: InstallmentRow[] = [];
+  for (let i = 0; i < count; i++) {
+    const number = i + 1;
+    let status: InstallmentStatus = "Upcoming";
+    let proof: ProofFile | null = null;
+    if (i === 0) {
+      status = "Approved";
+      proof = { name: `installment-01.pdf`, uploadedAt: "Uploaded earlier" };
+    } else if (i === 1) {
+      status = "Pending Review";
+      proof = { name: `installment-02-proof.pdf`, uploadedAt: "Uploaded Jun 15, 2026" };
+    } else if (i === 2) {
+      status = "Proof Required";
+    }
+    rows.push({
+      id: `inst-${number}`,
+      label: `Installment ${String(number).padStart(2, "0")}`,
+      number,
+      dueDate: addMonthsFormatted(validStart, i),
+      amount: details.monthlyPayment,
+      status,
+      proof,
+    });
+  }
+  return rows;
+}
+
+function InstallmentStatusPill({ status }: { status: InstallmentStatus }) {
+  const map: Record<InstallmentStatus, { bg: string; color: string }> = {
+    Approved: { bg: "rgba(204,246,33,0.45)", color: "#3F5C00" },
+    "Pending Review": { bg: "#FEF3C7", color: "#92400E" },
+    "Proof Required": { bg: "#F3F4F6", color: "#4B5563" },
+    Rejected: { bg: "#FEE2E2", color: "#991B1B" },
+    Upcoming: { bg: "#F3F4F6", color: "#6B7280" },
+  };
+  const s = map[status];
+  return (
+    <span
+      className="inline-flex items-center rounded-full px-2.5 py-1 text-smaller font-semibold"
+      style={{ backgroundColor: s.bg, color: s.color }}
+    >
+      {status}
+    </span>
+  );
+}
+
+function InstallmentCard({
+  row,
+  onUpload,
+  onRemove,
+  onApprove,
+  onReject,
+}: {
+  row: InstallmentRow;
+  onUpload: (file: File | undefined) => void;
+  onRemove: () => void;
+  onApprove: () => void;
+  onReject: () => void;
+}) {
+  const inputId = `proof-${row.id}`;
+  const isUpcoming = row.status === "Upcoming";
+  const isApproved = row.status === "Approved";
+  const canApprove = row.status === "Pending Review";
+
+  return (
+    <div
+      className="rounded-xl bg-white p-4"
+      style={{ border: `1px solid ${BORDER}` }}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-small font-semibold" style={{ color: TEXT_DARK }}>
+            {row.label}
+          </p>
+          <p className="mt-0.5 text-smaller" style={{ color: TEXT_MUTED }}>
+            Due {row.dueDate} · ${row.amount.toLocaleString()}
+          </p>
+        </div>
+        <InstallmentStatusPill status={row.status} />
+      </div>
+
+      {/* Proof area */}
+      <div className="mt-3">
+        {row.proof ? (
+          <div
+            className="flex items-center gap-3 rounded-xl px-3 py-2.5"
+            style={{ border: `1px solid ${BORDER}`, backgroundColor: "#FAFAFA" }}
+          >
+            <span
+              className="grid h-9 w-9 place-items-center rounded-lg"
+              style={{ backgroundColor: SOFT, color: TEXT_DARK }}
+            >
+              <FileText className="h-4 w-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-small font-medium" style={{ color: TEXT_DARK }}>
+                {row.proof.name}
+              </p>
+              <p className="text-smaller" style={{ color: TEXT_MUTED }}>
+                {row.proof.uploadedAt}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => toast.info("Preview not available in demo")}
+              className="rounded-full px-3 py-1.5 text-small font-medium hover:bg-[#F3F4F6]"
+              style={{ color: TEXT_DARK }}
+            >
+              View
+            </button>
+            {!isApproved && (
+              <button
+                type="button"
+                onClick={onRemove}
+                className="grid h-8 w-8 place-items-center rounded-full hover:bg-[#FEE2E2]"
+                style={{ color: "#B42318" }}
+                aria-label="Remove"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        ) : (
+          <label
+            htmlFor={inputId}
+            className={`flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 ${
+              isUpcoming ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:bg-[#F9FAFB]"
+            }`}
+            style={{ border: `1.5px dashed ${BORDER}`, backgroundColor: "#FFFFFF" }}
+          >
+            <span className="flex items-center gap-2">
+              <Upload className="h-4 w-4" style={{ color: TEXT_MUTED }} />
+              <span className="text-small font-medium" style={{ color: TEXT_DARK }}>
+                {isUpcoming ? "Not available yet" : "Upload Proof"}
+              </span>
+            </span>
+            <span className="text-smaller" style={{ color: TEXT_MUTED }}>
+              PDF, PNG, JPG · 10MB
+            </span>
+            <input
+              id={inputId}
+              type="file"
+              accept=".pdf,.png,.jpg,.jpeg"
+              className="hidden"
+              disabled={isUpcoming}
+              onChange={(e) => onUpload(e.target.files?.[0] ?? undefined)}
+            />
+          </label>
+        )}
+      </div>
+
+      {/* Actions */}
+      {!isUpcoming && !isApproved && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={onApprove}
+            disabled={!canApprove}
+            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+            style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+          >
+            <CheckCircle2 className="h-4 w-4" /> Approve Payment
+          </button>
+          <button
+            type="button"
+            onClick={onReject}
+            disabled={!canApprove}
+            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+            style={{
+              backgroundColor: "#FFFFFF",
+              color: "#B42318",
+              border: "1px solid #FECDCA",
+            }}
+          >
+            <AlertCircle className="h-4 w-4" /> Reject Payment
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
