@@ -2385,7 +2385,18 @@ function ApprovalPill({ state }: { state: ApprovalState }) {
   );
 }
 
-function PaymentDetailsBlock({ invitation }: { invitation: Invitation }) {
+function PaymentDetailsBlock({
+  invitation,
+  installmentSummary,
+}: {
+  invitation: Invitation;
+  installmentSummary?: {
+    approvedCount: number;
+    totalCount: number;
+    overall: string;
+    nextDue: string;
+  };
+}) {
   const d = invitation.paymentDetails;
   if (d.paymentType === "Upfront") {
     return (
