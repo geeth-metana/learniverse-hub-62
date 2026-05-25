@@ -560,25 +560,19 @@ function KpiCard({
   Icon: React.ComponentType<{ className?: string }>;
 }) {
   const t = KPI_TONES[tone];
-  const [hover, setHover] = useState(false);
   return (
     <div
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
       className="relative flex h-full flex-col gap-3 overflow-hidden rounded-2xl p-5"
       style={{
-        background: hover ? t.bgFull : t.bgSoft,
+        background: t.bgSoft,
         border: `1px solid ${BORDER}`,
-        transition: "background 0.25s ease, transform 0.25s ease",
-        transform: hover ? "translateY(-2px)" : "translateY(0)",
       }}
     >
       <div
         aria-hidden
         className="pointer-events-none absolute -right-10 -top-10 h-32 w-32"
         style={{
-          background: hover ? t.glowFull : t.glowSoft,
-          transition: "background 0.25s ease",
+          background: t.glowSoft,
         }}
       />
       <span
