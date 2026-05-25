@@ -431,14 +431,15 @@ function CheckoutPage() {
                   <div className="bg-white rounded-2xl p-6 lg:p-8">
                     <dl className="flex flex-col">
                       {([
-                        ["Course", "AI Builder Pack"],
-                        ["Access Type", "Full Program Access"],
-                        ["Payment Type", "Upfront"],
+                        ["Course", invitation?.course ?? course.title ?? "AI Builder Pack"],
+                        ["Access Type", invitation?.accessType ?? "Full Program Access"],
+                        ["Cohort Date", invitation?.cohortDate ?? "Jun 12, 2026"],
+                        ["Payment Type", invitation?.paymentType ?? (effectiveBilling === "installment" ? "Installment" : "Upfront")],
                         ["Lessons", "70 Lessons"],
                         ["Duration", "4 Months"],
                         ["Weekly Commitment", "22H / Week"],
                         ["Support", "Instructor-led guidance"],
-                        ["Certificate", "Included"],
+                        ["Certificate", invitation?.certificateIncluded === false ? "Not included" : "Included"],
                       ] as const).map(([k, v], i, arr) => (
                         <div
                           key={k}
