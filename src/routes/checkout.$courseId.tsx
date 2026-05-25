@@ -147,7 +147,7 @@ function CheckoutPage() {
             <div className="grid lg:grid-cols-2 gap-10 w-full">
             {/* Left */}
             <div>
-              <h1 className="text-primary-header font-extrabold tracking-tight" style={{ color: TEXT_DARK }}>
+              <h1 className="text-primary-header font-extrabold tracking-tight text-black" style={{ color: TEXT_DARK }}>
                 {prefilled ? (
                   <>Get access <span style={{ color: TEXT_MUTED }}>to your</span> <span style={{ color: TEXT_DARK }}>course</span></>
                 ) : (
