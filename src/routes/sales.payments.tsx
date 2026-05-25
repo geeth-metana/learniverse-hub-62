@@ -872,8 +872,8 @@ function Step2({
               key={`${c.date}-${c.time}`}
               type="button"
               onClick={() => setCohort(c)}
-              className="flex items-start justify-between rounded-xl bg-white p-4 text-left transition-colors"
-              style={{ border: `2px solid ${active ? BRAND : BORDER}` }}
+              className={`flex items-start justify-between rounded-xl bg-white p-4 text-left transition-colors ${active ? "" : "hover:bg-[#F3F4F6]"}`}
+              style={{ border: `2px solid ${active ? TEXT_DARK : BORDER}` }}
             >
               <div>
                 <p className="font-semibold" style={{ color: TEXT_DARK }}>{c.date}</p>
@@ -886,10 +886,13 @@ function Step2({
               </div>
               <span
                 className="grid h-5 w-5 place-items-center rounded-full"
-                style={{ border: `2px solid ${active ? BRAND : BORDER}` }}
+                style={{
+                  border: `2px solid ${active ? TEXT_DARK : BORDER}`,
+                  backgroundColor: active ? TEXT_DARK : "transparent",
+                }}
               >
                 {active && (
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: BRAND }} />
+                  <Check className="h-3 w-3" style={{ color: "#FFFFFF" }} />
                 )}
               </span>
             </button>
@@ -1027,8 +1030,8 @@ function Step3PaymentMethod({
               key={o.id}
               type="button"
               onClick={() => setMethod(o.id)}
-              className="relative flex items-start gap-3 rounded-xl bg-white p-4 text-left transition-colors"
-              style={{ border: `2px solid ${active ? BRAND : BORDER}` }}
+              className={`relative flex items-start gap-3 rounded-xl bg-white p-4 text-left transition-colors ${active ? "" : "hover:bg-[#F3F4F6]"}`}
+              style={{ border: `2px solid ${active ? TEXT_DARK : BORDER}` }}
             >
               <span
                 className="grid h-10 w-10 shrink-0 place-items-center rounded-lg"
@@ -1043,7 +1046,7 @@ function Step3PaymentMethod({
               {active && (
                 <span
                   className="grid h-6 w-6 place-items-center rounded-full"
-                  style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+                  style={{ backgroundColor: TEXT_DARK, color: "#FFFFFF" }}
                 >
                   <Check className="h-4 w-4" />
                 </span>
@@ -1095,8 +1098,8 @@ function Step4PlanSetup(props: {
               <div
                 key={p.id}
                 onClick={() => props.setUpfrontPlanId(p.id)}
-                className="relative cursor-pointer rounded-2xl bg-white p-5 transition-colors"
-                style={{ border: `2px solid ${active ? BRAND : BORDER}` }}
+                className={`relative cursor-pointer rounded-2xl bg-white p-5 transition-colors ${active ? "" : "hover:bg-[#F3F4F6]"}`}
+                style={{ border: `2px solid ${active ? TEXT_DARK : BORDER}` }}
               >
                 <div className="flex items-center justify-between">
                   <p className="font-semibold" style={{ color: TEXT_DARK }}>{p.name}</p>
@@ -1140,7 +1143,7 @@ function Step4PlanSetup(props: {
                 {active && (
                   <span
                     className="absolute right-4 top-4 grid h-6 w-6 place-items-center rounded-full"
-                    style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+                    style={{ backgroundColor: TEXT_DARK, color: "#FFFFFF" }}
                   >
                     <Check className="h-4 w-4" />
                   </span>
