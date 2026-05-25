@@ -2132,7 +2132,19 @@ function PaymentOverviewDrawer({
 
           {/* Payment Details */}
           <DrawerSection title="Payment Details">
-            <PaymentDetailsBlock invitation={inv} />
+            <PaymentDetailsBlock
+              invitation={inv}
+              installmentSummary={
+                isInstallment
+                  ? {
+                      approvedCount,
+                      totalCount,
+                      overall: overallInstallmentStatus,
+                      nextDue,
+                    }
+                  : undefined
+              }
+            />
           </DrawerSection>
 
           {/* Timeline */}
