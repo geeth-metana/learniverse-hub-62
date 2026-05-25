@@ -2,6 +2,44 @@ import { useEffect, useState } from "react";
 
 export type InvitationStatus = "Pending" | "Invite Sent" | "Paid" | "Expired";
 
+export type PaymentMethod = "Upfront" | "Installment" | "Bank" | "Loan";
+
+export type UpfrontDetails = {
+  paymentType: "Upfront";
+  planName: string;
+  planAmount: number;
+  discountPercent: number;
+  checkoutAmount: number;
+};
+export type InstallmentDetails = {
+  paymentType: "Installment";
+  fullAmount: number;
+  initialDownPayment: number;
+  timePeriodMonths: number;
+  monthlyPayment: number;
+  totalAmount: number;
+};
+export type BankDetails = {
+  paymentType: "Bank";
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+  routingNumber: string;
+  swiftCode: string;
+  referenceNote: string;
+};
+export type LoanDetails = {
+  paymentType: "Loan";
+  loanProviderName: string;
+  loanApplicationLink: string;
+  redirectRequired: true;
+};
+export type PaymentDetails =
+  | UpfrontDetails
+  | InstallmentDetails
+  | BankDetails
+  | LoanDetails;
+
 export type Invitation = {
   id: string; // e.g. INV-10294
   studentName?: string;
@@ -9,12 +47,15 @@ export type Invitation = {
   course: string; // course title
   courseId: string; // courses-data id
   cohortDate: string; // formatted, e.g. "Jun 12, 2026"
+  // Back-compat (used by existing checkout pre-fill for Upfront/Installment plans)
   plan: "Plan 01" | "Plan 02";
   planId: "plan-01" | "plan-02";
-  paymentType: "Upfront" | "Installment";
+  paymentType: PaymentMethod;
   planAmount: number;
   discountPercent: number;
   checkoutAmount: number;
+  paymentMethod: PaymentMethod;
+  paymentDetails: PaymentDetails;
   accessType: string;
   certificateIncluded: boolean;
   status: InvitationStatus;
@@ -24,6 +65,8 @@ export type Invitation = {
 
 const STORAGE_KEY = "metana:invitations";
 const EVT = "metana:invitations-changed";
+const COHORT_KEY = "metana:custom-cohorts";
+const COHORT_EVT = "metana:custom-cohorts-changed";
 
 const seed: Invitation[] = [
   {
@@ -44,6 +87,14 @@ const seed: Invitation[] = [
     status: "Invite Sent",
     checkoutLink: "https://metana.io/checkout/prefilled?invite=INV-10001",
     createdAt: Date.now() - 86400000 * 4,
+    paymentMethod: "Upfront",
+    paymentDetails: {
+      paymentType: "Upfront",
+      planName: "Plan 01",
+      planAmount: 12370,
+      discountPercent: 20,
+      checkoutAmount: 9896,
+    },
   },
   {
     id: "INV-10002",
@@ -63,6 +114,15 @@ const seed: Invitation[] = [
     status: "Pending",
     checkoutLink: "https://metana.io/checkout/prefilled?invite=INV-10002",
     createdAt: Date.now() - 86400000 * 2,
+    paymentMethod: "Installment",
+    paymentDetails: {
+      paymentType: "Installment",
+      fullAmount: 14000,
+      initialDownPayment: 2000,
+      timePeriodMonths: 6,
+      monthlyPayment: 2000,
+      totalAmount: 14000,
+    },
   },
   {
     id: "INV-10003",
@@ -82,6 +142,14 @@ const seed: Invitation[] = [
     status: "Paid",
     checkoutLink: "https://metana.io/checkout/prefilled?invite=INV-10003",
     createdAt: Date.now() - 86400000 * 8,
+    paymentMethod: "Upfront",
+    paymentDetails: {
+      paymentType: "Upfront",
+      planName: "Plan 01",
+      planAmount: 12370,
+      discountPercent: 20,
+      checkoutAmount: 9896,
+    },
   },
 ];
 
@@ -144,6 +212,45 @@ export function useInvitations() {
     };
   }, []);
   return list;
+}
+
+// ----- Custom cohorts (created via the Add Student modal) -----
+type CustomCohortMap = Record<string, { date: string; day: string; time: string; seats: number }[]>;
+
+function readCohorts(): CustomCohortMap {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(COHORT_KEY);
+    return raw ? (JSON.parse(raw) as CustomCohortMap) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function addCustomCohort(
+  courseTitle: string,
+  cohort: { date: string; day: string; time: string; seats: number },
+) {
+  if (typeof window === "undefined") return;
+  const all = readCohorts();
+  all[courseTitle] = [cohort, ...(all[courseTitle] ?? [])];
+  window.localStorage.setItem(COHORT_KEY, JSON.stringify(all));
+  window.dispatchEvent(new Event(COHORT_EVT));
+}
+
+export function useCustomCohorts() {
+  const [map, setMap] = useState<CustomCohortMap>(() => readCohorts());
+  useEffect(() => {
+    const sync = () => setMap(readCohorts());
+    sync();
+    window.addEventListener(COHORT_EVT, sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener(COHORT_EVT, sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+  return map;
 }
 
 // ----- Course catalogue used by the Add Student flow -----

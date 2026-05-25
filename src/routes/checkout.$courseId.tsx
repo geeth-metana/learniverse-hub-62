@@ -5,7 +5,7 @@ import { plans, getCourse, type PlanId } from "@/lib/courses-data";
 import { useEnrollments } from "@/lib/enrollment";
 import { getInvitation } from "@/lib/invitations-store";
 import { toast } from "sonner";
-import { CreditCard, DollarSign, Building2, Lock, ArrowLeft } from "lucide-react";
+import { CreditCard, DollarSign, Building2, Lock, ArrowLeft, Landmark, Banknote, ExternalLink } from "lucide-react";
 
 export const Route = createFileRoute("/checkout/$courseId")({
   validateSearch: z.object({
@@ -41,6 +41,10 @@ function CheckoutPage() {
   const [showPlan, setShowPlan] = useState(false);
   const invitation = search.invite ? getInvitation(search.invite) : undefined;
   const [prefilled, setPrefilled] = useState(Boolean(invitation));
+  const inviteMethod = invitation?.paymentMethod;
+  const isBankInvite = prefilled && inviteMethod === "Bank";
+  const isLoanInvite = prefilled && inviteMethod === "Loan";
+  const isInstallmentInvite = prefilled && inviteMethod === "Installment";
 
   const TEXT_MAIN = "#24324A";
   const TEXT_DARK = "#1A1A1A";
@@ -425,6 +429,80 @@ function CheckoutPage() {
 
               {prefilled && (
                 <>
+                  {isBankInvite && invitation?.paymentDetails.paymentType === "Bank" && (
+                    <>
+                      <h3 className="text-second-header font-bold mt-8 mb-4 inline-flex items-center gap-2" style={{ color: TEXT_DARK }}>
+                        <Landmark className="h-5 w-5" /> Bank Transfer Details
+                      </h3>
+                      <div className="bg-white rounded-2xl p-6 lg:p-8">
+                        <dl className="flex flex-col">
+                          {([
+                            ["Bank Name", invitation.paymentDetails.bankName],
+                            ["Account Name", invitation.paymentDetails.accountName],
+                            ["Account Number", invitation.paymentDetails.accountNumber],
+                            ["Routing Number", invitation.paymentDetails.routingNumber],
+                            ["SWIFT Code", invitation.paymentDetails.swiftCode],
+                            ["Reference Note", invitation.paymentDetails.referenceNote],
+                          ] as const).map(([k, v], i, arr) => (
+                            <div
+                              key={k}
+                              className="flex items-center justify-between py-3"
+                              style={{ borderBottom: i < arr.length - 1 ? "1px solid #F0F0F0" : undefined }}
+                            >
+                              <dt style={{ color: TEXT_MUTED }}>{k}</dt>
+                              <dd className="font-semibold text-right break-all" style={{ color: TEXT_DARK }}>{v}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                      </div>
+                    </>
+                  )}
+                  {isLoanInvite && invitation?.paymentDetails.paymentType === "Loan" && (
+                    <>
+                      <h3 className="text-second-header font-bold mt-8 mb-4 inline-flex items-center gap-2" style={{ color: TEXT_DARK }}>
+                        <Banknote className="h-5 w-5" /> Loan Application
+                      </h3>
+                      <div className="bg-white rounded-2xl p-6 lg:p-8">
+                        <p style={{ color: TEXT_MUTED }}>
+                          You'll be redirected to{" "}
+                          <span className="font-semibold" style={{ color: TEXT_DARK }}>
+                            {invitation.paymentDetails.loanProviderName}
+                          </span>{" "}
+                          to complete financing before accessing the course.
+                        </p>
+                        <p className="mt-3 break-all text-small" style={{ color: TEXT_DARK }}>
+                          {invitation.paymentDetails.loanApplicationLink}
+                        </p>
+                      </div>
+                    </>
+                  )}
+                  {isInstallmentInvite && invitation?.paymentDetails.paymentType === "Installment" && (
+                    <>
+                      <h3 className="text-second-header font-bold mt-8 mb-4" style={{ color: TEXT_DARK }}>
+                        Installment Schedule
+                      </h3>
+                      <div className="bg-white rounded-2xl p-6 lg:p-8">
+                        <dl className="flex flex-col">
+                          {([
+                            ["Full Amount", `$${invitation.paymentDetails.fullAmount.toLocaleString()}`],
+                            ["Initial Down Payment", `$${invitation.paymentDetails.initialDownPayment.toLocaleString()}`],
+                            ["Time Period", `${invitation.paymentDetails.timePeriodMonths} months`],
+                            ["Monthly Payment", `$${invitation.paymentDetails.monthlyPayment.toLocaleString()} / month`],
+                            ["Total Amount", `$${invitation.paymentDetails.totalAmount.toLocaleString()}`],
+                          ] as const).map(([k, v], i, arr) => (
+                            <div
+                              key={k}
+                              className="flex items-center justify-between py-3"
+                              style={{ borderBottom: i < arr.length - 1 ? "1px solid #F0F0F0" : undefined }}
+                            >
+                              <dt style={{ color: TEXT_MUTED }}>{k}</dt>
+                              <dd className="font-semibold text-right" style={{ color: TEXT_DARK }}>{v}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                      </div>
+                    </>
+                  )}
                   <h3 className="text-second-header font-bold mt-8 mb-4" style={{ color: TEXT_DARK }}>
                     Product Details
                   </h3>
@@ -555,14 +633,32 @@ function CheckoutPage() {
                 </p>
               )}
 
-              <button
-                type="submit"
-                disabled={submitting}
-                className="mt-6 w-full py-3.5 rounded-full font-semibold hover:opacity-90 disabled:opacity-60"
-                style={{ backgroundColor: BRAND, color: TEXT_DARK }}
-              >
-                {submitting ? "Processing..." : `Purchase Now · ${fmt(total)}`}
-              </button>
+              {isLoanInvite && invitation?.paymentDetails.paymentType === "Loan" ? (
+                <a
+                  href={invitation.paymentDetails.loanApplicationLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-6 inline-flex w-full items-center justify-center gap-2 py-3.5 rounded-full font-semibold hover:opacity-90"
+                  style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+                >
+                  Continue to Loan Application <ExternalLink className="h-4 w-4" />
+                </a>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="mt-6 w-full py-3.5 rounded-full font-semibold hover:opacity-90 disabled:opacity-60"
+                  style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+                >
+                  {submitting
+                    ? "Processing..."
+                    : isBankInvite
+                      ? "I Have Made the Transfer"
+                      : isInstallmentInvite && invitation?.paymentDetails.paymentType === "Installment"
+                        ? `Pay Initial Down Payment · $${invitation.paymentDetails.initialDownPayment.toLocaleString()}`
+                        : `Purchase Now · ${fmt(total)}`}
+                </button>
+              )}
 
               <div className="mt-4 flex items-center justify-center gap-2 text-small" style={{ color: TEXT_MUTED }}>
                 <Lock className="h-3 w-3" /> Powered by <span className="font-bold" style={{ color: TEXT_DARK }}>stripe</span>
