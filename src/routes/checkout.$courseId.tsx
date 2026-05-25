@@ -5,7 +5,7 @@ import { plans, getCourse, type PlanId } from "@/lib/courses-data";
 import { useEnrollments } from "@/lib/enrollment";
 import { getInvitation } from "@/lib/invitations-store";
 import { toast } from "sonner";
-import { CreditCard, DollarSign, Building2, Lock, ArrowLeft } from "lucide-react";
+import { CreditCard, DollarSign, Building2, Lock, ArrowLeft, Landmark, Banknote, ExternalLink } from "lucide-react";
 
 export const Route = createFileRoute("/checkout/$courseId")({
   validateSearch: z.object({
