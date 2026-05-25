@@ -366,6 +366,295 @@ function IconAction({
   );
 }
 
+// ===================== Analytics =====================
+
+const INCOMING_DATA = [
+  { month: "Jan", Upfront: 42000, Installment: 18000 },
+  { month: "Feb", Upfront: 38000, Installment: 22000 },
+  { month: "Mar", Upfront: 52000, Installment: 26000 },
+  { month: "Apr", Upfront: 46000, Installment: 31000 },
+  { month: "May", Upfront: 61000, Installment: 34000 },
+  { month: "Jun", Upfront: 72000, Installment: 39000 },
+];
+
+const PAYMENT_SPLIT = [
+  { name: "Upfront", value: 42, color: "#CCF621" },
+  { name: "Installment", value: 34, color: "#1A1A1A" },
+  { name: "Bank", value: 14, color: "#A3E635" },
+  { name: "Loan", value: 10, color: "#6B7280" },
+];
+
+const ANNUAL_DATA = [
+  { month: "Jan", Collected: 52000, Pending: 18000 },
+  { month: "Feb", Collected: 61000, Pending: 22000 },
+  { month: "Mar", Collected: 74000, Pending: 26000 },
+  { month: "Apr", Collected: 68000, Pending: 31000 },
+  { month: "May", Collected: 82000, Pending: 29000 },
+  { month: "Jun", Collected: 96000, Pending: 34000 },
+  { month: "Jul", Collected: 88000, Pending: 41000 },
+  { month: "Aug", Collected: 104000, Pending: 39000 },
+  { month: "Sep", Collected: 112000, Pending: 45000 },
+  { month: "Oct", Collected: 121000, Pending: 42000 },
+  { month: "Nov", Collected: 135000, Pending: 48000 },
+  { month: "Dec", Collected: 148000, Pending: 52000 },
+];
+
+const REVENUE_ROWS = [
+  { label: "Upfront Revenue", value: 168400, pct: 59, color: "#CCF621" },
+  { label: "Installment Revenue", value: 86200, pct: 30, color: "#1A1A1A" },
+  { label: "Bank Transfer", value: 21000, pct: 7, color: "#A3E635" },
+  { label: "Loan Redirect", value: 9000, pct: 4, color: "#6B7280" },
+];
+
+function AnalyticsSection() {
+  return (
+    <div className="mb-6 flex flex-col gap-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <KpiCard
+          label="Total Sales Revenue"
+          value="$284,600"
+          subtext="+18% from last month"
+          Icon={DollarSign}
+          accent="#CCF621"
+        />
+        <KpiCard
+          label="Incoming Payments"
+          value="$72,400"
+          subtext="Expected in next 30 days"
+          Icon={TrendingUp}
+          accent="#A3E635"
+        />
+        <KpiCard
+          label="Pending Payments"
+          value="$41,250"
+          subtext="23 students pending"
+          Icon={Clock}
+          accent="#FACC15"
+        />
+        <KpiCard
+          label="Paid Students"
+          value="39"
+          subtext="68% invite-to-paid conversion"
+          Icon={CheckCircle}
+          accent="#1A1A1A"
+          accentTextWhite
+        />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <ChartCard
+          className="lg:col-span-2"
+          title="Incoming Payments"
+          subtitle="Upfront and installment revenue expected over the next 6 months."
+        >
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={INCOMING_DATA} barGap={6}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
+              <XAxis dataKey="month" stroke="#6B7280" tickLine={false} axisLine={false} />
+              <YAxis stroke="#6B7280" tickLine={false} axisLine={false} tickFormatter={(v) => `$${v / 1000}k`} />
+              <Tooltip
+                cursor={{ fill: "rgba(0,0,0,0.04)" }}
+                contentStyle={{ borderRadius: 12, border: `1px solid ${BORDER}` }}
+                formatter={(v: number) => `$${v.toLocaleString()}`}
+              />
+              <Legend iconType="circle" wrapperStyle={{ paddingTop: 8 }} />
+              <Bar dataKey="Upfront" fill="#CCF621" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="Installment" fill="#1A1A1A" radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartCard>
+
+        <ChartCard title="Payment Type Split" subtitle="Breakdown of active payment plans by method.">
+          <ResponsiveContainer width="100%" height={280}>
+            <PieChart>
+              <Tooltip
+                contentStyle={{ borderRadius: 12, border: `1px solid ${BORDER}` }}
+                formatter={(v: number) => `${v}%`}
+              />
+              <Pie
+                data={PAYMENT_SPLIT}
+                dataKey="value"
+                nameKey="name"
+                innerRadius={55}
+                outerRadius={95}
+                paddingAngle={2}
+                label={(e: { name: string; value: number }) => `${e.value}%`}
+              >
+                {PAYMENT_SPLIT.map((s) => (
+                  <Cell key={s.name} fill={s.color} />
+                ))}
+              </Pie>
+              <Legend iconType="circle" />
+            </PieChart>
+          </ResponsiveContainer>
+        </ChartCard>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <ChartCard
+          className="lg:col-span-2"
+          title="Annual Payments Overview"
+          subtitle="Revenue collected and pending across the year."
+        >
+          <ResponsiveContainer width="100%" height={280}>
+            <AreaChart data={ANNUAL_DATA}>
+              <defs>
+                <linearGradient id="g-collected" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#CCF621" stopOpacity={0.55} />
+                  <stop offset="100%" stopColor="#CCF621" stopOpacity={0.05} />
+                </linearGradient>
+                <linearGradient id="g-pending" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#6B7280" stopOpacity={0.35} />
+                  <stop offset="100%" stopColor="#6B7280" stopOpacity={0.05} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
+              <XAxis dataKey="month" stroke="#6B7280" tickLine={false} axisLine={false} />
+              <YAxis stroke="#6B7280" tickLine={false} axisLine={false} tickFormatter={(v) => `$${v / 1000}k`} />
+              <Tooltip
+                contentStyle={{ borderRadius: 12, border: `1px solid ${BORDER}` }}
+                formatter={(v: number) => `$${v.toLocaleString()}`}
+              />
+              <Legend iconType="circle" wrapperStyle={{ paddingTop: 8 }} />
+              <Area type="monotone" dataKey="Collected" stroke="#1A1A1A" strokeWidth={2} fill="url(#g-collected)" />
+              <Area type="monotone" dataKey="Pending" stroke="#6B7280" strokeWidth={2} fill="url(#g-pending)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </ChartCard>
+
+        <div
+          className="flex flex-col gap-4 rounded-2xl bg-white p-5"
+          style={{ border: `1px solid ${BORDER}` }}
+        >
+          <div>
+            <h3 className="text-second-header font-semibold" style={{ color: TEXT_DARK }}>
+              Revenue Breakdown
+            </h3>
+            <p className="mt-1 text-small" style={{ color: TEXT_MUTED }}>
+              Performance by payment channel.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3">
+            {REVENUE_ROWS.map((r) => (
+              <div key={r.label} className="flex flex-col gap-1.5">
+                <div className="flex items-center justify-between text-small">
+                  <span style={{ color: TEXT_DARK }} className="font-medium">{r.label}</span>
+                  <span style={{ color: TEXT_MUTED }}>${r.value.toLocaleString()} · {r.pct}%</span>
+                </div>
+                <div className="h-1.5 w-full overflow-hidden rounded-full" style={{ backgroundColor: "#F3F4F6" }}>
+                  <div className="h-full rounded-full" style={{ width: `${r.pct}%`, backgroundColor: r.color }} />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-2 grid grid-cols-2 gap-3 pt-3" style={{ borderTop: `1px solid ${BORDER}` }}>
+            <div>
+              <p className="text-small" style={{ color: TEXT_MUTED }}>Avg Deal Size</p>
+              <p className="mt-0.5 font-semibold" style={{ color: TEXT_DARK }}>$8,940</p>
+            </div>
+            <div>
+              <p className="text-small" style={{ color: TEXT_MUTED }}>Projected Monthly</p>
+              <p className="mt-0.5 font-semibold" style={{ color: TEXT_DARK }}>$72,400</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function KpiCard({
+  label,
+  value,
+  subtext,
+  Icon,
+  accent,
+  accentTextWhite,
+}: {
+  label: string;
+  value: string;
+  subtext: string;
+  Icon: React.ComponentType<{ className?: string }>;
+  accent: string;
+  accentTextWhite?: boolean;
+}) {
+  return (
+    <div
+      className="flex items-start gap-4 rounded-2xl bg-white p-5"
+      style={{ border: `1px solid ${BORDER}` }}
+    >
+      <span
+        className="grid h-11 w-11 shrink-0 place-items-center rounded-full"
+        style={{
+          backgroundColor: accent + (accentTextWhite ? "" : "33"),
+          color: accentTextWhite ? "#FFFFFF" : TEXT_DARK,
+        }}
+      >
+        <Icon className="h-5 w-5" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-small font-medium" style={{ color: TEXT_MUTED }}>{label}</p>
+        <p className="mt-0.5 text-second-header font-bold leading-tight" style={{ color: TEXT_DARK }}>
+          {value}
+        </p>
+        <p className="mt-1 text-small" style={{ color: TEXT_MUTED }}>{subtext}</p>
+      </div>
+    </div>
+  );
+}
+
+function ChartCard({
+  title,
+  subtitle,
+  children,
+  className = "",
+}: {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`flex flex-col gap-4 rounded-2xl bg-white p-5 ${className}`}
+      style={{ border: `1px solid ${BORDER}` }}
+    >
+      <div>
+        <h3 className="text-second-header font-semibold" style={{ color: TEXT_DARK }}>
+          {title}
+        </h3>
+        {subtitle && (
+          <p className="mt-1 text-small" style={{ color: TEXT_MUTED }}>{subtitle}</p>
+        )}
+      </div>
+      <div className="flex-1">{children}</div>
+    </div>
+  );
+}
+
+function _IconActionPlaceholder({
+  label,
+  onClick,
+  children,
+}: {
+  label: string;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={label}
+      aria-label={label}
+      className="grid h-9 w-9 place-items-center rounded-full transition-colors hover:bg-[#F3F4F6]"
+      style={{ color: TEXT_MUTED }}
+    >
+      {children}
+    </button>
+  );
+}
+
 function SelectPill({
   value,
   options,
