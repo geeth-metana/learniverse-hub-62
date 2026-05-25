@@ -229,7 +229,7 @@ function ProgramPage() {
         <Sidebar />
         <div className="flex min-w-0 flex-1 flex-col">
           <Topbar />
-          <main className="flex-1 p-6 lg:p-10">
+          <main className="flex-1 p-6 lg:p-10 bg-zinc-50">
             <div
               className="mx-auto max-w-[800px] rounded-3xl bg-white py-20 text-center"
               style={{ border: `1px dashed ${BORDER}` }}
@@ -283,7 +283,7 @@ function ProgramPage() {
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar />
-        <main className="flex-1 p-6 lg:p-10">
+        <main className="flex-1 p-6 lg:p-10 bg-zinc-50">
           <div className="mx-auto max-w-[1280px]">
             {/* Breadcrumb */}
             <div className="mb-6 flex items-center gap-3">
