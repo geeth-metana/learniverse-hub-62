@@ -38,6 +38,22 @@ import {
 } from "@/lib/invitations-store";
 
 import { SlidersHorizontal, Eye, FileText, CheckCircle, Clock } from "lucide-react";
+import { DollarSign, TrendingUp } from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  AreaChart,
+  Area,
+} from "recharts";
 
 const BRAND = "#CCF621";
 const PAGE_BG = "#FFFFFF";
@@ -130,16 +146,11 @@ function PaymentPage() {
                 Payment
               </h1>
               <p className="mt-1 text-body" style={{ color: TEXT_MUTED }}>
-                Create and manage student payment plans, checkout links, and invitations.
+                Track sales payments, create payment plans, and manage student checkout invitations.
               </p>
             </div>
 
-            <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <StatCard label="Total Payment Plans" value={stats.total} Icon={FileText} />
-              <StatCard label="Invite Sent" value={stats.sent} Icon={Send} />
-              <StatCard label="Paid Students" value={stats.paid} Icon={CheckCircle} />
-              <StatCard label="Pending Payments" value={stats.pending} Icon={Clock} />
-            </div>
+            <AnalyticsSection />
 
             <div className="mb-4 flex flex-wrap items-center gap-3">
               <div
@@ -150,7 +161,7 @@ function PaymentPage() {
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search by student, email, or course"
+                  placeholder="Search by student, email, course, or payment type"
                   className="w-full bg-transparent text-body outline-none"
                   style={{ color: TEXT_DARK }}
                 />
