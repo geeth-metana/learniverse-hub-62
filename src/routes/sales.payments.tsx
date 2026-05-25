@@ -37,8 +37,10 @@ import {
   type SalesCourse,
 } from "@/lib/invitations-store";
 
+import { SlidersHorizontal, Eye, FileText, CheckCircle, Clock } from "lucide-react";
+
 const BRAND = "#CCF621";
-const PAGE_BG = "#FAFAFA";
+const PAGE_BG = "#FFFFFF";
 const TEXT_DARK = "#1A1A1A";
 const TEXT_MUTED = "#6B7280";
 const BORDER = "#EAEAEA";
