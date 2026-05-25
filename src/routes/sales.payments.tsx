@@ -2480,9 +2480,13 @@ type TimelineState = "done" | "current" | "pending";
 function Timeline({
   invitation,
   approval,
+  installments = [],
+  extraEvents = [],
 }: {
   invitation: Invitation;
   approval: ApprovalState;
+  installments?: InstallmentRow[];
+  extraEvents?: string[];
 }) {
   const status = invitation.status;
   const isInstallment = invitation.paymentDetails.paymentType === "Installment";
