@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { z } from "zod";
 import { plans, getCourse, type PlanId } from "@/lib/courses-data";
 import { useEnrollments } from "@/lib/enrollment";
@@ -29,6 +29,9 @@ function CheckoutPage() {
   const [promo, setPromo] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
   const [promoError, setPromoError] = useState<string | null>(null);
+  const [promoInputVisible, setPromoInputVisible] = useState(false);
+  const promoWrapRef = useRef<HTMLDivElement | null>(null);
+  const promoInputRef = useRef<HTMLInputElement | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [billing, setBilling] = useState<"upfront" | "installment">("upfront");
   const [showPlan, setShowPlan] = useState(false);
@@ -111,43 +114,83 @@ function CheckoutPage() {
     }
   };
 
+  useEffect(() => {
+    if (!promoInputVisible) return;
+    const onDocDown = (e: MouseEvent) => {
+      const wrap = promoWrapRef.current;
+      if (!wrap) return;
+      if (wrap.contains(e.target as Node)) return;
+      if (promo.trim() === "" && appliedPromo !== "METANA") {
+        setPromoInputVisible(false);
+        setPromoError(null);
+      }
+    };
+    document.addEventListener("mousedown", onDocDown);
+    return () => document.removeEventListener("mousedown", onDocDown);
+  }, [promoInputVisible, promo, appliedPromo]);
+
+  useEffect(() => {
+    if (promoInputVisible) {
+      promoInputRef.current?.focus();
+    }
+  }, [promoInputVisible]);
+
+  const isApplied = appliedPromo === "METANA";
+
   const promoField = (
-    <div className="w-full" style={{ maxWidth: 280 }}>
-      <div
-        className="flex items-center gap-1 rounded-full pl-4 pr-1 py-1"
-        style={{ backgroundColor: PAGE_BG }}
-      >
-        <input
-          value={promo}
-          onChange={(e) => {
-            setPromo(e.target.value);
-            if (promoError) setPromoError(null);
-            if (appliedPromo) setAppliedPromo(null);
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              handleApplyPromo();
-            }
-          }}
-          placeholder="Enter promo code"
-          className="flex-1 bg-transparent outline-none text-small py-1.5"
-          style={{ color: TEXT_DARK }}
-        />
-        <button
-          type="button"
-          onClick={handleApplyPromo}
-          className="px-3 py-1.5 rounded-full text-small font-semibold"
-          style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+    <div className="w-full" style={{ maxWidth: 280 }} ref={promoWrapRef}>
+      {!promoInputVisible && !isApplied ? (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={() => {
+              setPromoInputVisible(true);
+              setPromoError(null);
+            }}
+            className="px-4 py-1.5 rounded-full text-small font-semibold"
+            style={{ backgroundColor: "#F3F4F6", color: TEXT_DARK }}
+          >
+            Add promo code
+          </button>
+        </div>
+      ) : (
+        <div
+          className="flex items-center gap-1 rounded-full pl-4 pr-1 py-1"
+          style={{ backgroundColor: "#F3F4F6" }}
         >
-          {appliedPromo === "METANA" ? "Applied" : "Apply"}
-        </button>
-      </div>
-      {promoError && (
-        <p className="mt-1.5 text-smaller" style={{ color: "#DC2626" }}>{promoError}</p>
+          <input
+            ref={promoInputRef}
+            value={promo}
+            onChange={(e) => {
+              setPromo(e.target.value);
+              if (promoError) setPromoError(null);
+              if (appliedPromo) setAppliedPromo(null);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleApplyPromo();
+              }
+            }}
+            placeholder="Enter promo code"
+            className="flex-1 bg-transparent outline-none text-small py-1.5 min-w-0"
+            style={{ color: TEXT_DARK }}
+          />
+          <button
+            type="button"
+            onClick={handleApplyPromo}
+            className="px-3 py-1.5 rounded-full text-small font-semibold"
+            style={{
+              backgroundColor: isApplied ? BRAND : "#E5E7EB",
+              color: TEXT_DARK,
+            }}
+          >
+            {isApplied ? "Applied" : "Apply"}
+          </button>
+        </div>
       )}
-      {appliedPromo === "METANA" && !promoError && (
-        <p className="mt-1.5 text-smaller" style={{ color: "#16A34A" }}>Promo code applied successfully.</p>
+      {promoError && (
+        <p className="mt-1.5 text-smaller text-right" style={{ color: "#DC2626" }}>{promoError}</p>
       )}
     </div>
   );
@@ -218,12 +261,8 @@ function CheckoutPage() {
             <div className="grid lg:grid-cols-2 gap-10 w-full">
             {/* Left */}
             <div>
-              <h1 className="text-primary-header font-extrabold tracking-tight text-black" style={{ color: TEXT_DARK }}>
-                {prefilled ? (
-                  <>Get access <span style={{ color: TEXT_MUTED }}>to your</span> <span style={{ color: TEXT_DARK }}>course</span></>
-                ) : (
-                  <>Get access <span style={{ color: TEXT_MUTED }}>to the</span> <span style={{ color: TEXT_DARK }}>course</span></>
-                )}
+              <h1 className="text-primary-header font-bold tracking-tight" style={{ color: TEXT_DARK }}>
+                {prefilled ? "Get access to your course" : "Get access to the course"}
               </h1>
               <p className="mt-3 max-w-md" style={{ color: TEXT_MUTED }}>
                 {prefilled
