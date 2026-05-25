@@ -111,7 +111,7 @@ function CheckoutPage() {
     }
   };
 
-  const PromoField = () => (
+  const promoField = (
     <div className="w-full" style={{ maxWidth: 280 }}>
       <div
         className="flex items-center gap-1 rounded-full pl-4 pr-1 py-1"
@@ -348,7 +348,7 @@ function CheckoutPage() {
                 <div className="my-2" style={{ borderTop: "1px solid #F0F0F0" }} />
                 <div className="flex items-start justify-between py-2 gap-4">
                   <span className="pt-2" style={{ color: TEXT_MUTED }}>Promo Code</span>
-                  <PromoField />
+                  {promoField}
                 </div>
                 {appliedPromo === "METANA" && (
                   <>
