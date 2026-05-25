@@ -22,6 +22,8 @@ import {
   User,
   Users,
   Zap,
+  Download,
+  Award,
 } from "lucide-react";
 import {
   Bar,
@@ -272,11 +274,13 @@ function ProgramPage() {
     { day: "Sat", v: 5 },
     { day: "Sun", v: 2 },
   ];
-  const weeklyCompleted = weekly.reduce((a, d) => a + d.v, 0);
+  const lessonsCompletedLast7Days = weekly.reduce((a, d) => a + d.v, 0);
   const currentStreakDays = 7;
   const streakScore = currentStreakDays * completedLessons;
   const learningMomentum =
-    currentStreakDays * 10 + completedLessons * 2 + weeklyCompleted * 5;
+    currentStreakDays * 10 + completedLessons * 2 + lessonsCompletedLast7Days * 5;
+
+  const isProgramCompleted = programProgress === 100;
 
   return (
     <div className="flex min-h-screen" style={{ background: BG }}>
@@ -308,6 +312,7 @@ function ProgramPage() {
               completedLessons={completedLessons}
               totalLessons={totalLessons}
               currentCourseTitle={currentCourse?.title ?? ""}
+              isProgramCompleted={isProgramCompleted}
               onContinue={() =>
                 currentCourse &&
                 navigate({ to: "/courses/$courseId", params: { courseId: currentCourse.id } })
@@ -333,12 +338,16 @@ function ProgramPage() {
                   )}
                   <CurriculumList
                     courses={courses}
-                    defaultOpenCourseId={currentCourse?.id}
+                    defaultOpenCourseId={isProgramCompleted ? undefined : currentCourse?.id}
                     onOpenLesson={(courseId) =>
                       navigate({ to: "/courses/$courseId", params: { courseId } })
                     }
                   />
                 </div>
+
+                {isProgramCompleted && (
+                  <CertificatePreview programName={product.title} />
+                )}
               </section>
 
               <aside className="space-y-5 self-start lg:sticky lg:top-6">
@@ -346,7 +355,7 @@ function ProgramPage() {
                 <LearningStreakCard
                   weekly={weekly}
                   currentStreakDays={currentStreakDays}
-                  weeklyCompleted={weeklyCompleted}
+                  lessonsCompletedLast7Days={lessonsCompletedLast7Days}
                   streakScore={streakScore}
                   learningMomentum={learningMomentum}
                 />
@@ -408,6 +417,7 @@ function ProgramHeroCard({
   completedLessons,
   totalLessons,
   currentCourseTitle,
+  isProgramCompleted,
   onContinue,
 }: {
   product: Product;
@@ -416,6 +426,7 @@ function ProgramHeroCard({
   completedLessons: number;
   totalLessons: number;
   currentCourseTitle: string;
+  isProgramCompleted: boolean;
   onContinue: () => void;
 }) {
   return (
@@ -475,8 +486,17 @@ function ProgramHeroCard({
               className="inline-flex h-12 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-full px-6 text-sm font-bold transition-colors hover:brightness-95"
               style={{ background: BRAND, color: INK }}
             >
-              <PlayCircle className="h-4 w-4" />
-              Continue Learning
+              {isProgramCompleted ? (
+                <>
+                  <Download className="h-4 w-4" />
+                  Download Certificate
+                </>
+              ) : (
+                <>
+                  <PlayCircle className="h-4 w-4" />
+                  Continue Learning
+                </>
+              )}
             </button>
 
             <MetaInfoRow
@@ -1046,13 +1066,13 @@ function InstructorCard() {
 function LearningStreakCard({
   weekly,
   currentStreakDays,
-  weeklyCompleted,
+  lessonsCompletedLast7Days,
   streakScore,
   learningMomentum,
 }: {
   weekly: { day: string; v: number }[];
   currentStreakDays: number;
-  weeklyCompleted: number;
+  lessonsCompletedLast7Days: number;
   streakScore: number;
   learningMomentum: number;
 }) {
@@ -1079,7 +1099,7 @@ function LearningStreakCard({
       </div>
 
       <p className="mt-3 text-xs" style={{ color: MUTED }}>
-        {weeklyCompleted} Lessons Completed This Week
+        {lessonsCompletedLast7Days} Lessons Completed in the Last 7 Days
       </p>
 
       <div className="mt-3 h-28 w-full">
@@ -1129,7 +1149,7 @@ function LearningStreakCard({
               </p>
             </div>
             <TooltipContent side="top" className="max-w-[220px] text-xs">
-              Calculated by multiplying your current learning streak by the total lessons completed.
+              Calculated by multiplying your current streak by total completed lessons.
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -1150,7 +1170,7 @@ function LearningStreakCard({
               </p>
             </div>
             <TooltipContent side="top" className="max-w-[220px] text-xs">
-              Calculated using your streak, total completed lessons, and lessons completed this week.
+              Calculated using your streak, total completed lessons, and lessons completed in the last 7 days.
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -1205,5 +1225,103 @@ function RecommendedCourseCard() {
         Explore Course <ArrowRight className="h-3.5 w-3.5" />
       </button>
     </SidebarCard>
+  );
+}
+
+function CertificatePreview({ programName }: { programName: string }) {
+  const completionDate = new Date().toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  const certificateId = "MTN-2025-AIB-0001";
+  const studentName = "Eric";
+
+  return (
+    <div className="mt-8">
+      <div className="mb-4 flex items-center gap-2">
+        <Award className="h-5 w-5" style={{ color: INK }} />
+        <h2 className="text-xl font-bold tracking-tight" style={{ color: INK }}>
+          Your Certificate
+        </h2>
+      </div>
+      <p className="mb-4 text-sm" style={{ color: MUTED }}>
+        Congratulations on completing this program. Your certificate is ready to download.
+      </p>
+
+      <div
+        className="overflow-hidden rounded-[20px] bg-white p-6 lg:p-8"
+        style={{ border: `1px solid ${BORDER}` }}
+      >
+        <div
+          className="relative rounded-[16px] p-8 lg:p-10"
+          style={{ background: "#FAFAFA", border: `1px solid ${BORDER}` }}
+        >
+          <div
+            className="absolute left-0 top-0 h-1 w-24 rounded-br-full"
+            style={{ background: BRAND }}
+          />
+
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold uppercase tracking-[0.2em]" style={{ color: INK }}>
+              Metana
+            </p>
+            <span
+              className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider"
+              style={{ background: BRAND, color: INK }}
+            >
+              <Award className="h-3 w-3" /> Certified
+            </span>
+          </div>
+
+          <div className="mt-8 text-center">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em]" style={{ color: MUTED }}>
+              Certificate of Completion
+            </p>
+            <p className="mt-4 text-xs" style={{ color: MUTED }}>
+              This certifies that
+            </p>
+            <p className="mt-2 text-2xl font-bold lg:text-3xl" style={{ color: INK }}>
+              {studentName}
+            </p>
+            <p className="mt-3 text-xs" style={{ color: MUTED }}>
+              has successfully completed
+            </p>
+            <p className="mt-2 text-lg font-bold" style={{ color: INK }}>
+              {programName}
+            </p>
+          </div>
+
+          <div
+            className="mt-8 grid grid-cols-2 gap-4 pt-5"
+            style={{ borderTop: `1px solid ${BORDER}` }}
+          >
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: MUTED }}>
+                Completion Date
+              </p>
+              <p className="mt-1 text-xs font-bold" style={{ color: INK }}>
+                {completionDate}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: MUTED }}>
+                Certificate ID
+              </p>
+              <p className="mt-1 text-xs font-bold tabular-nums" style={{ color: INK }}>
+                {certificateId}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <button
+          className="mt-6 inline-flex w-full items-center justify-center gap-2 whitespace-nowrap rounded-full px-6 py-3 text-sm font-bold transition-colors hover:brightness-95"
+          style={{ background: BRAND, color: INK }}
+        >
+          <Download className="h-4 w-4" /> Download Certificate
+        </button>
+      </div>
+    </div>
   );
 }
