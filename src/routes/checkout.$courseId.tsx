@@ -41,6 +41,10 @@ function CheckoutPage() {
   const [showPlan, setShowPlan] = useState(false);
   const invitation = search.invite ? getInvitation(search.invite) : undefined;
   const [prefilled, setPrefilled] = useState(Boolean(invitation));
+  const inviteMethod = invitation?.paymentMethod;
+  const isBankInvite = prefilled && inviteMethod === "Bank";
+  const isLoanInvite = prefilled && inviteMethod === "Loan";
+  const isInstallmentInvite = prefilled && inviteMethod === "Installment";
 
   const TEXT_MAIN = "#24324A";
   const TEXT_DARK = "#1A1A1A";
