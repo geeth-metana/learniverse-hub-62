@@ -1617,7 +1617,7 @@ function ModalShell({
         className="relative w-[90vw] rounded-2xl bg-white p-6 lg:p-8"
         style={{
           maxWidth,
-          marginTop: topAlign ? 72 : undefined,
+          marginTop: topAlign ? "10vh" : undefined,
           marginBottom: topAlign ? 48 : undefined,
           color: TEXT_DARK,
           boxShadow: "0 20px 60px rgba(15,23,42,0.18)",
