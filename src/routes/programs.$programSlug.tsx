@@ -1066,13 +1066,13 @@ function InstructorCard() {
 function LearningStreakCard({
   weekly,
   currentStreakDays,
-  weeklyCompleted,
+  lessonsCompletedLast7Days,
   streakScore,
   learningMomentum,
 }: {
   weekly: { day: string; v: number }[];
   currentStreakDays: number;
-  weeklyCompleted: number;
+  lessonsCompletedLast7Days: number;
   streakScore: number;
   learningMomentum: number;
 }) {
@@ -1099,7 +1099,7 @@ function LearningStreakCard({
       </div>
 
       <p className="mt-3 text-xs" style={{ color: MUTED }}>
-        {weeklyCompleted} Lessons Completed This Week
+        {lessonsCompletedLast7Days} Lessons Completed in the Last 7 Days
       </p>
 
       <div className="mt-3 h-28 w-full">
@@ -1149,7 +1149,7 @@ function LearningStreakCard({
               </p>
             </div>
             <TooltipContent side="top" className="max-w-[220px] text-xs">
-              Calculated by multiplying your current learning streak by the total lessons completed.
+              Calculated by multiplying your current streak by total completed lessons.
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -1170,7 +1170,7 @@ function LearningStreakCard({
               </p>
             </div>
             <TooltipContent side="top" className="max-w-[220px] text-xs">
-              Calculated using your streak, total completed lessons, and lessons completed this week.
+              Calculated using your streak, total completed lessons, and lessons completed in the last 7 days.
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
