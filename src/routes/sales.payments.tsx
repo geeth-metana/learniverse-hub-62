@@ -2137,85 +2137,80 @@ function PaymentOverviewDrawer({
 
           {/* Timeline */}
           <DrawerSection title="Payment Status Timeline">
-            <Timeline invitation={inv} approval={approval} />
+            <Timeline
+              invitation={inv}
+              approval={approval}
+              installments={installments}
+              extraEvents={timelineLog}
+            />
           </DrawerSection>
 
-          {/* Installment Approval */}
+          {/* Installment Payments — only for installment plans */}
           {isInstallment && inv.paymentDetails.paymentType === "Installment" && (
-            <DrawerSection title="Installment Approval">
+            <DrawerSection title="Installment Payments">
               <p className="text-small" style={{ color: TEXT_MUTED }}>
-                Students pay installments through a third-party provider. Verify the setup
-                before approving access.
+                Review each monthly installment, upload proof, and approve payments one by one.
               </p>
-              <div
-                className="mt-3 flex items-center justify-between rounded-xl px-4 py-3"
-                style={{ backgroundColor: SOFT }}
-              >
-                <span className="text-small font-semibold" style={{ color: TEXT_DARK }}>
-                  Approval Status
-                </span>
-                <ApprovalPill state={approval} />
-              </div>
-              <div className="mt-3 grid grid-cols-2 gap-3">
+
+              {/* Summary */}
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <MiniStat
+                  label="Full Amount"
+                  value={`$${inv.paymentDetails.fullAmount.toLocaleString()}`}
+                />
                 <MiniStat
                   label="Initial Down Payment"
                   value={`$${inv.paymentDetails.initialDownPayment.toLocaleString()}`}
                 />
                 <MiniStat
                   label="Monthly Payment"
-                  value={`$${inv.paymentDetails.monthlyPayment.toLocaleString()} / mo`}
+                  value={`$${inv.paymentDetails.monthlyPayment.toLocaleString()} / month`}
                 />
                 <MiniStat
-                  label="Time Period"
-                  value={`${inv.paymentDetails.timePeriodMonths} Months`}
-                />
-                <MiniStat
-                  label="Full Amount"
-                  value={`$${inv.paymentDetails.fullAmount.toLocaleString()}`}
+                  label="Payment Status"
+                  value={`${approvedCount} of ${totalCount} Approved`}
                 />
               </div>
-              <div className="mt-4">
-                <label
-                  className="mb-1.5 block text-small font-medium"
-                  style={{ color: TEXT_DARK }}
-                >
-                  Approval Note
-                </label>
-                <textarea
-                  value={approvalNote}
-                  onChange={(e) => setApprovalNote(e.target.value)}
-                  placeholder="Add an internal note about this approval"
-                  rows={3}
-                  className="w-full resize-none rounded-xl bg-white px-3 py-2 text-small outline-none"
-                  style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
-                />
+
+              {/* Progress */}
+              <div
+                className="mt-4 rounded-xl p-4"
+                style={{ backgroundColor: SOFT }}
+              >
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-small font-semibold" style={{ color: TEXT_DARK }}>
+                    Installment Progress
+                  </span>
+                  <span className="text-small font-medium" style={{ color: TEXT_DARK }}>
+                    {approvedCount} / {totalCount} Approved · {progressPct}%
+                  </span>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full" style={{ backgroundColor: "#E5E7EB" }}>
+                  <div
+                    className="h-full rounded-full transition-all"
+                    style={{ width: `${progressPct}%`, backgroundColor: BRAND }}
+                  />
+                </div>
               </div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <button
-                  onClick={handleApprove}
-                  disabled={approval === "Approved"}
-                  className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold disabled:opacity-60"
-                  style={{ backgroundColor: BRAND, color: TEXT_DARK }}
-                >
-                  <CheckCircle2 className="h-4 w-4" /> Approve Installment
-                </button>
-                <button
-                  onClick={handleReject}
-                  disabled={approval === "Rejected"}
-                  className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold disabled:opacity-60"
-                  style={{
-                    backgroundColor: "#FFFFFF",
-                    color: "#B42318",
-                    border: "1px solid #FECDCA",
-                  }}
-                >
-                  <AlertCircle className="h-4 w-4" /> Reject Installment
-                </button>
+
+              {/* Installment list */}
+              <div className="mt-4 space-y-3">
+                {installments.map((it) => (
+                  <InstallmentCard
+                    key={it.id}
+                    row={it}
+                    onUpload={(file) => uploadInstallmentProof(it.id, file)}
+                    onRemove={() => removeInstallmentProof(it.id)}
+                    onApprove={() => approveInstallment(it.id)}
+                    onReject={() => rejectInstallment(it.id)}
+                  />
+                ))}
               </div>
             </DrawerSection>
           )}
 
-          {/* Proof Upload */}
+          {/* Proof Upload — only for non-installment plans */}
+          {!isInstallment && (
           <DrawerSection title="Payment Proof">
             <p className="text-small" style={{ color: TEXT_MUTED }}>
               Upload proof of payment, bank transfer receipt, installment approval PDF, or
@@ -2294,6 +2289,7 @@ function PaymentOverviewDrawer({
               </div>
             )}
           </DrawerSection>
+          )}
         </div>
       </motion.aside>
     </div>
