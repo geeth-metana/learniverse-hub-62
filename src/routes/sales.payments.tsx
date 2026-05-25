@@ -37,7 +37,7 @@ import {
   type SalesCourse,
 } from "@/lib/invitations-store";
 
-import { SlidersHorizontal, Eye, Clock, Wallet, Users } from "lucide-react";
+import { SlidersHorizontal, Eye, Clock, Users } from "lucide-react";
 import { TrendingUp } from "lucide-react";
 import {
   BarChart,
