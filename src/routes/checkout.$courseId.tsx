@@ -148,40 +148,23 @@ function CheckoutPage() {
             {/* Left */}
             <div>
               <h1 className="text-primary-header font-extrabold tracking-tight" style={{ color: TEXT_DARK }}>
-                Get access <span style={{ color: TEXT_MUTED }}>to the course</span>
+                {prefilled ? (
+                  <>Get access <span style={{ color: TEXT_MUTED }}>to your</span> <span style={{ color: TEXT_DARK }}>course</span></>
+                ) : (
+                  <>Get access <span style={{ color: TEXT_MUTED }}>to the</span> <span style={{ color: TEXT_DARK }}>course</span></>
+                )}
               </h1>
               <p className="mt-3 max-w-md" style={{ color: TEXT_MUTED }}>
-                Choose the payment method that works best for you and complete your course
-                purchase securely and easily.
+                {prefilled
+                  ? "Fill in your payment details to complete your purchase and unlock access to your course."
+                  : "Choose the payment method that works best for you and complete your course purchase securely and easily."}
               </p>
 
-              <h3 className="text-second-header font-bold mt-8 mb-4" style={{ color: TEXT_DARK }}>
-                {prefilled ? "Chosen Plan" : "Choose Your Plan"}
-              </h3>
-              {prefilled ? (
-                <div className="rounded-2xl bg-white p-6">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="font-semibold" style={{ color: TEXT_DARK }}>{selectedPlan.name}</span>
-                    <span
-                      className="text-smaller font-semibold px-2 py-0.5 rounded-full"
-                      style={{ backgroundColor: BRAND, color: TEXT_DARK }}
-                    >
-                      Popular
-                    </span>
-                  </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-primary-header font-extrabold" style={{ color: TEXT_DARK }}>
-                      ${selectedPlan.price.toLocaleString()}
-                    </span>
-                    {selectedPlan.original && (
-                      <span className="line-through text-small" style={{ color: TEXT_MUTED }}>
-                        ${selectedPlan.original.toLocaleString()}
-                      </span>
-                    )}
-                  </div>
-                  <p className="font-semibold text-small mt-1" style={{ color: TEXT_MUTED }}>Upfront</p>
-                </div>
-              ) : (
+              {!prefilled && (
+                <>
+                <h3 className="text-second-header font-bold mt-8 mb-4" style={{ color: TEXT_DARK }}>
+                  Choose Your Plan
+                </h3>
                 <div className="grid grid-cols-2 gap-4">
                   {plans.map((p) => (
                     <button
@@ -225,14 +208,67 @@ function CheckoutPage() {
                     </button>
                   ))}
                 </div>
+                </>
               )}
 
-              <div className="mt-6 rounded-2xl bg-white p-5">
+              <h3 className="text-second-header font-bold mt-8 mb-4" style={{ color: TEXT_DARK }}>
+                Payment Plan
+              </h3>
+              <div className="rounded-2xl bg-white p-5">
                 {prefilled ? (
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold" style={{ color: TEXT_DARK }}>Payment Plan</span>
-                    <span style={{ color: TEXT_MAIN }}>{selectedPlan.name}</span>
-                  </div>
+                  <>
+                    <div className="flex items-center justify-between py-2">
+                      <span style={{ color: TEXT_MUTED }}>Plan Type</span>
+                      <span className="font-semibold" style={{ color: TEXT_DARK }}>Upfront</span>
+                    </div>
+                    <div className="my-2" style={{ borderTop: "1px solid #F0F0F0" }} />
+                    <div className="flex items-center justify-between py-2">
+                      <span style={{ color: TEXT_MUTED }}>Plan Amount</span>
+                      <span className="font-semibold" style={{ color: TEXT_DARK }}>
+                        ${(selectedPlan.original ?? selectedPlan.price).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="my-2" style={{ borderTop: "1px solid #F0F0F0" }} />
+                    <div className="flex items-center justify-between py-2">
+                      <span style={{ color: TEXT_MUTED }}>Discount</span>
+                      <span className="font-semibold" style={{ color: TEXT_DARK }}>20%</span>
+                    </div>
+                    <div className="my-2" style={{ borderTop: "1px solid #F0F0F0" }} />
+                    <div className="flex items-center justify-between py-2">
+                      <span style={{ color: TEXT_MUTED }}>Promo Code</span>
+                      {showPromo ? (
+                        <input
+                          autoFocus
+                          value={promo}
+                          onChange={(e) => setPromo(e.target.value)}
+                          placeholder="METANA10"
+                          className="px-3 py-1.5 rounded-lg text-small text-right"
+                          style={{ backgroundColor: PAGE_BG, color: TEXT_DARK, maxWidth: 180 }}
+                        />
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setShowPromo(true)}
+                          className="px-3 py-1.5 rounded-lg text-small"
+                          style={{ backgroundColor: PAGE_BG, color: TEXT_MAIN }}
+                        >
+                          Add promotional code
+                        </button>
+                      )}
+                    </div>
+                    <div className="my-2" style={{ borderTop: "1px solid #F0F0F0" }} />
+                    <div className="flex items-center justify-between py-2">
+                      <span style={{ color: TEXT_MUTED }}>Promo Code Discount</span>
+                      <span className="font-semibold" style={{ color: TEXT_DARK }}>-${discount.toLocaleString()}</span>
+                    </div>
+                    <div className="my-3" style={{ borderTop: "1px solid #F0F0F0" }} />
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold" style={{ color: TEXT_DARK }}>Total Amount</span>
+                      <span className="font-extrabold text-main-header" style={{ color: TEXT_DARK }}>
+                        ${total.toLocaleString()}
+                      </span>
+                    </div>
+                  </>
                 ) : (
                   <>
                     <button
@@ -240,9 +276,9 @@ function CheckoutPage() {
                       onClick={() => setShowPlan((v) => !v)}
                       className="w-full flex items-center justify-between"
                     >
-                      <span className="font-semibold" style={{ color: TEXT_DARK }}>Payment Plan</span>
+                      <span className="font-semibold" style={{ color: TEXT_DARK }}>Plan Type</span>
                       <span className="inline-flex items-center gap-1" style={{ color: TEXT_MUTED }}>
-                        Choose your plan
+                        {effectiveBilling === "installment" ? "Installment" : "Upfront"}
                         <svg
                           viewBox="0 0 12 12"
                           className={`h-3 w-3 transition-transform ${showPlan ? "rotate-180" : ""}`}
@@ -275,15 +311,11 @@ function CheckoutPage() {
                         ))}
                       </div>
                     )}
-                  </>
-                )}
-
-                <div className="flex items-center justify-between mt-4">
-                  <span style={{ color: TEXT_MAIN }}>Promo Code Discount</span>
-                  <span className="font-semibold" style={{ color: TEXT_DARK }}>-${discount.toLocaleString()}</span>
-                </div>
-                {!prefilled && (
-                  showPromo ? (
+                    <div className="flex items-center justify-between mt-4">
+                      <span style={{ color: TEXT_MAIN }}>Promo Code Discount</span>
+                      <span className="font-semibold" style={{ color: TEXT_DARK }}>-${discount.toLocaleString()}</span>
+                    </div>
+                    {showPromo ? (
                     <input
                       autoFocus
                       value={promo}
@@ -292,7 +324,7 @@ function CheckoutPage() {
                       className="mt-3 w-full px-4 py-2 rounded-lg"
                       style={{ backgroundColor: PAGE_BG, color: TEXT_DARK }}
                     />
-                  ) : (
+                    ) : (
                     <button
                       type="button"
                       onClick={() => setShowPromo(true)}
@@ -301,9 +333,8 @@ function CheckoutPage() {
                     >
                       Add promotional code
                     </button>
-                  )
-                )}
-                {!prefilled && effectiveBilling === "installment" && (
+                    )}
+                    {effectiveBilling === "installment" && (
                   <>
                     <div className="my-4" style={{ borderTop: "1px solid #F0F0F0" }} />
                     <div className="flex items-center justify-between">
@@ -311,18 +342,51 @@ function CheckoutPage() {
                       <span className="font-semibold" style={{ color: TEXT_DARK }}>${selectedPlan.monthly.toLocaleString()}/mo</span>
                     </div>
                   </>
+                    )}
+                    <div className="my-4" style={{ borderTop: "1px solid #F0F0F0" }} />
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold" style={{ color: TEXT_DARK }}>Total Amount</span>
+                      <span className="font-extrabold text-main-header" style={{ color: TEXT_DARK }}>${total.toLocaleString()}</span>
+                    </div>
+                  </>
                 )}
-                <div className="my-4" style={{ borderTop: "1px solid #F0F0F0" }} />
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold" style={{ color: TEXT_DARK }}>Total Amount</span>
-                  <span className="font-extrabold text-main-header" style={{ color: TEXT_DARK }}>${total.toLocaleString()}</span>
-                </div>
               </div>
+
+              {prefilled && (
+                <>
+                  <h3 className="text-second-header font-bold mt-8 mb-4" style={{ color: TEXT_DARK }}>
+                    Product Details
+                  </h3>
+                  <div className="bg-white rounded-2xl p-6 lg:p-8">
+                    <dl className="flex flex-col">
+                      {([
+                        ["Course", "AI Builder Pack"],
+                        ["Access Type", "Full Program Access"],
+                        ["Payment Type", "Upfront"],
+                        ["Lessons", "70 Lessons"],
+                        ["Duration", "4 Months"],
+                        ["Weekly Commitment", "22H / Week"],
+                        ["Support", "Instructor-led guidance"],
+                        ["Certificate", "Included"],
+                      ] as const).map(([k, v], i, arr) => (
+                        <div
+                          key={k}
+                          className="flex items-center justify-between py-3"
+                          style={{ borderBottom: i < arr.length - 1 ? "1px solid #F0F0F0" : undefined }}
+                        >
+                          <dt style={{ color: TEXT_MUTED }}>{k}</dt>
+                          <dd className="font-semibold text-right" style={{ color: TEXT_DARK }}>{v}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Right */}
             <div className="h-fit flex flex-col gap-6">
-            <div className="bg-white rounded-2xl p-6 lg:p-8">
+            <div className="bg-white rounded-2xl p-6 lg:p-8" style={{ boxShadow: "0 18px 45px rgba(15, 23, 42, 0.08)" }}>
             <form
               onSubmit={submit}
               className="flex flex-col"
@@ -438,32 +502,6 @@ function CheckoutPage() {
               </div>
             </form>
             </div>
-            {prefilled && (
-              <div className="bg-white rounded-2xl p-6 lg:p-8">
-                <h3 className="font-bold mb-4" style={{ color: TEXT_DARK }}>Product Details</h3>
-                <dl className="flex flex-col">
-                  {([
-                    ["Course", "AI Builder Pack"],
-                    ["Access Type", "Full Program Access"],
-                    ["Plan", "Plan 01 · Upfront"],
-                    ["Lessons", "70 Lessons"],
-                    ["Duration", "4 Months"],
-                    ["Weekly Commitment", "22H / Week"],
-                    ["Support", "Instructor-led guidance"],
-                    ["Certificate", "Included"],
-                  ] as const).map(([k, v], i, arr) => (
-                    <div
-                      key={k}
-                      className="flex items-center justify-between py-3"
-                      style={{ borderBottom: i < arr.length - 1 ? "1px solid #F0F0F0" : undefined }}
-                    >
-                      <dt style={{ color: TEXT_MUTED }}>{k}</dt>
-                      <dd className="font-semibold text-right" style={{ color: TEXT_DARK }}>{v}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </div>
-            )}
             </div>
           </div>
           </div>
