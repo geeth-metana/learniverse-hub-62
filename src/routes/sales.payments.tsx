@@ -402,6 +402,7 @@ function AnalyticsSection() {
           label="Pending Payments"
           description="Payments waiting to be completed or confirmed."
           value="$41,250"
+          subValue="23 Students"
           Icon={Clock}
         />
         <KpiCard
@@ -445,13 +446,16 @@ function AnalyticsSection() {
                   boxShadow: "0 8px 24px rgba(17, 24, 39, 0.08)",
                   padding: "10px 12px",
                 }}
-                labelStyle={{ color: TEXT_MUTED, fontSize: 12, marginBottom: 4 }}
+                labelStyle={{ color: TEXT_DARK, fontSize: 12, marginBottom: 4, fontWeight: 600 }}
                 itemStyle={{ color: TEXT_DARK, fontSize: 13, fontWeight: 500 }}
                 formatter={(v: number, name: string) => [`$${v.toLocaleString()}`, name]}
               />
               <Legend
                 iconType="circle"
-                wrapperStyle={{ paddingTop: 12, fontSize: 12, color: TEXT_MUTED }}
+                wrapperStyle={{ paddingTop: 12, fontSize: 12, color: TEXT_DARK }}
+                formatter={(value: string) => (
+                  <span style={{ color: TEXT_DARK }}>{value}</span>
+                )}
               />
               <Bar dataKey="Upfront" fill="#CCF621" radius={[8, 8, 0, 0]} maxBarSize={22} />
               <Bar dataKey="Installment" fill="#A3E635" radius={[8, 8, 0, 0]} maxBarSize={22} />
@@ -471,6 +475,8 @@ function AnalyticsSection() {
                   background: "#FFFFFF",
                   boxShadow: "0 8px 24px rgba(17, 24, 39, 0.08)",
                 }}
+                labelStyle={{ color: TEXT_DARK, fontWeight: 600 }}
+                itemStyle={{ color: TEXT_DARK }}
                 formatter={(v: number) => `${v}%`}
               />
               <Pie
@@ -483,6 +489,7 @@ function AnalyticsSection() {
                 stroke="#FFFFFF"
                 strokeWidth={2}
                 label={(e: { value: number }) => `${e.value}%`}
+                labelLine={{ stroke: TEXT_DARK }}
               >
                 {PAYMENT_SPLIT.map((s) => (
                   <Cell key={s.name} fill={s.color} />
@@ -490,7 +497,10 @@ function AnalyticsSection() {
               </Pie>
               <Legend
                 iconType="circle"
-                wrapperStyle={{ paddingTop: 8, fontSize: 12, color: TEXT_MUTED }}
+                wrapperStyle={{ paddingTop: 8, fontSize: 12, color: TEXT_DARK }}
+                formatter={(value: string) => (
+                  <span style={{ color: TEXT_DARK }}>{value}</span>
+                )}
               />
             </PieChart>
           </ResponsiveContainer>
