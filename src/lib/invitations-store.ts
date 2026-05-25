@@ -214,6 +214,45 @@ export function useInvitations() {
   return list;
 }
 
+// ----- Custom cohorts (created via the Add Student modal) -----
+type CustomCohortMap = Record<string, { date: string; day: string; time: string; seats: number }[]>;
+
+function readCohorts(): CustomCohortMap {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(COHORT_KEY);
+    return raw ? (JSON.parse(raw) as CustomCohortMap) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function addCustomCohort(
+  courseTitle: string,
+  cohort: { date: string; day: string; time: string; seats: number },
+) {
+  if (typeof window === "undefined") return;
+  const all = readCohorts();
+  all[courseTitle] = [cohort, ...(all[courseTitle] ?? [])];
+  window.localStorage.setItem(COHORT_KEY, JSON.stringify(all));
+  window.dispatchEvent(new Event(COHORT_EVT));
+}
+
+export function useCustomCohorts() {
+  const [map, setMap] = useState<CustomCohortMap>(() => readCohorts());
+  useEffect(() => {
+    const sync = () => setMap(readCohorts());
+    sync();
+    window.addEventListener(COHORT_EVT, sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener(COHORT_EVT, sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+  return map;
+}
+
 // ----- Course catalogue used by the Add Student flow -----
 export type SalesCourse = {
   id: string; // checkout courseId
