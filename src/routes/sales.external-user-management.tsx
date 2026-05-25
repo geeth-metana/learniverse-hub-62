@@ -336,7 +336,7 @@ function SelectPill({
 
 // ===================== Add Student Modal =====================
 
-type Step = 1 | 2 | 3 | 4 | 5 | 6;
+type Step = 1 | 2 | 3 | 4 | 5;
 
 type UpfrontPlanState = {
   id: "plan-01" | "plan-02";
@@ -497,7 +497,7 @@ function AddStudentModal({
       status: "Pending",
     });
     setCreatedInvitation(inv);
-    setStep(6);
+    onConfirm(inv);
   };
 
   const stepperLabels = [
@@ -506,17 +506,21 @@ function AddStudentModal({
     "Payment Method",
     "Plan Setup",
     "Preview & Confirm",
-    "Send Invitation",
   ];
 
   return (
     <ModalShell
       title={createCohortMode ? "Create New Cohort" : "Add Student Access"}
       onClose={onClose}
-      maxWidth={820}
+      maxWidth={960}
+      topAlign
     >
       <StepIndicator step={step} labels={stepperLabels} />
-      <div className="mt-6">
+      <motion.div
+        layout
+        transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
+        className="mt-6"
+      >
         {createCohortMode && course ? (
           <CreateCohortView
             course={course}
@@ -529,7 +533,14 @@ function AddStudentModal({
             }}
           />
         ) : (
-          <>
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.22, ease: "easeInOut" }}
+            >
             {step === 1 && (
               <Step1
                 email={email}
@@ -581,17 +592,12 @@ function AddStudentModal({
                 details={buildPaymentDetails()}
               />
             )}
-            {step === 6 && createdInvitation && (
-              <Step6Send
-                invitation={createdInvitation}
-                onDone={() => onConfirm(createdInvitation)}
-              />
-            )}
-          </>
+            </motion.div>
+          </AnimatePresence>
         )}
-      </div>
+      </motion.div>
 
-      {!createCohortMode && step < 6 && (
+      {!createCohortMode && (
         <div
           className="mt-8 flex items-center justify-end gap-3 pt-5"
           style={{ borderTop: `1px solid ${BORDER}` }}
