@@ -2517,7 +2517,7 @@ function PaymentOverviewDrawer({
                       invitation={inv}
                       approval={approval}
                       installments={installments}
-                      extraEvents={timelineLog}
+                      groups={groups}
                     />
                   </PanelSection>
                 )}
