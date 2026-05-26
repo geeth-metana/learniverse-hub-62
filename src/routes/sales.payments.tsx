@@ -460,6 +460,21 @@ function InstallmentsPanel({
 
   const selected =
     visibleRows.find((i) => i.id === selectedInstallmentId) ?? visibleRows[0] ?? null;
+  const groupedIds = new Set(groups.flatMap((g) => g.installmentIds));
+  const visibleIndividualRows = visibleRows.filter((i) => !groupedIds.has(i.id));
+  const monthly = (invitation.paymentDetails as InstallmentDetailsLite).monthlyPayment;
+  const groupTotal = (g: GroupedPaymentLite) =>
+    g.installmentIds
+      .map((id) => installments.find((i) => i.id === id)?.amount ?? monthly)
+      .reduce((s, a) => s + a, 0);
+  const groupIncluded = (g: GroupedPaymentLite) =>
+    g.installmentIds
+      .map((id) => installments.find((i) => i.id === id)?.label)
+      .filter(Boolean)
+      .join(" + ");
+  const groupStatusLabel = (g: GroupedPaymentLite): InstallmentStatus =>
+    g.status === "Approved" ? "Combined Plan Approved" : "Combined Plan Pending";
+  const selectedGroup = groups.find((g) => g.id === selectedInstallmentId) ?? null;
 
   return (
     <section>
@@ -571,7 +586,7 @@ function InstallmentsPanel({
               </span>
             </div>
 
-            {visibleRows.map((it) => {
+            {visibleIndividualRows.map((it) => {
               const isSelected = selected?.id === it.id;
               const isUpcoming = it.status === "Upcoming";
               return (
@@ -606,115 +621,39 @@ function InstallmentsPanel({
               );
             })}
 
-            {/* Grouped Payments */}
-            {groups.length > 0 && (
-              <div className="px-4 pt-4">
-                <p
-                  className="mb-2 text-smaller font-semibold uppercase tracking-wide"
-                  style={{ color: TEXT_MUTED }}
-                >
-                  Grouped Payments
-                </p>
-              </div>
-            )}
+            {/* Combined Installment rows — inline in the main list */}
             {groups.map((g) => {
-              const includedLabels = g.installmentIds
-                .map((id) => installments.find((i) => i.id === id)?.label)
-                .filter(Boolean)
-                .join(" + ");
-              const total =
-                g.installmentIds.length *
-                (invitation.paymentDetails as InstallmentDetailsLite).monthlyPayment;
+              const isSelected = selectedInstallmentId === g.id;
+              const total = groupTotal(g);
               return (
-                <div
+                <button
                   key={g.id}
-                  className="mx-4 mb-3 rounded-xl p-3"
+                  type="button"
+                  onClick={() => setSelectedInstallmentId(g.id)}
+                  className="flex w-full items-start justify-between gap-3 px-4 py-3 text-left transition-colors"
                   style={{
-                    border: `1px solid ${BORDER}`,
-                    backgroundColor: "#FFFBEB",
+                    borderBottom: `1px solid ${BORDER}`,
+                    backgroundColor: isSelected
+                      ? "rgba(204,246,33,0.12)"
+                      : "transparent",
                   }}
                 >
-                  <div className="mb-2 flex items-center justify-between">
-                    <span
-                      className="text-small font-semibold"
+                  <div className="min-w-0">
+                    <p
+                      className="truncate text-small font-semibold"
                       style={{ color: TEXT_DARK }}
                     >
-                      {g.label}
-                    </span>
-                    <span
-                      className="rounded-full px-2 py-0.5 text-smaller font-semibold"
-                      style={{
-                        backgroundColor:
-                          g.status === "Approved"
-                            ? "rgba(204,246,33,0.45)"
-                            : g.status === "Rejected"
-                              ? "#FEE2E2"
-                              : "#FEF3C7",
-                        color:
-                          g.status === "Approved"
-                            ? "#3F5C00"
-                            : g.status === "Rejected"
-                              ? "#991B1B"
-                              : "#92400E",
-                      }}
-                    >
-                      {g.status}
-                    </span>
-                  </div>
-                  <p className="text-smaller" style={{ color: TEXT_MUTED }}>
-                    Includes: {includedLabels}
-                  </p>
-                  <p className="text-smaller" style={{ color: TEXT_MUTED }}>
-                    Total ${total.toLocaleString()} · Due {g.dueDate}
-                  </p>
-                  {g.status !== "Approved" && (
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <label className="inline-flex cursor-pointer items-center gap-2 rounded-full px-3 py-1.5 text-smaller font-semibold"
-                        style={{ backgroundColor: "#FFFFFF", border: `1px solid ${BORDER}`, color: TEXT_DARK }}
-                      >
-                        <Upload className="h-3.5 w-3.5" />
-                        {g.proof ? "Replace Proof" : "Upload Proof"}
-                        <input
-                          type="file"
-                          accept=".pdf,.png,.jpg,.jpeg"
-                          className="hidden"
-                          onChange={(e) =>
-                            onUploadGroupProof(g.id, e.target.files?.[0] ?? undefined)
-                          }
-                        />
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => onApproveGroup(g.id)}
-                        disabled={!g.proof}
-                        className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-smaller font-semibold disabled:opacity-50"
-                        style={{ backgroundColor: BRAND, color: TEXT_DARK }}
-                      >
-                        <CheckCircle2 className="h-3.5 w-3.5" /> Approve Group
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onRejectGroup(g.id)}
-                        className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-smaller font-semibold"
-                        style={{
-                          backgroundColor: "#FFFFFF",
-                          color: "#B42318",
-                          border: "1px solid #FECDCA",
-                        }}
-                      >
-                        Reject
-                      </button>
-                    </div>
-                  )}
-                  {g.proof && (
-                    <p
-                      className="mt-2 truncate text-smaller"
-                      style={{ color: TEXT_MUTED }}
-                    >
-                      Proof: {g.proof.name} · {g.proof.uploadedAt}
+                      Combined Installment
                     </p>
-                  )}
-                </div>
+                    <p className="text-smaller" style={{ color: TEXT_MUTED }}>
+                      Due {g.dueDate}
+                    </p>
+                    <p className="text-smaller" style={{ color: TEXT_MUTED }}>
+                      {groupIncluded(g)} · ${total.toLocaleString()}
+                    </p>
+                  </div>
+                  <InstallmentStatusPill status={groupStatusLabel(g)} />
+                </button>
               );
             })}
           </div>
@@ -722,7 +661,17 @@ function InstallmentsPanel({
 
         {/* Right detail */}
         <div className="flex flex-col p-5">
-          {selected ? (
+          {selectedGroup ? (
+            <CombinedPlanDetailPanel
+              group={selectedGroup}
+              index={groups.findIndex((g) => g.id === selectedGroup.id) + 1}
+              installments={installments}
+              total={groupTotal(selectedGroup)}
+              included={groupIncluded(selectedGroup)}
+              onUpload={(file) => onUploadGroupProof(selectedGroup.id, file)}
+              onApprove={() => onApproveGroup(selectedGroup.id)}
+            />
+          ) : selected ? (
             <InstallmentDetailPanel
               row={selected}
               onUpload={(file) => onUploadProof(selected.id, file)}
