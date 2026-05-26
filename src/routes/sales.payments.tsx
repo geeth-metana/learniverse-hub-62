@@ -866,27 +866,19 @@ function InstallmentDetailPanel({
           <div className="mt-3 flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() => toast.success("Decline notice sent")}
+              onClick={() => toast.success("Retry link sent")}
               className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-small font-semibold"
               style={{ backgroundColor: TEXT_DARK, color: "#FFFFFF" }}
             >
-              Send Decline Notice
+              Send Retry Link
             </button>
             <button
               type="button"
-              onClick={() => copyLink(`https://pay.example.com/repay/${row.id}`)}
+              onClick={() => copyLink(`https://pay.example.com/retry/${row.id}`)}
               className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-small font-semibold"
               style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
             >
-              Copy Repay Link
-            </button>
-            <button
-              type="button"
-              onClick={() => toast.success("Repay link sent")}
-              className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-small font-semibold"
-              style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
-            >
-              Send Repay Link
+              Copy Retry Link
             </button>
           </div>
         </div>
