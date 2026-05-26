@@ -2552,51 +2552,44 @@ function Step5Preview({
   paymentMethod: PaymentMethod;
   details: PaymentDetails;
 }) {
-  const base: [string, string][] = [
+  const baseTop: [string, string][] = [
     ["Student Email", email],
     ["Course", course.title],
     ["Cohort Date", cohort.date],
     ["Payment Method", paymentMethod],
-    ["Access Type", "Full Program Access"],
-    ["Certificate", "Included"],
   ];
 
   let extra: [string, string][] = [];
   if (details.paymentType === "Upfront") {
     extra = [
       ["Plan", details.planName],
-      ["Plan Amount", `$${details.planAmount.toLocaleString()}`],
+      ["Full Amount", `$${details.planAmount.toLocaleString()}`],
       ["Discount", `${details.discountPercent}%`],
       ["Checkout Amount", `$${details.checkoutAmount.toLocaleString()}`],
     ];
   } else if (details.paymentType === "Installment") {
+    const purchaseDue = details.initialDownPayment;
     extra = [
+      ["Plan", "Installment Plan"],
       ["Full Amount", `$${details.fullAmount.toLocaleString()}`],
       ["Initial Down Payment", `$${details.initialDownPayment.toLocaleString()}`],
-      ["Time Period", `${details.timePeriodMonths} months`],
+      ["Number of Installments", `${details.timePeriodMonths}`],
       ["Monthly Payment", `$${details.monthlyPayment.toLocaleString()} / month`],
-      ["Total Amount", `$${details.totalAmount.toLocaleString()}`],
-    ];
-  } else if (details.paymentType === "Bank") {
-    extra = [
-      ["Bank Name", details.bankName],
-      ["Account Name", details.accountName],
-      ["Account Number", details.accountNumber],
-      ["Reference Note", details.referenceNote],
+      ["Purchase Amount / Due Now", `$${purchaseDue.toLocaleString()}`],
     ];
   } else {
     extra = [
       ["Loan Provider", details.loanProviderName],
-      ["Redirect Link", details.loanApplicationLink],
+      ["Loan Application Link", details.loanApplicationLink],
     ];
   }
 
-  const rows = [...base, ...extra];
+  const rows = [...baseTop, ...extra, ["Certificate", "Included"] as [string, string]];
 
   return (
     <div className="flex flex-col gap-4">
       <h4 className="text-second-header font-semibold" style={{ color: TEXT_DARK }}>
-        Invitation Preview
+        Payment Link Preview
       </h4>
       <div className="rounded-2xl bg-white p-5" style={{ border: `1px solid ${BORDER}` }}>
         <dl>
@@ -2613,7 +2606,7 @@ function Step5Preview({
         </dl>
       </div>
       <p className="text-small" style={{ color: TEXT_MUTED }}>
-        This will generate a pre-filled checkout invitation for the selected student.
+        This will generate a pre-filled payment link for the selected student.
       </p>
     </div>
   );
