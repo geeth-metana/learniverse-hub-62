@@ -747,12 +747,16 @@ function InstallmentDetailPanel({
   onRejectProof,
   onApprove,
   onReject,
+  onOpenPostpone,
+  onOpenChangeDueDate,
 }: {
   row: InstallmentRow;
   onUpload: (file: File | undefined) => void;
   onRejectProof: () => void;
   onApprove: () => void;
   onReject: () => void;
+  onOpenPostpone: () => void;
+  onOpenChangeDueDate: () => void;
 }) {
   const isApproved =
     row.status === "Approved" || row.status === "Combined Plan Approved";
@@ -765,6 +769,8 @@ function InstallmentDetailPanel({
   const canApprove =
     !isStripe && row.status === "Pending" && !!row.proof;
   const showStripeRepay = isStripe && isDeclined;
+  const showSecondaryActions =
+    !isApproved && (row.status === "Pending" || isDeclined);
 
   return (
     <div>
@@ -897,20 +903,6 @@ function InstallmentDetailPanel({
         </div>
       )}
 
-      {/* Approve / Reject */}
-      {canApprove && (
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={onApprove}
-            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
-            style={{ backgroundColor: BRAND, color: TEXT_DARK }}
-          >
-            <CheckCircle2 className="h-4 w-4" /> Approve Payment
-          </button>
-        </div>
-      )}
-
       {/* Internal note */}
       {!isApproved && (
         <div className="mt-4">
@@ -923,6 +915,42 @@ function InstallmentDetailPanel({
             className="w-full resize-none rounded-xl px-3 py-2 text-small"
             style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
           />
+        </div>
+      )}
+
+      {/* Action buttons — appear AFTER the internal note */}
+      {(canApprove || showSecondaryActions) && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {canApprove && (
+            <button
+              type="button"
+              onClick={onApprove}
+              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
+              style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+            >
+              <CheckCircle2 className="h-4 w-4" /> Approve Payment
+            </button>
+          )}
+          {showSecondaryActions && (
+            <>
+              <button
+                type="button"
+                onClick={onOpenChangeDueDate}
+                className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
+                style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+              >
+                <CalendarClock className="h-4 w-4" /> Change Due Date
+              </button>
+              <button
+                type="button"
+                onClick={onOpenPostpone}
+                className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
+                style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+              >
+                <Layers className="h-4 w-4" /> Combined Plans
+              </button>
+            </>
+          )}
         </div>
       )}
     </div>
