@@ -1183,6 +1183,71 @@ function IconAction({
   );
 }
 
+function ConfirmRemoveModal({
+  invitation,
+  onClose,
+  onConfirm,
+}: {
+  invitation: Invitation;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-[80] flex items-center justify-center p-4"
+      style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-md rounded-3xl bg-white p-6"
+        style={{ boxShadow: "0 30px 80px rgba(15,23,42,0.3)" }}
+      >
+        <div className="flex items-start gap-3">
+          <div
+            className="grid h-10 w-10 flex-none place-items-center rounded-full"
+            style={{ backgroundColor: "#FEE4E2" }}
+          >
+            <Trash2 className="h-5 w-5" style={{ color: "#B42318" }} />
+          </div>
+          <div className="min-w-0">
+            <h3 className="text-second-header font-bold" style={{ color: TEXT_DARK }}>
+              Remove this entry?
+            </h3>
+            <p className="mt-1 text-small" style={{ color: TEXT_MUTED }}>
+              This will permanently remove{" "}
+              <span className="font-semibold" style={{ color: TEXT_DARK }}>
+                {invitation.studentName ?? invitation.studentEmail}
+              </span>{" "}
+              and their payment link. This action cannot be undone.
+            </p>
+          </div>
+        </div>
+        <div className="mt-6 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full px-4 py-2 text-small font-semibold"
+            style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="rounded-full px-4 py-2 text-small font-semibold text-white"
+            style={{ backgroundColor: "#B42318" }}
+          >
+            Remove
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 // ===================== Analytics =====================
 
 const INCOMING_DATA = [
