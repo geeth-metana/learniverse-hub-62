@@ -2617,12 +2617,12 @@ function Step6Send({ invitation, onDone }: { invitation: Invitation; onDone: () 
         className="rounded-xl p-4"
         style={{ backgroundColor: "rgba(204, 246, 33, 0.2)", color: TEXT_DARK }}
       >
-        <p className="font-semibold">The checkout invitation has been created successfully.</p>
-        <p className="mt-1 text-small" style={{ color: TEXT_MUTED }}>Invitation ID: {invitation.id}</p>
+        <p className="font-semibold">The payment link has been created successfully.</p>
+        <p className="mt-1 text-small" style={{ color: TEXT_MUTED }}>Payment Link ID: {invitation.id}</p>
       </div>
       <div>
         <p className="mb-2 text-small font-medium" style={{ color: TEXT_DARK }}>
-          Generated invitation link
+          Generated payment link
         </p>
         <div
           className="flex items-center gap-2 rounded-full bg-white pl-4 pr-1 py-1"
@@ -2649,14 +2649,14 @@ function Step6Send({ invitation, onDone }: { invitation: Invitation; onDone: () 
           className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-button-primary font-semibold"
           style={{ backgroundColor: BRAND, color: TEXT_DARK }}
         >
-          <Send className="h-4 w-4" /> Send Invitation
+          <Send className="h-4 w-4" /> Send Payment Link
         </button>
         <button
           onClick={() => copyLink(link)}
           className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-button-primary font-semibold"
           style={{ backgroundColor: SOFT, color: TEXT_DARK }}
         >
-          <Copy className="h-4 w-4" /> Copy Link
+          <Copy className="h-4 w-4" /> Copy Payment Link
         </button>
         <button
           onClick={shareManually}
@@ -2668,7 +2668,7 @@ function Step6Send({ invitation, onDone }: { invitation: Invitation; onDone: () 
       </div>
       {sent && (
         <p className="text-small" style={{ color: TEXT_MUTED }}>
-          Invitation sent to{" "}
+          Payment Link sent to{" "}
           <span className="font-semibold" style={{ color: TEXT_DARK }}>{invitation.studentEmail}</span>
         </p>
       )}
