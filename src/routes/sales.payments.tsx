@@ -600,6 +600,8 @@ function KpiCard({
   description,
   value,
   subValue,
+  inlineSubValue,
+  headerRight,
   Icon,
 }: {
   tone: KpiTone;
@@ -607,6 +609,8 @@ function KpiCard({
   description: string;
   value: string;
   subValue?: string;
+  inlineSubValue?: string;
+  headerRight?: React.ReactNode;
   Icon: React.ComponentType<{ className?: string }>;
 }) {
   const t = KPI_TONES[tone];
@@ -625,12 +629,15 @@ function KpiCard({
           background: t.glowSoft,
         }}
       />
-      <span
-        className="relative grid h-10 w-10 place-items-center rounded-full bg-white/70 backdrop-blur"
-        style={{ color: t.icon, border: `1px solid rgba(255,255,255,0.6)` }}
-      >
-        <Icon className="h-5 w-5" />
-      </span>
+      <div className="relative flex items-start justify-between gap-3">
+        <span
+          className="grid h-10 w-10 place-items-center rounded-full bg-white/70 backdrop-blur"
+          style={{ color: t.icon, border: `1px solid rgba(255,255,255,0.6)` }}
+        >
+          <Icon className="h-5 w-5" />
+        </span>
+        {headerRight}
+      </div>
       <div className="relative">
         <p className="text-small font-semibold" style={{ color: TEXT_DARK }}>
           {label}
@@ -640,13 +647,26 @@ function KpiCard({
         </p>
       </div>
       <div className="relative mt-auto">
-        <p className="text-second-header font-bold leading-tight" style={{ color: TEXT_DARK }}>
-          {value}
-        </p>
-        {subValue && (
-          <p className="mt-0.5 text-small font-medium" style={{ color: TEXT_MUTED }}>
-            {subValue}
-          </p>
+        {inlineSubValue ? (
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-second-header font-bold leading-tight" style={{ color: TEXT_DARK }}>
+              {value}
+            </p>
+            <p className="text-small font-medium" style={{ color: TEXT_DARK }}>
+              {inlineSubValue}
+            </p>
+          </div>
+        ) : (
+          <>
+            <p className="text-second-header font-bold leading-tight" style={{ color: TEXT_DARK }}>
+              {value}
+            </p>
+            {subValue && (
+              <p className="mt-0.5 text-small font-medium" style={{ color: TEXT_MUTED }}>
+                {subValue}
+              </p>
+            )}
+          </>
         )}
       </div>
     </div>
