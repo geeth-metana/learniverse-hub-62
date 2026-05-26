@@ -406,6 +406,7 @@ function InstallmentsPanel({
   onUploadGroupProof,
   onApproveGroup,
   onRejectGroup,
+  onDetachGroup,
 }: {
   invitation: Invitation;
   isInstallment: boolean;
@@ -428,6 +429,7 @@ function InstallmentsPanel({
   onUploadGroupProof: (id: string, file: File | undefined) => void;
   onApproveGroup: (id: string) => void;
   onRejectGroup: (id: string) => void;
+  onDetachGroup: (id: string) => void;
 }) {
   if (!isInstallment || invitation.paymentDetails.paymentType !== "Installment") {
     return (
@@ -670,6 +672,7 @@ function InstallmentsPanel({
               included={groupIncluded(selectedGroup)}
               onUpload={(file) => onUploadGroupProof(selectedGroup.id, file)}
               onApprove={() => onApproveGroup(selectedGroup.id)}
+              onDetach={() => onDetachGroup(selectedGroup.id)}
             />
           ) : selected ? (
             <InstallmentDetailPanel
@@ -702,6 +705,7 @@ function CombinedPlanDetailPanel({
   included,
   onUpload,
   onApprove,
+  onDetach,
 }: {
   group: GroupedPaymentLite;
   index: number;
@@ -710,11 +714,13 @@ function CombinedPlanDetailPanel({
   included: string;
   onUpload: (file: File | undefined) => void;
   onApprove: () => void;
+  onDetach: () => void;
 }) {
   const isApproved = group.status === "Approved";
   const status: InstallmentStatus = isApproved
     ? "Combined Plan Approved"
     : "Combined Plan Pending";
+  const statusLabel = isApproved ? "Approved" : "Pending";
   const planId = `CP-${String(index).padStart(3, "0")}`;
   const includedItems = group.installmentIds
     .map((id) => installments.find((i) => i.id === id))
@@ -750,7 +756,14 @@ function CombinedPlanDetailPanel({
           <Row label="Due Date" value={group.dueDate} />
           <Row label="Total Amount" value={`$${total.toLocaleString()}`} />
           <Row label="Payment Method" value={paymentMethod} />
-          <Row label="Status" value={status} last />
+          <Row label="Status" value={statusLabel} last={!isStripe || !isApproved} />
+          {isStripe && isApproved && (
+            <Row
+              label="Stripe Transaction ID"
+              value={`txn_${group.id.slice(-6)}`}
+              last
+            />
+          )}
         </div>
       </div>
 
@@ -811,33 +824,56 @@ function CombinedPlanDetailPanel({
       ) : null}
 
       {/* Actions */}
-      {!isApproved && (
+      {isApproved ? (
         <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={() => copyLink(`https://pay.example.com/combined/${group.id}`)}
+            onClick={() => toast.success(isStripe ? "Opening receipt" : "Opening proof")}
             className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
             style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
           >
-            Copy Payment Link
+            View {isStripe ? "Receipt" : "Proof"}
           </button>
           <button
             type="button"
-            onClick={() => toast.success("Reminder sent")}
+            onClick={() => toast.success(isStripe ? "Receipt downloaded" : "Proof downloaded")}
             className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
             style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
           >
-            Send Reminder
+            Download {isStripe ? "Receipt" : "Proof"}
+          </button>
+        </div>
+      ) : (
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              copyLink(`https://pay.example.com/combined/${group.id}`);
+              toast.success("Payment link sent");
+            }}
+            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
+            style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+          >
+            Send Payment Link
           </button>
           <button
             type="button"
-            onClick={onApprove}
-            disabled={!isStripe && !group.proof}
-            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold disabled:opacity-50"
-            style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+            onClick={onDetach}
+            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
+            style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
           >
-            <CheckCircle2 className="h-4 w-4" /> Approve Payment
+            Detach Combined Plan
           </button>
+          {!isStripe && group.proof && (
+            <button
+              type="button"
+              onClick={onApprove}
+              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
+              style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+            >
+              <CheckCircle2 className="h-4 w-4" /> Approve Payment
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -3476,6 +3512,26 @@ function PaymentOverviewDrawer({
     toast.success("Group payment rejected");
   };
 
+  const [detachGroupId, setDetachGroupId] = useState<string | null>(null);
+  const detachGroup = (groupId: string) => {
+    const group = groups.find((g) => g.id === groupId);
+    if (!group) return;
+    if (group.status === "Approved") {
+      toast.error("Approved combined plans cannot be detached");
+      return;
+    }
+    setInstallments((prev) =>
+      prev.map((it) =>
+        group.installmentIds.includes(it.id)
+          ? { ...it, status: "Pending" as InstallmentStatus }
+          : it,
+      ),
+    );
+    setGroups((g) => g.filter((it) => it.id !== groupId));
+    if (selectedInstallmentId === groupId) setSelectedInstallmentId(null);
+    toast.success("Combined plan detached");
+  };
+
   const onFile = (file: File | undefined) => {
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) {
@@ -3718,6 +3774,7 @@ function PaymentOverviewDrawer({
                     onUploadGroupProof={uploadGroupProof}
                     onApproveGroup={approveGroup}
                     onRejectGroup={rejectGroup}
+                    onDetachGroup={(id) => setDetachGroupId(id)}
                   />
                 )}
 
@@ -3741,6 +3798,57 @@ function PaymentOverviewDrawer({
           }}
         />
       )}
+      {detachGroupId && (() => {
+        const g = groups.find((x) => x.id === detachGroupId);
+        if (!g) return null;
+        const includedLabels = g.installmentIds
+          .map((id) => installments.find((i) => i.id === id)?.label)
+          .filter(Boolean) as string[];
+        return (
+          <div
+            className="fixed inset-0 z-[110] grid place-items-center bg-black/40 p-4"
+            onClick={() => setDetachGroupId(null)}
+          >
+            <div
+              className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <p className="text-second-header font-semibold" style={{ color: TEXT_DARK }}>
+                Detach Combined Plan
+              </p>
+              <p className="mt-2 text-small" style={{ color: TEXT_MUTED }}>
+                This will separate the combined installment back into individual installment payments. The student will no longer be able to pay these installments as one grouped payment.
+              </p>
+              <ul className="mt-3 space-y-1 rounded-xl bg-[#F9FAFB] p-3 text-small" style={{ color: TEXT_DARK }}>
+                {includedLabels.map((l) => (
+                  <li key={l}>• {l}</li>
+                ))}
+              </ul>
+              <div className="mt-5 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDetachGroupId(null)}
+                  className="rounded-full px-4 py-2 text-small font-semibold"
+                  style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    detachGroup(detachGroupId);
+                    setDetachGroupId(null);
+                  }}
+                  className="rounded-full px-4 py-2 text-small font-semibold"
+                  style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+                >
+                  Detach Combined Plan
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
       {changeDueDateId && (() => {
         const target = installments.find((i) => i.id === changeDueDateId);
         if (!target) return null;
@@ -4263,12 +4371,18 @@ function InstallmentStatusPill({ status }: { status: InstallmentStatus }) {
     "Combined Plan Approved": { bg: "rgba(204,246,33,0.45)", color: "#3F5C00" },
   };
   const s = map[status];
+  const label =
+    status === "Combined Plan Pending"
+      ? "Pending"
+      : status === "Combined Plan Approved"
+        ? "Approved"
+        : status;
   return (
     <span
       className="inline-flex items-center rounded-full px-2.5 py-1 text-smaller font-semibold"
       style={{ backgroundColor: s.bg, color: s.color }}
     >
-      {status}
+      {label}
     </span>
   );
 }
