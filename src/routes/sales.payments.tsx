@@ -3942,7 +3942,9 @@ function Timeline({
           : inst.status === "Payment Failed"
             ? "payment failed"
             : inst.status === "Pending"
-              ? "pending"
+              ? inst.dueDateChanged
+                ? `Pending · Due date changed to ${inst.dueDate}`
+                : "pending"
               : inst.status === "Combined Plan Pending"
                 ? "in combined plan"
                 : inst.status === "Overdue"
