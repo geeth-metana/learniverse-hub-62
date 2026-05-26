@@ -3891,6 +3891,7 @@ type InstallmentRow = {
   proof: ProofFile | null;
   paymentMethod: "Stripe" | "Offline";
   stripeTxnId?: string;
+  dueDateChanged?: boolean;
 };
 
 function addMonthsFormatted(start: Date, months: number): string {
