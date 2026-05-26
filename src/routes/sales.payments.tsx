@@ -402,6 +402,7 @@ function InstallmentsPanel({
   onApprove,
   onReject,
   onOpenPostpone,
+  onChangeDueDate,
   onUploadGroupProof,
   onApproveGroup,
   onRejectGroup,
@@ -423,6 +424,7 @@ function InstallmentsPanel({
   onApprove: (id: string) => void;
   onReject: (id: string) => void;
   onOpenPostpone: () => void;
+  onChangeDueDate: (id: string) => void;
   onUploadGroupProof: (id: string, file: File | undefined) => void;
   onApproveGroup: (id: string) => void;
   onRejectGroup: (id: string) => void;
@@ -727,6 +729,8 @@ function InstallmentsPanel({
               onRejectProof={() => onRemoveProof(selected.id)}
               onApprove={() => onApprove(selected.id)}
               onReject={() => onReject(selected.id)}
+              onOpenPostpone={onOpenPostpone}
+              onOpenChangeDueDate={() => onChangeDueDate(selected.id)}
             />
           ) : (
             <div className="grid h-full place-items-center text-small" style={{ color: TEXT_MUTED }}>
@@ -747,12 +751,16 @@ function InstallmentDetailPanel({
   onRejectProof,
   onApprove,
   onReject,
+  onOpenPostpone,
+  onOpenChangeDueDate,
 }: {
   row: InstallmentRow;
   onUpload: (file: File | undefined) => void;
   onRejectProof: () => void;
   onApprove: () => void;
   onReject: () => void;
+  onOpenPostpone: () => void;
+  onOpenChangeDueDate: () => void;
 }) {
   const isApproved =
     row.status === "Approved" || row.status === "Combined Plan Approved";
@@ -765,6 +773,8 @@ function InstallmentDetailPanel({
   const canApprove =
     !isStripe && row.status === "Pending" && !!row.proof;
   const showStripeRepay = isStripe && isDeclined;
+  const showSecondaryActions =
+    !isApproved && (row.status === "Pending" || isDeclined);
 
   return (
     <div>
@@ -860,27 +870,19 @@ function InstallmentDetailPanel({
           <div className="mt-3 flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() => toast.success("Decline notice sent")}
+              onClick={() => toast.success("Retry link sent")}
               className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-small font-semibold"
               style={{ backgroundColor: TEXT_DARK, color: "#FFFFFF" }}
             >
-              Send Decline Notice
+              Send Retry Link
             </button>
             <button
               type="button"
-              onClick={() => copyLink(`https://pay.example.com/repay/${row.id}`)}
+              onClick={() => copyLink(`https://pay.example.com/retry/${row.id}`)}
               className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-small font-semibold"
               style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
             >
-              Copy Repay Link
-            </button>
-            <button
-              type="button"
-              onClick={() => toast.success("Repay link sent")}
-              className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-small font-semibold"
-              style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
-            >
-              Send Repay Link
+              Copy Retry Link
             </button>
           </div>
         </div>
@@ -897,20 +899,6 @@ function InstallmentDetailPanel({
         </div>
       )}
 
-      {/* Approve / Reject */}
-      {canApprove && (
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={onApprove}
-            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
-            style={{ backgroundColor: BRAND, color: TEXT_DARK }}
-          >
-            <CheckCircle2 className="h-4 w-4" /> Approve Payment
-          </button>
-        </div>
-      )}
-
       {/* Internal note */}
       {!isApproved && (
         <div className="mt-4">
@@ -923,6 +911,42 @@ function InstallmentDetailPanel({
             className="w-full resize-none rounded-xl px-3 py-2 text-small"
             style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
           />
+        </div>
+      )}
+
+      {/* Action buttons — appear AFTER the internal note */}
+      {(canApprove || showSecondaryActions) && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {canApprove && (
+            <button
+              type="button"
+              onClick={onApprove}
+              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
+              style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+            >
+              <CheckCircle2 className="h-4 w-4" /> Approve Payment
+            </button>
+          )}
+          {showSecondaryActions && (
+            <>
+              <button
+                type="button"
+                onClick={onOpenChangeDueDate}
+                className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
+                style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+              >
+                <CalendarClock className="h-4 w-4" /> Change Due Date
+              </button>
+              <button
+                type="button"
+                onClick={onOpenPostpone}
+                className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
+                style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+              >
+                <Layers className="h-4 w-4" /> Combined Plans
+              </button>
+            </>
+          )}
         </div>
       )}
     </div>
@@ -1061,6 +1085,18 @@ function PostponeModal({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+                Combined Payment Due Date
+              </p>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="w-full rounded-xl bg-white px-3 py-2 text-small"
+                style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
+              />
+            </div>
+            <div>
+              <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
                 Extend by (months)
               </p>
               <input
@@ -1070,18 +1106,6 @@ function PostponeModal({
                 value={months}
                 onChange={(e) => setMonths(Math.max(1, Number(e.target.value) || 1))}
                 className="w-full rounded-xl px-3 py-2 text-small"
-                style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
-              />
-            </div>
-            <div>
-              <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
-                Combined Payment Due Date
-              </p>
-              <input
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="w-full rounded-xl bg-white px-3 py-2 text-small"
                 style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
               />
             </div>
@@ -1139,6 +1163,147 @@ function PostponeModal({
             style={{ backgroundColor: TEXT_DARK, color: "#FFFFFF" }}
           >
             Create Combined Plan
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+// ===================== Change Due Date Modal =====================
+
+function ChangeDueDateModal({
+  row,
+  onClose,
+  onConfirm,
+}: {
+  row: InstallmentRow;
+  onClose: () => void;
+  onConfirm: (payload: { newDueDate: string; reason: string; note: string }) => void;
+}) {
+  const current = new Date(row.dueDate);
+  const suggested = (() => {
+    const d = isNaN(current.getTime()) ? new Date() : new Date(current.getTime());
+    d.setDate(d.getDate() + 17);
+    return d.toISOString().slice(0, 10);
+  })();
+  const [newDueDate, setNewDueDate] = useState(suggested);
+  const [reason, setReason] = useState("");
+  const [note, setNote] = useState("");
+
+  const formatted = (() => {
+    const d = new Date(newDueDate);
+    return isNaN(d.getTime())
+      ? newDueDate
+      : d.toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" });
+  })();
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+      style={{ backgroundColor: "rgba(0,0,0,0.35)" }}
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-md rounded-3xl bg-white p-6"
+        style={{ boxShadow: "0 30px 80px rgba(15,23,42,0.25)" }}
+      >
+        <div className="flex items-start justify-between">
+          <div>
+            <h3 className="text-second-header font-bold" style={{ color: TEXT_DARK }}>
+              Change Due Date
+            </h3>
+            <p className="mt-1 text-smaller" style={{ color: TEXT_MUTED }}>
+              Update the due date for {row.label}. The installment stays Pending.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="grid h-8 w-8 place-items-center rounded-full hover:bg-[#F3F4F6]"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" style={{ color: TEXT_DARK }} />
+          </button>
+        </div>
+
+        <div className="mt-4 space-y-3">
+          <div>
+            <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+              Current Due Date
+            </p>
+            <div
+              className="rounded-xl px-3 py-2 text-small"
+              style={{ backgroundColor: SOFT, color: TEXT_DARK }}
+            >
+              {row.dueDate}
+            </div>
+          </div>
+          <div>
+            <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+              New Due Date
+            </p>
+            <input
+              type="date"
+              value={newDueDate}
+              onChange={(e) => setNewDueDate(e.target.value)}
+              className="w-full rounded-xl bg-white px-3 py-2 text-small"
+              style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
+            />
+          </div>
+          <div>
+            <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+              Reason
+            </p>
+            <select
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              className="w-full rounded-xl bg-white px-3 py-2 text-small"
+              style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
+            >
+              <option value="">Select a reason…</option>
+              <option>Student requested more time</option>
+              <option>Financial delay</option>
+              <option>Bank transfer delay</option>
+              <option>Internal approval</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div>
+            <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+              Internal note
+            </p>
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              rows={2}
+              placeholder="Add context for the team…"
+              className="w-full resize-none rounded-xl px-3 py-2 text-small"
+              style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
+            />
+          </div>
+        </div>
+
+        <div className="mt-5 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full px-4 py-2 text-small font-semibold"
+            style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled={!newDueDate}
+            onClick={() => onConfirm({ newDueDate: formatted, reason, note })}
+            className="rounded-full px-4 py-2 text-small font-semibold disabled:opacity-50"
+            style={{ backgroundColor: TEXT_DARK, color: "#FFFFFF" }}
+          >
+            Save Due Date
           </button>
         </div>
       </motion.div>
@@ -2314,7 +2479,7 @@ function Step3PaymentMethod({
       <h4 className="text-second-header font-semibold" style={{ color: TEXT_DARK }}>
         Select Payment Method
       </h4>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-3">
         {options.map((o) => {
           const active = method === o.id;
           const Icon = o.icon;
@@ -2323,7 +2488,7 @@ function Step3PaymentMethod({
               key={o.id}
               type="button"
               onClick={() => setMethod(o.id)}
-              className={`relative flex items-start gap-3 rounded-xl bg-white p-4 text-left transition-colors ${active ? "" : "hover:bg-[#F3F4F6]"}`}
+              className={`relative flex h-full flex-col items-start gap-3 rounded-xl bg-white p-4 text-left transition-colors ${active ? "" : "hover:bg-[#F3F4F6]"}`}
               style={{ border: `2px solid ${active ? TEXT_DARK : BORDER}` }}
             >
               <span
@@ -3044,6 +3209,7 @@ function PaymentOverviewDrawer({
   const [groups, setGroups] = useState<GroupedPayment[]>([]);
   const [showUpcoming, setShowUpcoming] = useState(false);
   const [postponeOpen, setPostponeOpen] = useState(false);
+  const [changeDueDateId, setChangeDueDateId] = useState<string | null>(null);
   const [selectedInstallmentId, setSelectedInstallmentId] = useState<string | null>(
     null,
   );
@@ -3106,6 +3272,27 @@ function PaymentOverviewDrawer({
         it.id === id ? { ...it, proof: null, status: "Pending" } : it,
       ),
     );
+  };
+
+  const changeInstallmentDueDate = (
+    id: string,
+    payload: { newDueDate: string; reason: string; note: string },
+  ) => {
+    setInstallments((prev) =>
+      prev.map((it) =>
+        it.id === id
+          ? {
+              ...it,
+              dueDate: payload.newDueDate,
+              dueDateChanged: true,
+              status: it.status === "Approved" ? it.status : ("Pending" as InstallmentStatus),
+            }
+          : it,
+      ),
+    );
+    void payload.reason;
+    void payload.note;
+    toast.success(`Due date updated to ${payload.newDueDate}`);
   };
 
   const postponeInstallments = (
@@ -3428,6 +3615,7 @@ function PaymentOverviewDrawer({
                     onApprove={approveInstallment}
                     onReject={rejectInstallment}
                     onOpenPostpone={() => setPostponeOpen(true)}
+                    onChangeDueDate={(id) => setChangeDueDateId(id)}
                     onUploadGroupProof={uploadGroupProof}
                     onApproveGroup={approveGroup}
                     onRejectGroup={rejectGroup}
@@ -3454,6 +3642,20 @@ function PaymentOverviewDrawer({
           }}
         />
       )}
+      {changeDueDateId && (() => {
+        const target = installments.find((i) => i.id === changeDueDateId);
+        if (!target) return null;
+        return (
+          <ChangeDueDateModal
+            row={target}
+            onClose={() => setChangeDueDateId(null)}
+            onConfirm={(payload) => {
+              changeInstallmentDueDate(target.id, payload);
+              setChangeDueDateId(null);
+            }}
+          />
+        );
+      })()}
     </div>
   );
 }
@@ -3740,7 +3942,9 @@ function Timeline({
           : inst.status === "Payment Failed"
             ? "payment failed"
             : inst.status === "Pending"
-              ? "pending"
+              ? inst.dueDateChanged
+                ? `Pending · Due date changed to ${inst.dueDate}`
+                : "pending"
               : inst.status === "Combined Plan Pending"
                 ? "in combined plan"
                 : inst.status === "Overdue"
@@ -3891,6 +4095,7 @@ type InstallmentRow = {
   proof: ProofFile | null;
   paymentMethod: "Stripe" | "Offline";
   stripeTxnId?: string;
+  dueDateChanged?: boolean;
 };
 
 function addMonthsFormatted(start: Date, months: number): string {
