@@ -3133,6 +3133,27 @@ function PaymentOverviewDrawer({
     );
   };
 
+  const changeInstallmentDueDate = (
+    id: string,
+    payload: { newDueDate: string; reason: string; note: string },
+  ) => {
+    setInstallments((prev) =>
+      prev.map((it) =>
+        it.id === id
+          ? {
+              ...it,
+              dueDate: payload.newDueDate,
+              dueDateChanged: true,
+              status: it.status === "Approved" ? it.status : ("Pending" as InstallmentStatus),
+            }
+          : it,
+      ),
+    );
+    void payload.reason;
+    void payload.note;
+    toast.success(`Due date updated to ${payload.newDueDate}`);
+  };
+
   const postponeInstallments = (
     ids: string[],
     payload: { dueDate: string; reason: string; note: string },
