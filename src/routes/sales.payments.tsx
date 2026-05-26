@@ -362,7 +362,7 @@ type GroupedPaymentLite = {
   dueDate: string;
   reason: string;
   note: string;
-  status: "Pending Payment" | "Pending Review" | "Approved" | "Rejected";
+  status: "Pending Payment" | "Pending" | "Approved" | "Rejected";
   proof: ProofFile | null;
 };
 
@@ -426,8 +426,8 @@ function InstallmentsPanel({
 
   const d = invitation.paymentDetails;
   const activeStatuses: InstallmentStatus[] = [
-    "Pending Review",
-    "Proof Required",
+    "Pending",
+    "Pending",
     "Rejected",
     "Overdue",
     "Postponed",
@@ -741,10 +741,10 @@ function InstallmentDetailPanel({
 }) {
   const isApproved =
     row.status === "Approved" || row.status === "Catch-up Group Approved";
-  const canApprove = row.status === "Pending Review";
+  const canApprove = row.status === "Pending";
   const canUpload =
-    row.status === "Pending Review" ||
-    row.status === "Proof Required" ||
+    row.status === "Pending" ||
+    row.status === "Pending" ||
     row.status === "Rejected" ||
     row.status === "Overdue";
 
@@ -2798,12 +2798,12 @@ function ModalShell({
 
 type ProofFile = { name: string; uploadedAt: string };
 
-type ApprovalState = "Pending Review" | "Approved" | "Rejected";
+type ApprovalState = "Pending" | "Approved" | "Rejected";
 
 function deriveApproval(status: InvitationStatus): ApprovalState {
   if (status === "Installment Approved") return "Approved";
   if (status === "Installment Rejected") return "Rejected";
-  return "Pending Review";
+  return "Pending";
 }
 
 function PaymentOverviewDrawer({
@@ -2843,7 +2843,7 @@ function PaymentOverviewDrawer({
   const overallInstallmentStatus = (() => {
     if (!totalCount) return "Awaiting Installments";
     if (approvedCount === totalCount) return "Fully Approved";
-    if (installments.some((i) => i.status === "Pending Review")) return "Pending Review";
+    if (installments.some((i) => i.status === "Pending")) return "Pending";
     if (approvedCount > 0) return "Partially Approved";
     return "Awaiting Installments";
   })();
@@ -2861,7 +2861,7 @@ function PaymentOverviewDrawer({
     dueDate: string;
     reason: string;
     note: string;
-    status: "Pending Payment" | "Pending Review" | "Approved" | "Rejected";
+    status: "Pending Payment" | "Pending" | "Approved" | "Rejected";
     proof: ProofFile | null;
   };
   const [groups, setGroups] = useState<GroupedPayment[]>([]);
@@ -2915,7 +2915,7 @@ function PaymentOverviewDrawer({
           ? {
               ...it,
               proof: { name: file.name, uploadedAt: `Uploaded ${today}` },
-              status: it.status === "Upcoming" ? "Pending Review" : "Pending Review",
+              status: it.status === "Upcoming" ? "Pending" : "Pending",
             }
           : it,
       ),
@@ -2926,7 +2926,7 @@ function PaymentOverviewDrawer({
   const removeInstallmentProof = (id: string) => {
     setInstallments((prev) =>
       prev.map((it) =>
-        it.id === id ? { ...it, proof: null, status: "Proof Required" } : it,
+        it.id === id ? { ...it, proof: null, status: "Pending" } : it,
       ),
     );
   };
@@ -2982,7 +2982,7 @@ function PaymentOverviewDrawer({
           ? {
               ...it,
               proof: { name: file.name, uploadedAt: `Uploaded ${today}` },
-              status: "Pending Review",
+              status: "Pending",
             }
           : it,
       ),
@@ -3346,8 +3346,8 @@ function PaymentOverviewDrawer({
         <PostponeModal
           installments={installments.filter(
             (i) =>
-              i.status === "Pending Review" ||
-              i.status === "Proof Required" ||
+              i.status === "Pending" ||
+              i.status === "Pending" ||
               i.status === "Upcoming" ||
               i.status === "Overdue" ||
               i.status === "Rejected",
@@ -3482,7 +3482,7 @@ function MiniStat({ label, value }: { label: string; value: string }) {
 
 function ApprovalPill({ state }: { state: ApprovalState }) {
   const map: Record<ApprovalState, { bg: string; color: string }> = {
-    "Pending Review": { bg: "#F3F4F6", color: "#4B5563" },
+    "Pending": { bg: "#F3F4F6", color: "#4B5563" },
     Approved: { bg: "rgba(204, 246, 33, 0.45)", color: "#3F5C00" },
     Rejected: { bg: "#FEE2E2", color: "#991B1B" },
   };
@@ -3601,7 +3601,7 @@ function Timeline({
   groups?: {
     id: string;
     label: string;
-    status: "Pending Payment" | "Pending Review" | "Approved" | "Rejected";
+    status: "Pending Payment" | "Pending" | "Approved" | "Rejected";
   }[];
 }) {
   const status = invitation.status;
@@ -3636,7 +3636,7 @@ function Timeline({
         inst.status === "Catch-up Group Approved" ||
         inst.status === "Rejected"
           ? "done"
-          : inst.status === "Pending Review" ||
+          : inst.status === "Pending" ||
               inst.status === "Catch-up Group Pending" ||
               inst.status === "Postponed" ||
               inst.status === "Overdue"
@@ -3647,9 +3647,9 @@ function Timeline({
           ? "approved"
           : inst.status === "Rejected"
             ? "rejected"
-            : inst.status === "Pending Review"
+            : inst.status === "Pending"
               ? "pending review"
-              : inst.status === "Proof Required"
+              : inst.status === "Pending"
                 ? "proof required"
                 : inst.status === "Postponed"
                   ? "postponed"
@@ -3783,8 +3783,8 @@ function Timeline({
 
 type InstallmentStatus =
   | "Approved"
-  | "Pending Review"
-  | "Proof Required"
+  | "Pending"
+  | "Pending"
   | "Rejected"
   | "Upcoming"
   | "Overdue"
@@ -3828,10 +3828,10 @@ function seedInstallments(
       status = "Approved";
       proof = { name: `installment-01.pdf`, uploadedAt: "Uploaded earlier" };
     } else if (i === 1) {
-      status = "Pending Review";
+      status = "Pending";
       proof = { name: `installment-02-proof.pdf`, uploadedAt: "Uploaded Jun 15, 2026" };
     } else if (i === 2) {
-      status = "Proof Required";
+      status = "Pending";
     }
     rows.push({
       id: `inst-${number}`,
@@ -3849,8 +3849,8 @@ function seedInstallments(
 function InstallmentStatusPill({ status }: { status: InstallmentStatus }) {
   const map: Record<InstallmentStatus, { bg: string; color: string }> = {
     Approved: { bg: "rgba(204,246,33,0.45)", color: "#3F5C00" },
-    "Pending Review": { bg: "#FEF3C7", color: "#92400E" },
-    "Proof Required": { bg: "#F3F4F6", color: "#4B5563" },
+    "Pending": { bg: "#FEF3C7", color: "#92400E" },
+    "Pending": { bg: "#F3F4F6", color: "#4B5563" },
     Rejected: { bg: "#FEE2E2", color: "#991B1B" },
     Upcoming: { bg: "#F3F4F6", color: "#6B7280" },
     Overdue: { bg: "#FEE4E2", color: "#B42318" },
@@ -3885,7 +3885,7 @@ function InstallmentCard({
   const inputId = `proof-${row.id}`;
   const isUpcoming = row.status === "Upcoming";
   const isApproved = row.status === "Approved";
-  const canApprove = row.status === "Pending Review";
+  const canApprove = row.status === "Pending";
 
   return (
     <div
