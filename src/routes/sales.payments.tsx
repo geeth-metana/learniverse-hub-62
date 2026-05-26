@@ -694,6 +694,156 @@ function InstallmentsPanel({
 
 type InstallmentDetailsLite = { monthlyPayment: number };
 
+function CombinedPlanDetailPanel({
+  group,
+  index,
+  installments,
+  total,
+  included,
+  onUpload,
+  onApprove,
+}: {
+  group: GroupedPaymentLite;
+  index: number;
+  installments: InstallmentRow[];
+  total: number;
+  included: string;
+  onUpload: (file: File | undefined) => void;
+  onApprove: () => void;
+}) {
+  const isApproved = group.status === "Approved";
+  const status: InstallmentStatus = isApproved
+    ? "Combined Plan Approved"
+    : "Combined Plan Pending";
+  const planId = `CP-${String(index).padStart(3, "0")}`;
+  const includedItems = group.installmentIds
+    .map((id) => installments.find((i) => i.id === id))
+    .filter((i): i is InstallmentRow => Boolean(i));
+  const paymentMethod = includedItems[0]?.paymentMethod ?? "Offline";
+  const isStripe = paymentMethod === "Stripe";
+
+  return (
+    <div>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-second-header font-semibold" style={{ color: TEXT_DARK }}>
+            Combined Installment
+          </p>
+          <p className="mt-0.5 text-small" style={{ color: TEXT_MUTED }}>
+            {included} · ${total.toLocaleString()} · Due {group.dueDate}
+          </p>
+        </div>
+        <InstallmentStatusPill status={status} />
+      </div>
+
+      {/* Combined payment details */}
+      <div
+        className="mt-4 rounded-xl p-4"
+        style={{ backgroundColor: "#F9FAFB", border: `1px solid ${BORDER}` }}
+      >
+        <p className="mb-2 text-smaller font-semibold uppercase tracking-wide" style={{ color: TEXT_MUTED }}>
+          Combined Payment Details
+        </p>
+        <div className="space-y-1.5">
+          <Row label="Combined Plan ID" value={planId} />
+          <Row label="Includes" value={included} />
+          <Row label="Due Date" value={group.dueDate} />
+          <Row label="Total Amount" value={`$${total.toLocaleString()}`} />
+          <Row label="Payment Method" value={paymentMethod} />
+          <Row label="Status" value={status} last />
+        </div>
+      </div>
+
+      {/* Included installments */}
+      <div
+        className="mt-3 rounded-xl p-4"
+        style={{ backgroundColor: "#FFFFFF", border: `1px solid ${BORDER}` }}
+      >
+        <p className="mb-2 text-smaller font-semibold uppercase tracking-wide" style={{ color: TEXT_MUTED }}>
+          Included Installments
+        </p>
+        <ul className="space-y-1.5">
+          {includedItems.map((it) => (
+            <li
+              key={it.id}
+              className="flex items-center justify-between text-small"
+              style={{ color: TEXT_DARK }}
+            >
+              <span>{it.label} · ${it.amount.toLocaleString()}</span>
+              <span className="text-smaller" style={{ color: TEXT_MUTED }}>
+                Original Due {it.dueDate}
+              </span>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-3 text-smaller" style={{ color: TEXT_MUTED }}>
+          This is one payment for the selected installments.
+        </p>
+      </div>
+
+      {/* Proof / upload */}
+      {group.proof ? (
+        <div
+          className="mt-3 rounded-xl p-4"
+          style={{ backgroundColor: "#F9FAFB", border: `1px solid ${BORDER}` }}
+        >
+          <div className="space-y-1.5">
+            <Row label="File" value={group.proof.name} />
+            <Row label="Uploaded" value={group.proof.uploadedAt} last />
+          </div>
+        </div>
+      ) : !isStripe && !isApproved ? (
+        <label
+          className="mt-3 flex cursor-pointer flex-col items-center justify-center rounded-xl px-4 py-8 text-center"
+          style={{ border: `1.5px dashed ${BORDER}`, backgroundColor: "#FAFAFA" }}
+        >
+          <UploadCloud className="h-6 w-6" style={{ color: TEXT_MUTED }} />
+          <p className="mt-2 text-small font-medium" style={{ color: TEXT_DARK }}>
+            Upload combined payment proof
+          </p>
+          <input
+            type="file"
+            accept=".pdf,.png,.jpg,.jpeg"
+            className="hidden"
+            onChange={(e) => onUpload(e.target.files?.[0] ?? undefined)}
+          />
+        </label>
+      ) : null}
+
+      {/* Actions */}
+      {!isApproved && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => copyLink(`https://pay.example.com/combined/${group.id}`)}
+            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
+            style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+          >
+            Copy Payment Link
+          </button>
+          <button
+            type="button"
+            onClick={() => toast.success("Reminder sent")}
+            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
+            style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+          >
+            Send Reminder
+          </button>
+          <button
+            type="button"
+            onClick={onApprove}
+            disabled={!isStripe && !group.proof}
+            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold disabled:opacity-50"
+            style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+          >
+            <CheckCircle2 className="h-4 w-4" /> Approve Payment
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function InstallmentDetailPanel({
   row,
   onUpload,
