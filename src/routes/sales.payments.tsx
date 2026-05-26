@@ -3774,6 +3774,7 @@ function PaymentOverviewDrawer({
                     onUploadGroupProof={uploadGroupProof}
                     onApproveGroup={approveGroup}
                     onRejectGroup={rejectGroup}
+                    onDetachGroup={(id) => setDetachGroupId(id)}
                   />
                 )}
 
