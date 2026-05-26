@@ -727,22 +727,27 @@ type InstallmentDetailsLite = { monthlyPayment: number };
 function InstallmentDetailPanel({
   row,
   onUpload,
-  onRemove,
+  onRejectProof,
   onApprove,
   onReject,
 }: {
   row: InstallmentRow;
   onUpload: (file: File | undefined) => void;
-  onRemove: () => void;
+  onRejectProof: () => void;
   onApprove: () => void;
   onReject: () => void;
 }) {
   const isApproved =
     row.status === "Approved" || row.status === "Catch-up Group Approved";
-  const canApprove = row.status === "Pending";
+  const isDeclined = row.status === "Declined";
+  const isStripe = row.paymentMethod === "Stripe";
+  // Offline pending payments need a proof upload before approval
   const canUpload =
-    (row.status === "Pending" || row.status === "Declined") &&
-    row.paymentMethod === "Offline";
+    !isStripe && (row.status === "Pending" || isDeclined) && !row.proof;
+  // Approve only allowed when proof is uploaded for offline pending payments
+  const canApprove =
+    !isStripe && row.status === "Pending" && !!row.proof;
+  const showStripeRepay = isStripe && isDeclined;
 
   return (
     <div>
@@ -752,7 +757,7 @@ function InstallmentDetailPanel({
             {row.label}
           </p>
           <p className="mt-0.5 text-small" style={{ color: TEXT_MUTED }}>
-            Due {row.dueDate} · ${row.amount.toLocaleString()}
+            Due {row.dueDate} · ${row.amount.toLocaleString()} · {row.paymentMethod}
           </p>
         </div>
         <InstallmentStatusPill status={row.status} />
@@ -771,7 +776,7 @@ function InstallmentDetailPanel({
             <div className="flex flex-col items-center gap-2">
               <FileText className="h-7 w-7" style={{ color: TEXT_MUTED }} />
               <span className="text-smaller" style={{ color: TEXT_MUTED }}>
-                Document preview
+                {isStripe ? "Stripe receipt preview" : "Document preview"}
               </span>
             </div>
           </div>
@@ -780,6 +785,9 @@ function InstallmentDetailPanel({
             <Row label="Uploaded" value={row.proof.uploadedAt} />
             {isApproved && <Row label="Approved by" value="John Miller" />}
             {isApproved && <Row label="Approved on" value={row.dueDate} />}
+            {isStripe && row.stripeTxnId && (
+              <Row label="Stripe Txn" value={row.stripeTxnId} />
+            )}
             <Row label="Amount" value={`$${row.amount.toLocaleString()}`} />
             <Row label="Installment" value={row.label} last />
           </div>
@@ -790,7 +798,7 @@ function InstallmentDetailPanel({
               className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-small font-semibold"
               style={{ backgroundColor: SOFT, color: TEXT_DARK }}
             >
-              <Eye className="h-4 w-4" /> View Proof
+              <Eye className="h-4 w-4" /> {isStripe ? "View Receipt" : "View Proof"}
             </button>
             <button
               type="button"
@@ -800,14 +808,14 @@ function InstallmentDetailPanel({
             >
               Download Proof
             </button>
-            {!isApproved && (
+            {!isApproved && !isStripe && (
               <button
                 type="button"
-                onClick={onRemove}
+                onClick={onRejectProof}
                 className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-small font-semibold"
                 style={{ backgroundColor: "#FFFFFF", color: "#B42318", border: "1px solid #FECDCA" }}
               >
-                <Trash2 className="h-4 w-4" /> Remove
+                <AlertCircle className="h-4 w-4" /> Reject Proof
               </button>
             )}
           </div>
@@ -831,12 +839,54 @@ function InstallmentDetailPanel({
             onChange={(e) => onUpload(e.target.files?.[0] ?? undefined)}
           />
         </label>
+      ) : showStripeRepay ? (
+        <div
+          className="mt-4 rounded-xl p-4"
+          style={{ backgroundColor: "#FEF2F2", border: `1px solid #FECDCA` }}
+        >
+          <p className="text-small font-semibold" style={{ color: "#991B1B" }}>
+            Card payment was declined
+          </p>
+          <p className="mt-1 text-smaller" style={{ color: TEXT_MUTED }}>
+            Send the student a new attempt link or notify them to update their card.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => toast.success("Decline notice sent")}
+              className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-small font-semibold"
+              style={{ backgroundColor: TEXT_DARK, color: "#FFFFFF" }}
+            >
+              Send Decline Notice
+            </button>
+            <button
+              type="button"
+              onClick={() => copyLink(`https://pay.example.com/repay/${row.id}`)}
+              className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-small font-semibold"
+              style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+            >
+              Copy Repay Link
+            </button>
+            <button
+              type="button"
+              onClick={() => toast.success("Repay link sent")}
+              className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-small font-semibold"
+              style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+            >
+              Send Repay Link
+            </button>
+          </div>
+        </div>
       ) : (
         <div
           className="mt-4 rounded-xl px-4 py-8 text-center text-small"
           style={{ backgroundColor: "#FAFAFA", border: `1px dashed ${BORDER}`, color: TEXT_MUTED }}
         >
-          No upload required for this installment.
+          {isStripe
+            ? "Card payment — proof not required."
+            : row.status === "Upcoming"
+              ? "This installment is not due yet."
+              : "No action required."}
         </div>
       )}
 
@@ -861,8 +911,23 @@ function InstallmentDetailPanel({
               border: "1px solid #FECDCA",
             }}
           >
-            <AlertCircle className="h-4 w-4" /> Reject Payment
+            <AlertCircle className="h-4 w-4" /> Decline Payment
           </button>
+        </div>
+      )}
+
+      {/* Internal note */}
+      {!isApproved && (
+        <div className="mt-4">
+          <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+            Internal note
+          </p>
+          <textarea
+            rows={2}
+            placeholder="Add an internal note for this installment…"
+            className="w-full resize-none rounded-xl px-3 py-2 text-small"
+            style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
+          />
         </div>
       )}
     </div>
