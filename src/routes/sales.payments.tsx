@@ -3093,6 +3093,10 @@ function InstallmentStatusPill({ status }: { status: InstallmentStatus }) {
     "Proof Required": { bg: "#F3F4F6", color: "#4B5563" },
     Rejected: { bg: "#FEE2E2", color: "#991B1B" },
     Upcoming: { bg: "#F3F4F6", color: "#6B7280" },
+    Overdue: { bg: "#FEE4E2", color: "#B42318" },
+    Postponed: { bg: "#E0E7FF", color: "#3730A3" },
+    "Catch-up Group Pending": { bg: "#FEF9C3", color: "#854D0E" },
+    "Catch-up Group Approved": { bg: "rgba(204,246,33,0.45)", color: "#3F5C00" },
   };
   const s = map[status];
   return (
