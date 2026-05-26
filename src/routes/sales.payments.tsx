@@ -3612,7 +3612,7 @@ function Timeline({
   const items: { label: string; icon: React.ComponentType<{ className?: string }>; state: TimelineState }[] = [
     { label: "Payment plan created", icon: FileText, state: "done" },
     {
-      label: "Invitation sent",
+      label: "Payment Link sent",
       icon: Mail,
       state:
         status === "Pending"
