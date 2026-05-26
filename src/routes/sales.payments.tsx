@@ -575,19 +575,14 @@ function SummaryTile({
     <div
       className={`relative flex h-full flex-col gap-3 overflow-hidden p-6 ${dividerClass ?? ""}`}
       style={{
-        background: t.bgSoft,
+        background: "#FFFFFF",
         borderColor: "#E5E7EB",
       }}
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-10 -top-10 h-32 w-32"
-        style={{ background: t.glowSoft }}
-      />
       <div className="relative flex items-start justify-between gap-3">
         <span
-          className="grid h-10 w-10 place-items-center rounded-full bg-white/70 backdrop-blur"
-          style={{ color: t.icon, border: `1px solid rgba(255,255,255,0.6)` }}
+          className="grid h-10 w-10 place-items-center rounded-full"
+          style={{ color: t.icon, border: `1px solid ${BORDER}`, background: "#FFFFFF" }}
         >
           <Icon className="h-5 w-5" />
         </span>
@@ -603,8 +598,8 @@ function SummaryTile({
       </div>
       <div className="relative mt-auto">
         {inlineSubValue ? (
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-second-header font-bold leading-tight" style={{ color: TEXT_DARK }}>
+          <div className="flex items-end justify-between gap-3">
+            <p className="font-extrabold leading-none" style={{ color: TEXT_DARK, fontSize: 30 }}>
               {value}
             </p>
             <p className="text-small font-medium" style={{ color: TEXT_DARK }}>
@@ -612,7 +607,7 @@ function SummaryTile({
             </p>
           </div>
         ) : (
-          <p className="text-second-header font-bold leading-tight" style={{ color: TEXT_DARK }}>
+          <p className="font-extrabold leading-none" style={{ color: TEXT_DARK, fontSize: 30 }}>
             {value}
           </p>
         )}
