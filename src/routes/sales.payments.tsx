@@ -3527,17 +3527,14 @@ function ProofRow({
       >
         View
       </button>
-      {onRemove && (
-        <button
-          type="button"
-          onClick={onRemove}
-          className="grid h-8 w-8 place-items-center rounded-full hover:bg-[#FEE2E2]"
-          style={{ color: "#B42318" }}
-          aria-label="Remove"
-        >
-          <Trash2 className="h-4 w-4" />
-        </button>
-      )}
+      <button
+        type="button"
+        onClick={() => toast.success("Download started")}
+        className="rounded-full px-3 py-1.5 text-small font-medium hover:bg-[#F3F4F6]"
+        style={{ color: TEXT_DARK }}
+      >
+        Download
+      </button>
     </div>
   );
 }
