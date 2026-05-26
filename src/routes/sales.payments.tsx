@@ -2132,7 +2132,9 @@ function PaymentOverviewDrawer({
       : [],
   );
 
-  const approvedCount = installments.filter((i) => i.status === "Approved").length;
+  const approvedCount = installments.filter(
+    (i) => i.status === "Approved" || i.status === "Catch-up Group Approved",
+  ).length;
   const totalCount = installments.length;
   const progressPct = totalCount ? Math.round((approvedCount / totalCount) * 100) : 0;
 
@@ -2144,23 +2146,39 @@ function PaymentOverviewDrawer({
     return "Awaiting Installments";
   })();
 
-  const nextDue = installments.find((i) => i.status !== "Approved")?.dueDate ?? "—";
+  const nextDue =
+    installments.find(
+      (i) => i.status !== "Approved" && i.status !== "Catch-up Group Approved",
+    )?.dueDate ?? "—";
 
-  const [timelineLog, setTimelineLog] = useState<string[]>([]);
+  // Grouped (catch-up) payments — created when student postpones installments
+  type GroupedPayment = {
+    id: string;
+    label: string;
+    installmentIds: string[];
+    dueDate: string;
+    reason: string;
+    note: string;
+    status: "Pending Payment" | "Pending Review" | "Approved" | "Rejected";
+    proof: ProofFile | null;
+  };
+  const [groups, setGroups] = useState<GroupedPayment[]>([]);
+  const [showUpcoming, setShowUpcoming] = useState(false);
+  const [postponeOpen, setPostponeOpen] = useState(false);
+  const [selectedInstallmentId, setSelectedInstallmentId] = useState<string | null>(
+    null,
+  );
 
   const approveInstallment = (id: string) => {
     setInstallments((prev) => {
       const next = prev.map((it) =>
         it.id === id ? { ...it, status: "Approved" as InstallmentStatus } : it,
       );
-      const target = next.find((i) => i.id === id);
-      if (target) {
-        setTimelineLog((log) => [...log, `${target.label} approved`]);
-        // sync overall invitation status
-        const allApproved = next.every((i) => i.status === "Approved");
-        if (allApproved) updateInvitation(inv.id, { status: "Installment Approved" });
-        else updateInvitation(inv.id, { status: "Installment Pending Approval" });
-      }
+      const allApproved = next.every(
+        (i) => i.status === "Approved" || i.status === "Catch-up Group Approved",
+      );
+      if (allApproved) updateInvitation(inv.id, { status: "Installment Approved" });
+      else updateInvitation(inv.id, { status: "Installment Pending Approval" });
       return next;
     });
     setApproval("Approved");
@@ -2168,16 +2186,13 @@ function PaymentOverviewDrawer({
   };
 
   const rejectInstallment = (id: string) => {
-    setInstallments((prev) => {
-      const next = prev.map((it) =>
+    setInstallments((prev) =>
+      prev.map((it) =>
         it.id === id
           ? { ...it, status: "Rejected" as InstallmentStatus, proof: null }
           : it,
-      );
-      const target = next.find((i) => i.id === id);
-      if (target) setTimelineLog((log) => [...log, `${target.label} rejected`]);
-      return next;
-    });
+      ),
+    );
     toast.success("Installment rejected");
   };
 
@@ -2214,6 +2229,88 @@ function PaymentOverviewDrawer({
     );
   };
 
+  const postponeInstallments = (
+    ids: string[],
+    payload: { dueDate: string; reason: string; note: string },
+  ) => {
+    if (!ids.length) return;
+    const groupId = `grp-${Date.now()}`;
+    const groupNumber = groups.length + 1;
+    const labels = ids
+      .map((id) => installments.find((i) => i.id === id)?.label)
+      .filter(Boolean)
+      .join(" + ");
+    setInstallments((prev) =>
+      prev.map((it) =>
+        ids.includes(it.id)
+          ? { ...it, status: "Catch-up Group Pending" as InstallmentStatus }
+          : it,
+      ),
+    );
+    setGroups((g) => [
+      ...g,
+      {
+        id: groupId,
+        label: `Catch-up Group ${String(groupNumber).padStart(2, "0")}`,
+        installmentIds: ids,
+        dueDate: payload.dueDate,
+        reason: payload.reason,
+        note: payload.note,
+        status: "Pending Payment",
+        proof: null,
+      },
+    ]);
+    toast.success(`Postponed ${labels || "installments"}`);
+  };
+
+  const uploadGroupProof = (groupId: string, file: File | undefined) => {
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File must be 10MB or smaller");
+      return;
+    }
+    const today = new Date().toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    });
+    setGroups((g) =>
+      g.map((it) =>
+        it.id === groupId
+          ? {
+              ...it,
+              proof: { name: file.name, uploadedAt: `Uploaded ${today}` },
+              status: "Pending Review",
+            }
+          : it,
+      ),
+    );
+    toast.success("Group proof uploaded");
+  };
+
+  const approveGroup = (groupId: string) => {
+    const group = groups.find((g) => g.id === groupId);
+    if (!group) return;
+    setGroups((g) =>
+      g.map((it) => (it.id === groupId ? { ...it, status: "Approved" } : it)),
+    );
+    setInstallments((prev) =>
+      prev.map((it) =>
+        group.installmentIds.includes(it.id)
+          ? { ...it, status: "Catch-up Group Approved" as InstallmentStatus }
+          : it,
+      ),
+    );
+    toast.success(`${group.label} approved`);
+  };
+
+  const rejectGroup = (groupId: string) => {
+    setGroups((g) =>
+      g.map((it) => (it.id === groupId ? { ...it, status: "Rejected" } : it)),
+    );
+    toast.success("Group payment rejected");
+  };
+
   const onFile = (file: File | undefined) => {
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) {
@@ -2236,7 +2333,10 @@ function PaymentOverviewDrawer({
   });
 
   const accessStatus: "Active" | "Suspended" =
-    isInstallment && installments.some((i) => i.status === "Rejected")
+    isInstallment &&
+    installments.some(
+      (i) => i.status === "Rejected" || i.status === "Overdue",
+    )
       ? "Suspended"
       : "Active";
 
