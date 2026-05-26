@@ -3068,6 +3068,7 @@ function PaymentOverviewDrawer({
   const [groups, setGroups] = useState<GroupedPayment[]>([]);
   const [showUpcoming, setShowUpcoming] = useState(false);
   const [postponeOpen, setPostponeOpen] = useState(false);
+  const [changeDueDateId, setChangeDueDateId] = useState<string | null>(null);
   const [selectedInstallmentId, setSelectedInstallmentId] = useState<string | null>(
     null,
   );
@@ -3452,6 +3453,7 @@ function PaymentOverviewDrawer({
                     onApprove={approveInstallment}
                     onReject={rejectInstallment}
                     onOpenPostpone={() => setPostponeOpen(true)}
+                    onChangeDueDate={(id) => setChangeDueDateId(id)}
                     onUploadGroupProof={uploadGroupProof}
                     onApproveGroup={approveGroup}
                     onRejectGroup={rejectGroup}
