@@ -28,6 +28,7 @@ import {
   addInvitation,
   salesCourses,
   updateInvitation,
+  deleteInvitation,
   useCustomCohorts,
   useInvitations,
   type Invitation,
@@ -141,6 +142,7 @@ function PaymentPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [inviteResult, setInviteResult] = useState<Invitation | null>(null);
   const [viewDetailsId, setViewDetailsId] = useState<string | null>(null);
+  const [removeTarget, setRemoveTarget] = useState<Invitation | null>(null);
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
@@ -303,15 +305,6 @@ function PaymentPage() {
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-1">
                               <IconAction
-                                label={row.status === "Invite Sent" ? "Resend Payment Link" : "Send Payment Link"}
-                                onClick={() => {
-                                  updateInvitation(row.id, { status: "Invite Sent" });
-                                  toast.success(`Payment Link sent to ${row.studentEmail}`);
-                                }}
-                              >
-                                <Send className="h-4 w-4" />
-                              </IconAction>
-                              <IconAction
                                 label="Copy Payment Link"
                                 onClick={() => copyLink(row.checkoutLink)}
                               >
@@ -322,6 +315,12 @@ function PaymentPage() {
                                 onClick={() => setViewDetailsId(row.id)}
                               >
                                 <Eye className="h-4 w-4" />
+                              </IconAction>
+                              <IconAction
+                                label="Remove"
+                                onClick={() => setRemoveTarget(row)}
+                              >
+                                <Trash2 className="h-4 w-4" style={{ color: "#B42318" }} />
                               </IconAction>
                             </div>
                           </td>
@@ -354,6 +353,18 @@ function PaymentPage() {
         <PaymentOverviewDrawer
           invitation={viewing}
           onClose={() => setViewDetailsId(null)}
+        />
+      )}
+
+      {removeTarget && (
+        <ConfirmRemoveModal
+          invitation={removeTarget}
+          onClose={() => setRemoveTarget(null)}
+          onConfirm={() => {
+            deleteInvitation(removeTarget.id);
+            toast.success(`Removed ${removeTarget.studentName ?? removeTarget.studentEmail}`);
+            setRemoveTarget(null);
+          }}
         />
       )}
     </div>
@@ -434,10 +445,11 @@ function InstallmentsPanel({
   const d = invitation.paymentDetails;
   const activeStatuses: InstallmentStatus[] = [
     "Pending",
-    "Declined",
-    "Postponed",
-    "Catch-up Group Pending",
-    "Catch-up Group Approved",
+    "Payment Failed",
+    "Overdue",
+    "Needs New Proof",
+    "Combined Plan Pending",
+    "Combined Plan Approved",
     "Approved",
   ];
   const activeRows = installments.filter((i) => activeStatuses.includes(i.status));
@@ -512,7 +524,7 @@ function InstallmentsPanel({
                 className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-smaller font-semibold transition-colors hover:bg-[#E5E7EB]"
                 style={{ backgroundColor: "#F3F4F6", color: TEXT_DARK }}
               >
-                <CalendarClock className="h-3.5 w-3.5" /> Postpone
+                <CalendarClock className="h-3.5 w-3.5" /> Combined Plans
               </button>
               <button
                 type="button"
@@ -743,8 +755,8 @@ function InstallmentDetailPanel({
   onReject: () => void;
 }) {
   const isApproved =
-    row.status === "Approved" || row.status === "Catch-up Group Approved";
-  const isDeclined = row.status === "Declined";
+    row.status === "Approved" || row.status === "Combined Plan Approved";
+  const isDeclined = row.status === "Payment Failed";
   const isStripe = row.paymentMethod === "Stripe";
   // Offline pending payments need a proof upload before approval
   const canUpload =
@@ -938,17 +950,24 @@ function PostponeModal({
   const calculatedTotal = installments
     .filter((i) => selected.includes(i.id))
     .reduce((sum, i) => sum + i.amount, 0);
-  const [finalAmountStr, setFinalAmountStr] = useState("");
-  const finalAmount = finalAmountStr === "" ? calculatedTotal : Number(finalAmountStr) || 0;
-  const customApplied = finalAmountStr !== "" && Number(finalAmountStr) !== calculatedTotal;
-  const newDue = (() => {
+  const suggestedDue = (() => {
     const d = new Date();
     d.setMonth(d.getMonth() + months);
-    return d.toLocaleDateString("en-US", {
-      month: "short",
-      day: "2-digit",
-      year: "numeric",
-    });
+    return d.toISOString().slice(0, 10);
+  })();
+  const [dueDate, setDueDate] = useState(suggestedDue);
+  useEffect(() => {
+    setDueDate(suggestedDue);
+  }, [months]);
+  const formattedDue = (() => {
+    const d = new Date(dueDate);
+    return isNaN(d.getTime())
+      ? dueDate
+      : d.toLocaleDateString("en-US", {
+          month: "short",
+          day: "2-digit",
+          year: "numeric",
+        });
   })();
 
   const toggle = (id: string) =>
@@ -972,10 +991,10 @@ function PostponeModal({
         <div className="flex items-start justify-between">
           <div>
             <h3 className="text-second-header font-bold" style={{ color: TEXT_DARK }}>
-              Postpone Installments
+              Create Combined Plan
             </h3>
             <p className="mt-1 text-smaller" style={{ color: TEXT_MUTED }}>
-              Group selected installments into a catch-up payment.
+              Select multiple installments and combine them into one payment the student can complete later.
             </p>
           </div>
           <button
@@ -999,7 +1018,7 @@ function PostponeModal({
             >
               {installments.length === 0 && (
                 <p className="px-3 py-2 text-smaller" style={{ color: TEXT_MUTED }}>
-                  No installments eligible to postpone.
+                  No installments eligible to combine.
                 </p>
               )}
               {installments.map((it) => (
@@ -1024,41 +1043,25 @@ function PostponeModal({
             </div>
           </div>
 
-          {/* Calculated + Final amount */}
+          {/* Calculated total (locked) */}
           <div className="rounded-xl p-3" style={{ backgroundColor: SOFT }}>
             <div className="flex items-center justify-between">
               <span className="text-smaller" style={{ color: TEXT_MUTED }}>
-                Calculated Total
+                Combined Plan Total
               </span>
               <span className="text-small font-semibold" style={{ color: TEXT_DARK }}>
                 ${calculatedTotal.toLocaleString()}
               </span>
             </div>
-            <div className="mt-2 flex items-center justify-between gap-3">
-              <span className="text-smaller" style={{ color: TEXT_MUTED }}>
-                Final Catch-up Amount
-              </span>
-              <input
-                type="number"
-                min={0}
-                value={finalAmountStr}
-                onChange={(e) => setFinalAmountStr(e.target.value)}
-                placeholder={`${calculatedTotal}`}
-                className="w-32 rounded-lg bg-white px-2.5 py-1.5 text-right text-small font-semibold"
-                style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
-              />
-            </div>
-            {customApplied && (
-              <p className="mt-1.5 text-right text-smaller" style={{ color: TEXT_MUTED }}>
-                Custom amount applied (${finalAmount.toLocaleString()})
-              </p>
-            )}
+            <p className="mt-1 text-smaller" style={{ color: TEXT_MUTED }}>
+              Locked — sum of selected installments.
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
               <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
-                Postpone by (months)
+                Extend by (months)
               </p>
               <input
                 type="number"
@@ -1072,14 +1075,15 @@ function PostponeModal({
             </div>
             <div>
               <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
-                New due date
+                Combined Payment Due Date
               </p>
-              <div
-                className="rounded-xl px-3 py-2 text-small"
-                style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK, backgroundColor: SOFT }}
-              >
-                {newDue}
-              </div>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="w-full rounded-xl bg-white px-3 py-2 text-small"
+                style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
+              />
             </div>
           </div>
 
@@ -1128,13 +1132,13 @@ function PostponeModal({
           <button
             type="button"
             onClick={() =>
-              onConfirm(selected, { dueDate: newDue, reason, note })
+              onConfirm(selected, { dueDate: formattedDue, reason, note })
             }
             disabled={selected.length === 0}
             className="rounded-full px-4 py-2 text-small font-semibold disabled:opacity-50"
             style={{ backgroundColor: TEXT_DARK, color: "#FFFFFF" }}
           >
-            Create Catch-up Group
+            Create Combined Plan
           </button>
         </div>
       </motion.div>
@@ -1169,6 +1173,71 @@ function IconAction({
     >
       {children}
     </button>
+  );
+}
+
+function ConfirmRemoveModal({
+  invitation,
+  onClose,
+  onConfirm,
+}: {
+  invitation: Invitation;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-[80] flex items-center justify-center p-4"
+      style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-md rounded-3xl bg-white p-6"
+        style={{ boxShadow: "0 30px 80px rgba(15,23,42,0.3)" }}
+      >
+        <div className="flex items-start gap-3">
+          <div
+            className="grid h-10 w-10 flex-none place-items-center rounded-full"
+            style={{ backgroundColor: "#FEE4E2" }}
+          >
+            <Trash2 className="h-5 w-5" style={{ color: "#B42318" }} />
+          </div>
+          <div className="min-w-0">
+            <h3 className="text-second-header font-bold" style={{ color: TEXT_DARK }}>
+              Remove this entry?
+            </h3>
+            <p className="mt-1 text-small" style={{ color: TEXT_MUTED }}>
+              This will permanently remove{" "}
+              <span className="font-semibold" style={{ color: TEXT_DARK }}>
+                {invitation.studentName ?? invitation.studentEmail}
+              </span>{" "}
+              and their payment link. This action cannot be undone.
+            </p>
+          </div>
+        </div>
+        <div className="mt-6 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full px-4 py-2 text-small font-semibold"
+            style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="rounded-full px-4 py-2 text-small font-semibold text-white"
+            style={{ backgroundColor: "#B42318" }}
+          >
+            Remove
+          </button>
+        </div>
+      </motion.div>
+    </div>
   );
 }
 
@@ -2943,7 +3012,7 @@ function PaymentOverviewDrawer({
   );
 
   const approvedCount = installments.filter(
-    (i) => i.status === "Approved" || i.status === "Catch-up Group Approved",
+    (i) => i.status === "Approved" || i.status === "Combined Plan Approved",
   ).length;
   const totalCount = installments.length;
   const progressPct = totalCount ? Math.round((approvedCount / totalCount) * 100) : 0;
@@ -2958,7 +3027,7 @@ function PaymentOverviewDrawer({
 
   const nextDue =
     installments.find(
-      (i) => i.status !== "Approved" && i.status !== "Catch-up Group Approved",
+      (i) => i.status !== "Approved" && i.status !== "Combined Plan Approved",
     )?.dueDate ?? "—";
 
   // Grouped (catch-up) payments — created when student postpones installments
@@ -2985,7 +3054,7 @@ function PaymentOverviewDrawer({
         it.id === id ? { ...it, status: "Approved" as InstallmentStatus } : it,
       );
       const allApproved = next.every(
-        (i) => i.status === "Approved" || i.status === "Catch-up Group Approved",
+        (i) => i.status === "Approved" || i.status === "Combined Plan Approved",
       );
       if (allApproved) updateInvitation(inv.id, { status: "Installment Approved" });
       else updateInvitation(inv.id, { status: "Installment Pending Approval" });
@@ -3053,7 +3122,7 @@ function PaymentOverviewDrawer({
     setInstallments((prev) =>
       prev.map((it) =>
         ids.includes(it.id)
-          ? { ...it, status: "Catch-up Group Pending" as InstallmentStatus }
+          ? { ...it, status: "Combined Plan Pending" as InstallmentStatus }
           : it,
       ),
     );
@@ -3061,7 +3130,7 @@ function PaymentOverviewDrawer({
       ...g,
       {
         id: groupId,
-        label: `Catch-up Group ${String(groupNumber).padStart(2, "0")}`,
+        label: `Combined Plan ${String(groupNumber).padStart(2, "0")}`,
         installmentIds: ids,
         dueDate: payload.dueDate,
         reason: payload.reason,
@@ -3107,7 +3176,7 @@ function PaymentOverviewDrawer({
     setInstallments((prev) =>
       prev.map((it) =>
         group.installmentIds.includes(it.id)
-          ? { ...it, status: "Catch-up Group Approved" as InstallmentStatus }
+          ? { ...it, status: "Combined Plan Approved" as InstallmentStatus }
           : it,
       ),
     );
@@ -3145,7 +3214,7 @@ function PaymentOverviewDrawer({
   const accessStatus: "Active" | "Suspended" =
     isInstallment &&
     installments.some(
-      (i) => i.status === "Declined",
+      (i) => i.status === "Payment Failed",
     )
       ? "Suspended"
       : "Active";
@@ -3376,7 +3445,7 @@ function PaymentOverviewDrawer({
             (i) =>
               i.status === "Pending" ||
               i.status === "Upcoming" ||
-              i.status === "Declined",
+              i.status === "Payment Failed",
           )}
           onClose={() => setPostponeOpen(false)}
           onConfirm={(ids, payload) => {
@@ -3656,30 +3725,33 @@ function Timeline({
     for (const inst of installments) {
       const state: TimelineState =
         inst.status === "Approved" ||
-        inst.status === "Catch-up Group Approved" ||
-        inst.status === "Declined"
+        inst.status === "Combined Plan Approved"
           ? "done"
           : inst.status === "Pending" ||
-              inst.status === "Catch-up Group Pending" ||
-              inst.status === "Postponed"
+              inst.status === "Combined Plan Pending" ||
+              inst.status === "Payment Failed" ||
+              inst.status === "Overdue" ||
+              inst.status === "Needs New Proof"
             ? "current"
             : "pending";
       const suffix =
-        inst.status === "Approved" || inst.status === "Catch-up Group Approved"
+        inst.status === "Approved" || inst.status === "Combined Plan Approved"
           ? "approved"
-          : inst.status === "Declined"
-            ? "declined"
+          : inst.status === "Payment Failed"
+            ? "payment failed"
             : inst.status === "Pending"
               ? "pending"
-              : inst.status === "Postponed"
-                ? "postponed"
-                : inst.status === "Catch-up Group Pending"
-                  ? "in catch-up group"
-                  : "upcoming";
+              : inst.status === "Combined Plan Pending"
+                ? "in combined plan"
+                : inst.status === "Overdue"
+                  ? "overdue"
+                  : inst.status === "Needs New Proof"
+                    ? "needs new proof"
+                    : "upcoming";
       items.push({
         label: `${inst.label} ${suffix}`,
         icon:
-          inst.status === "Approved" || inst.status === "Catch-up Group Approved"
+          inst.status === "Approved" || inst.status === "Combined Plan Approved"
             ? ShieldCheck
             : CreditCard,
         state,
@@ -3802,11 +3874,12 @@ function Timeline({
 type InstallmentStatus =
   | "Approved"
   | "Pending"
-  | "Declined"
+  | "Payment Failed"
+  | "Overdue"
+  | "Needs New Proof"
   | "Upcoming"
-  | "Postponed"
-  | "Catch-up Group Pending"
-  | "Catch-up Group Approved";
+  | "Combined Plan Pending"
+  | "Combined Plan Approved";
 
 type InstallmentRow = {
   id: string;
@@ -3878,11 +3951,12 @@ function InstallmentStatusPill({ status }: { status: InstallmentStatus }) {
   const map: Record<InstallmentStatus, { bg: string; color: string }> = {
     Approved: { bg: "rgba(204,246,33,0.45)", color: "#3F5C00" },
     Pending: { bg: "#FEF3C7", color: "#92400E" },
-    Declined: { bg: "#FEE2E2", color: "#991B1B" },
+    "Payment Failed": { bg: "#FEE2E2", color: "#991B1B" },
+    Overdue: { bg: "#FEE2E2", color: "#991B1B" },
+    "Needs New Proof": { bg: "#FEF3C7", color: "#92400E" },
     Upcoming: { bg: "#F3F4F6", color: "#6B7280" },
-    Postponed: { bg: "#E0E7FF", color: "#3730A3" },
-    "Catch-up Group Pending": { bg: "#FEF9C3", color: "#854D0E" },
-    "Catch-up Group Approved": { bg: "rgba(204,246,33,0.45)", color: "#3F5C00" },
+    "Combined Plan Pending": { bg: "#FEF9C3", color: "#854D0E" },
+    "Combined Plan Approved": { bg: "rgba(204,246,33,0.45)", color: "#3F5C00" },
   };
   const s = map[status];
   return (

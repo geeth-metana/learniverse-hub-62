@@ -76,6 +76,7 @@ export type Invitation = {
 
 const STORAGE_KEY = "metana:invitations";
 const EVT = "metana:invitations-changed";
+const TOMBSTONE_KEY = "metana:invitations-deleted";
 const COHORT_KEY = "metana:custom-cohorts";
 const COHORT_EVT = "metana:custom-cohorts-changed";
 
@@ -170,7 +171,9 @@ function read(): Invitation[] {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     const stored = raw ? (JSON.parse(raw) as Invitation[]) : [];
     const ids = new Set(stored.map((i) => i.id));
-    return [...stored, ...seed.filter((s) => !ids.has(s.id))].sort(
+    const tombRaw = window.localStorage.getItem(TOMBSTONE_KEY);
+    const tomb = new Set<string>(tombRaw ? JSON.parse(tombRaw) : []);
+    return [...stored, ...seed.filter((s) => !ids.has(s.id) && !tomb.has(s.id))].sort(
       (a, b) => b.createdAt - a.createdAt,
     );
   } catch {
@@ -204,6 +207,22 @@ export function updateInvitation(id: string, patch: Partial<Invitation>) {
   if (idx === -1) return;
   list[idx] = { ...list[idx], ...patch };
   write(list);
+}
+
+export function deleteInvitation(id: string) {
+  const list = read().filter((i) => i.id !== id);
+  write(list);
+  if (typeof window !== "undefined") {
+    try {
+      const raw = window.localStorage.getItem(TOMBSTONE_KEY);
+      const tomb: string[] = raw ? JSON.parse(raw) : [];
+      if (!tomb.includes(id)) {
+        tomb.push(id);
+        window.localStorage.setItem(TOMBSTONE_KEY, JSON.stringify(tomb));
+      }
+    } catch {}
+    window.dispatchEvent(new Event(EVT));
+  }
 }
 
 export function getInvitation(id: string): Invitation | undefined {
