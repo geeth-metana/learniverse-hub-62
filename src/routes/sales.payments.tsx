@@ -2962,12 +2962,16 @@ function Timeline({
   invitation,
   approval,
   installments = [],
-  extraEvents = [],
+  groups = [],
 }: {
   invitation: Invitation;
   approval: ApprovalState;
   installments?: InstallmentRow[];
-  extraEvents?: string[];
+  groups?: {
+    id: string;
+    label: string;
+    status: "Pending Payment" | "Pending Review" | "Approved" | "Rejected";
+  }[];
 }) {
   const status = invitation.status;
   const isInstallment = invitation.paymentDetails.paymentType === "Installment";
@@ -2997,13 +3001,18 @@ function Timeline({
     });
     for (const inst of installments) {
       const state: TimelineState =
-        inst.status === "Approved" || inst.status === "Rejected"
+        inst.status === "Approved" ||
+        inst.status === "Catch-up Group Approved" ||
+        inst.status === "Rejected"
           ? "done"
-          : inst.status === "Pending Review"
+          : inst.status === "Pending Review" ||
+              inst.status === "Catch-up Group Pending" ||
+              inst.status === "Postponed" ||
+              inst.status === "Overdue"
             ? "current"
             : "pending";
       const suffix =
-        inst.status === "Approved"
+        inst.status === "Approved" || inst.status === "Catch-up Group Approved"
           ? "approved"
           : inst.status === "Rejected"
             ? "rejected"
@@ -3011,10 +3020,32 @@ function Timeline({
               ? "pending review"
               : inst.status === "Proof Required"
                 ? "proof required"
-                : "upcoming";
+                : inst.status === "Postponed"
+                  ? "postponed"
+                  : inst.status === "Overdue"
+                    ? "overdue"
+                    : inst.status === "Catch-up Group Pending"
+                      ? "in catch-up group"
+                      : "upcoming";
       items.push({
         label: `${inst.label} ${suffix}`,
-        icon: inst.status === "Approved" ? ShieldCheck : CreditCard,
+        icon:
+          inst.status === "Approved" || inst.status === "Catch-up Group Approved"
+            ? ShieldCheck
+            : CreditCard,
+        state,
+      });
+    }
+    for (const g of groups) {
+      const state: TimelineState =
+        g.status === "Approved"
+          ? "done"
+          : g.status === "Rejected"
+            ? "current"
+            : "current";
+      items.push({
+        label: `${g.label} ${g.status.toLowerCase()}`,
+        icon: Layers,
         state,
       });
     }
@@ -3053,9 +3084,6 @@ function Timeline({
     });
   }
 
-  for (const ev of extraEvents) {
-    items.push({ label: ev, icon: CheckCircle2, state: "done" });
-  }
   // suppress unused-var warning for approval (kept for API parity)
   void approval;
 
