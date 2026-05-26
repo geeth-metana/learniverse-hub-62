@@ -304,15 +304,6 @@ function PaymentPage() {
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-1">
                               <IconAction
-                                label={row.status === "Invite Sent" ? "Resend Payment Link" : "Send Payment Link"}
-                                onClick={() => {
-                                  updateInvitation(row.id, { status: "Invite Sent" });
-                                  toast.success(`Payment Link sent to ${row.studentEmail}`);
-                                }}
-                              >
-                                <Send className="h-4 w-4" />
-                              </IconAction>
-                              <IconAction
                                 label="Copy Payment Link"
                                 onClick={() => copyLink(row.checkoutLink)}
                               >
@@ -323,6 +314,12 @@ function PaymentPage() {
                                 onClick={() => setViewDetailsId(row.id)}
                               >
                                 <Eye className="h-4 w-4" />
+                              </IconAction>
+                              <IconAction
+                                label="Remove"
+                                onClick={() => setRemoveTarget(row)}
+                              >
+                                <Trash2 className="h-4 w-4" style={{ color: "#B42318" }} />
                               </IconAction>
                             </div>
                           </td>
