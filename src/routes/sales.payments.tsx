@@ -524,7 +524,7 @@ function InstallmentsPanel({
                 className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-smaller font-semibold transition-colors hover:bg-[#E5E7EB]"
                 style={{ backgroundColor: "#F3F4F6", color: TEXT_DARK }}
               >
-                <CalendarClock className="h-3.5 w-3.5" /> Postpone
+                <CalendarClock className="h-3.5 w-3.5" /> Combined Plans
               </button>
               <button
                 type="button"
