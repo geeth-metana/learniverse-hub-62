@@ -3880,8 +3880,9 @@ type InstallmentStatus =
   | "Approved"
   | "Pending"
   | "Payment Failed"
+  | "Overdue"
+  | "Needs New Proof"
   | "Upcoming"
-  | "Postponed"
   | "Combined Plan Pending"
   | "Combined Plan Approved";
 
@@ -3955,9 +3956,10 @@ function InstallmentStatusPill({ status }: { status: InstallmentStatus }) {
   const map: Record<InstallmentStatus, { bg: string; color: string }> = {
     Approved: { bg: "rgba(204,246,33,0.45)", color: "#3F5C00" },
     Pending: { bg: "#FEF3C7", color: "#92400E" },
-    Declined: { bg: "#FEE2E2", color: "#991B1B" },
+    "Payment Failed": { bg: "#FEE2E2", color: "#991B1B" },
+    Overdue: { bg: "#FEE2E2", color: "#991B1B" },
+    "Needs New Proof": { bg: "#FEF3C7", color: "#92400E" },
     Upcoming: { bg: "#F3F4F6", color: "#6B7280" },
-    Postponed: { bg: "#E0E7FF", color: "#3730A3" },
     "Combined Plan Pending": { bg: "#FEF9C3", color: "#854D0E" },
     "Combined Plan Approved": { bg: "rgba(204,246,33,0.45)", color: "#3F5C00" },
   };
