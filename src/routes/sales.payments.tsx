@@ -672,6 +672,7 @@ function InstallmentsPanel({
               included={groupIncluded(selectedGroup)}
               onUpload={(file) => onUploadGroupProof(selectedGroup.id, file)}
               onApprove={() => onApproveGroup(selectedGroup.id)}
+              onDetach={() => onDetachGroup(selectedGroup.id)}
             />
           ) : selected ? (
             <InstallmentDetailPanel
