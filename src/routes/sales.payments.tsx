@@ -1629,8 +1629,8 @@ type UpfrontPlanState = {
 };
 
 const UPFRONT_PLANS: UpfrontPlanState[] = [
-  { id: "plan-01", name: "Plan 01", planAmount: 12370, discountPercent: 20 },
-  { id: "plan-02", name: "Plan 02", planAmount: 17500, discountPercent: 20 },
+  { id: "plan-01", name: "Plan 01", planAmount: 12370, discountPercent: 0 },
+  { id: "plan-02", name: "Plan 02", planAmount: 14000, discountPercent: 0 },
 ];
 
 function AddStudentModal({
@@ -1649,12 +1649,17 @@ function AddStudentModal({
 
   // Upfront state
   const [upfrontPlanId, setUpfrontPlanId] = useState<"plan-01" | "plan-02">("plan-01");
+  const [upfrontAmount, setUpfrontAmount] = useState<Record<"plan-01" | "plan-02", number>>({
+    "plan-01": 12370,
+    "plan-02": 14000,
+  });
   const [upfrontDiscount, setUpfrontDiscount] = useState<Record<"plan-01" | "plan-02", number>>({
-    "plan-01": 20,
-    "plan-02": 20,
+    "plan-01": 0,
+    "plan-02": 0,
   });
 
   // Installment state
+  const [installmentPlanId, setInstallmentPlanId] = useState<"plan-01" | "plan-02" | "custom">("plan-01");
   const [fullAmount, setFullAmount] = useState(14000);
   const [downPayment, setDownPayment] = useState(2000);
   const [months, setMonths] = useState<3 | 6 | 9 | 12>(6);
@@ -1699,12 +1704,13 @@ function AddStudentModal({
   const buildPaymentDetails = (): PaymentDetails => {
     if (paymentMethod === "Upfront") {
       const plan = UPFRONT_PLANS.find((p) => p.id === upfrontPlanId)!;
+      const planAmount = upfrontAmount[plan.id];
       const dp = upfrontDiscount[plan.id];
-      const checkoutAmount = Math.round(plan.planAmount * (1 - dp / 100));
+      const checkoutAmount = Math.round(planAmount * (1 - dp / 100));
       return {
         paymentType: "Upfront",
         planName: plan.name,
-        planAmount: plan.planAmount,
+        planAmount,
         discountPercent: dp,
         checkoutAmount,
       };
@@ -1719,13 +1725,6 @@ function AddStudentModal({
         timePeriodMonths: months,
         monthlyPayment: monthly,
         totalAmount: fullAmount,
-      };
-    }
-    if (paymentMethod === "Bank") {
-      return {
-        paymentType: "Bank",
-        ...bank,
-        referenceNote: `${email.trim()} · ${course?.title ?? ""}`,
       };
     }
     return {
@@ -1851,8 +1850,12 @@ function AddStudentModal({
                 method={paymentMethod}
                 upfrontPlanId={upfrontPlanId}
                 setUpfrontPlanId={setUpfrontPlanId}
+                upfrontAmount={upfrontAmount}
+                setUpfrontAmount={setUpfrontAmount}
                 upfrontDiscount={upfrontDiscount}
                 setUpfrontDiscount={setUpfrontDiscount}
+                installmentPlanId={installmentPlanId}
+                setInstallmentPlanId={setInstallmentPlanId}
                 fullAmount={fullAmount}
                 setFullAmount={setFullAmount}
                 downPayment={downPayment}
