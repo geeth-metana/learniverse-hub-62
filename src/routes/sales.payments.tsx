@@ -427,9 +427,7 @@ function InstallmentsPanel({
   const d = invitation.paymentDetails;
   const activeStatuses: InstallmentStatus[] = [
     "Pending",
-    "Pending",
-    "Rejected",
-    "Overdue",
+    "Declined",
     "Postponed",
     "Catch-up Group Pending",
     "Catch-up Group Approved",
@@ -444,19 +442,9 @@ function InstallmentsPanel({
 
   return (
     <section>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h4 className="text-second-header font-semibold" style={{ color: TEXT_DARK }}>
-          Installment Payments
-        </h4>
-        <button
-          type="button"
-          onClick={onOpenPostpone}
-          className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-small font-semibold"
-          style={{ backgroundColor: SOFT, color: TEXT_DARK }}
-        >
-          <CalendarClock className="h-4 w-4" /> Postpone Installment
-        </button>
-      </div>
+      <h4 className="mb-4 text-second-header font-semibold" style={{ color: TEXT_DARK }}>
+        Installment Payments
+      </h4>
 
       {/* Top summary */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
