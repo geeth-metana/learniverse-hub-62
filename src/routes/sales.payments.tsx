@@ -950,17 +950,24 @@ function PostponeModal({
   const calculatedTotal = installments
     .filter((i) => selected.includes(i.id))
     .reduce((sum, i) => sum + i.amount, 0);
-  const [finalAmountStr, setFinalAmountStr] = useState("");
-  const finalAmount = finalAmountStr === "" ? calculatedTotal : Number(finalAmountStr) || 0;
-  const customApplied = finalAmountStr !== "" && Number(finalAmountStr) !== calculatedTotal;
-  const newDue = (() => {
+  const suggestedDue = (() => {
     const d = new Date();
     d.setMonth(d.getMonth() + months);
-    return d.toLocaleDateString("en-US", {
-      month: "short",
-      day: "2-digit",
-      year: "numeric",
-    });
+    return d.toISOString().slice(0, 10);
+  })();
+  const [dueDate, setDueDate] = useState(suggestedDue);
+  useEffect(() => {
+    setDueDate(suggestedDue);
+  }, [months]);
+  const formattedDue = (() => {
+    const d = new Date(dueDate);
+    return isNaN(d.getTime())
+      ? dueDate
+      : d.toLocaleDateString("en-US", {
+          month: "short",
+          day: "2-digit",
+          year: "numeric",
+        });
   })();
 
   const toggle = (id: string) =>
@@ -984,10 +991,10 @@ function PostponeModal({
         <div className="flex items-start justify-between">
           <div>
             <h3 className="text-second-header font-bold" style={{ color: TEXT_DARK }}>
-              Postpone Installments
+              Create Combined Plan
             </h3>
             <p className="mt-1 text-smaller" style={{ color: TEXT_MUTED }}>
-              Group selected installments into a catch-up payment.
+              Select multiple installments and combine them into one payment the student can complete later.
             </p>
           </div>
           <button
@@ -1011,7 +1018,7 @@ function PostponeModal({
             >
               {installments.length === 0 && (
                 <p className="px-3 py-2 text-smaller" style={{ color: TEXT_MUTED }}>
-                  No installments eligible to postpone.
+                  No installments eligible to combine.
                 </p>
               )}
               {installments.map((it) => (
@@ -1036,41 +1043,25 @@ function PostponeModal({
             </div>
           </div>
 
-          {/* Calculated + Final amount */}
+          {/* Calculated total (locked) */}
           <div className="rounded-xl p-3" style={{ backgroundColor: SOFT }}>
             <div className="flex items-center justify-between">
               <span className="text-smaller" style={{ color: TEXT_MUTED }}>
-                Calculated Total
+                Combined Plan Total
               </span>
               <span className="text-small font-semibold" style={{ color: TEXT_DARK }}>
                 ${calculatedTotal.toLocaleString()}
               </span>
             </div>
-            <div className="mt-2 flex items-center justify-between gap-3">
-              <span className="text-smaller" style={{ color: TEXT_MUTED }}>
-                Final Catch-up Amount
-              </span>
-              <input
-                type="number"
-                min={0}
-                value={finalAmountStr}
-                onChange={(e) => setFinalAmountStr(e.target.value)}
-                placeholder={`${calculatedTotal}`}
-                className="w-32 rounded-lg bg-white px-2.5 py-1.5 text-right text-small font-semibold"
-                style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
-              />
-            </div>
-            {customApplied && (
-              <p className="mt-1.5 text-right text-smaller" style={{ color: TEXT_MUTED }}>
-                Custom amount applied (${finalAmount.toLocaleString()})
-              </p>
-            )}
+            <p className="mt-1 text-smaller" style={{ color: TEXT_MUTED }}>
+              Locked — sum of selected installments.
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
               <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
-                Postpone by (months)
+                Extend by (months)
               </p>
               <input
                 type="number"
@@ -1084,14 +1075,15 @@ function PostponeModal({
             </div>
             <div>
               <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
-                New due date
+                Combined Payment Due Date
               </p>
-              <div
-                className="rounded-xl px-3 py-2 text-small"
-                style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK, backgroundColor: SOFT }}
-              >
-                {newDue}
-              </div>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="w-full rounded-xl bg-white px-3 py-2 text-small"
+                style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
+              />
             </div>
           </div>
 
@@ -1140,7 +1132,7 @@ function PostponeModal({
           <button
             type="button"
             onClick={() =>
-              onConfirm(selected, { dueDate: newDue, reason, note })
+              onConfirm(selected, { dueDate: formattedDue, reason, note })
             }
             disabled={selected.length === 0}
             className="rounded-full px-4 py-2 text-small font-semibold disabled:opacity-50"
