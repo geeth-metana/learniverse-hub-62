@@ -3158,8 +3158,9 @@ function PaymentOverviewDrawer({
     { id: "course", label: "Course Access Details", icon: BookOpen },
     { id: "payment", label: "Payment Details", icon: CreditCard },
     { id: "timeline", label: "Payment Status Timeline", icon: ListChecks },
-    { id: "installments", label: "Installment Payments", icon: Layers },
-    { id: "proof", label: "Upload Payment Proof", icon: UploadCloud },
+    ...(inv.paymentMethod === "Installment"
+      ? ([{ id: "installments", label: "Installment Payments", icon: Layers }] as const)
+      : ([] as const)),
   ] as const;
   type TabId = (typeof TABS)[number]["id"];
   const [activeTab, setActiveTab] = useState<TabId>("student");
