@@ -2708,26 +2708,6 @@ function ProofRow({
   );
 }
 
-function DrawerSection({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section
-      className="rounded-2xl bg-white p-5"
-      style={{ border: `1px solid ${BORDER}` }}
-    >
-      <h4 className="mb-3 text-second-header font-semibold" style={{ color: TEXT_DARK }}>
-        {title}
-      </h4>
-      {children}
-    </section>
-  );
-}
-
 function Row({
   label,
   value,
