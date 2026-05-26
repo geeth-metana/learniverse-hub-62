@@ -170,45 +170,44 @@ function PaymentPage() {
 
             <AnalyticsSection />
 
-            <div className="mb-3 flex justify-end">
-              <div className="text-right">
-                <h2 className="text-second-header font-semibold leading-tight" style={{ color: TEXT_DARK }}>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="font-bold leading-tight" style={{ color: TEXT_DARK, fontSize: 20 }}>
                   Assigned Users
                 </h2>
                 <span className="text-small" style={{ color: TEXT_MUTED }}>
                   {filtered.length} {filtered.length === 1 ? "user" : "users"}
                 </span>
               </div>
-            </div>
-
-            <div className="mb-4 flex flex-wrap items-center justify-start gap-3">
-              <div
-                className="flex min-w-[260px] max-w-[420px] flex-1 items-center gap-2 rounded-full bg-white px-4 py-2.5"
-                style={{ border: `1px solid ${BORDER}` }}
-              >
-                <Search className="h-4 w-4" style={{ color: TEXT_MUTED }} />
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search by student, email, course, or payment type"
-                  className="w-full bg-transparent text-body outline-none"
-                  style={{ color: TEXT_DARK }}
-                />
+              <div className="flex flex-wrap items-center gap-3">
+                <div
+                  className="flex w-[340px] max-w-full items-center gap-2 rounded-full bg-white px-4 py-2.5"
+                  style={{ border: `1px solid ${BORDER}` }}
+                >
+                  <Search className="h-4 w-4" style={{ color: TEXT_MUTED }} />
+                  <input
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search by student, email, course, or payment type"
+                    className="w-full bg-transparent text-body outline-none"
+                    style={{ color: TEXT_DARK }}
+                  />
+                </div>
+                <button
+                  aria-label="Filters"
+                  className="grid h-10 w-10 place-items-center rounded-full transition-colors hover:bg-[#F3F4F6]"
+                  style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
+                >
+                  <SlidersHorizontal className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setAddOpen(true)}
+                  className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-button-primary font-semibold transition-opacity hover:opacity-90"
+                  style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+                >
+                  <Plus className="h-4 w-4" /> Create Payment Plan
+                </button>
               </div>
-              <button
-                aria-label="Filters"
-                className="grid h-10 w-10 place-items-center rounded-full transition-colors hover:bg-[#F3F4F6]"
-                style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
-              >
-                <SlidersHorizontal className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => setAddOpen(true)}
-                className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-button-primary font-semibold transition-opacity hover:opacity-90"
-                style={{ backgroundColor: BRAND, color: TEXT_DARK }}
-              >
-                <Plus className="h-4 w-4" /> Create Payment Plan
-              </button>
             </div>
 
             <section
@@ -216,10 +215,22 @@ function PaymentPage() {
               style={{ border: `1px solid ${BORDER}` }}
             >
               <style>{`
-                .pay-row { transition: background-color 0.2s ease, box-shadow 0.25s ease; }
-                .pay-row:hover { background: rgba(204, 246, 33, 0.08); box-shadow: inset 0 0 0 1px #CCF621; border-radius: 12px; }
-                .pay-row:hover td:first-child { border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
-                .pay-row:hover td:last-child { border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
+                .pay-row { transition: background-color 0.2s ease; }
+                .pay-row > td { position: relative; transition: background-color 0.2s ease; }
+                .pay-row > td::after {
+                  content: "";
+                  position: absolute;
+                  left: 0;
+                  right: 0;
+                  bottom: -1px;
+                  height: 1px;
+                  background: #CCF621;
+                  transform: scaleX(0);
+                  transform-origin: left center;
+                  transition: transform 0.25s ease;
+                }
+                .pay-row:hover { background: rgba(204, 246, 33, 0.06); }
+                .pay-row:hover > td::after { transform: scaleX(1); }
               `}</style>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-body">
