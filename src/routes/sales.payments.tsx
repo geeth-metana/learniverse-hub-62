@@ -142,6 +142,7 @@ function PaymentPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [inviteResult, setInviteResult] = useState<Invitation | null>(null);
   const [viewDetailsId, setViewDetailsId] = useState<string | null>(null);
+  const [removeTarget, setRemoveTarget] = useState<Invitation | null>(null);
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
