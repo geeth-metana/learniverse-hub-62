@@ -2640,6 +2640,23 @@ function PaymentOverviewDrawer({
           </div>
         </div>
       </motion.div>
+      {postponeOpen && (
+        <PostponeModal
+          installments={installments.filter(
+            (i) =>
+              i.status === "Pending Review" ||
+              i.status === "Proof Required" ||
+              i.status === "Upcoming" ||
+              i.status === "Overdue" ||
+              i.status === "Rejected",
+          )}
+          onClose={() => setPostponeOpen(false)}
+          onConfirm={(ids, payload) => {
+            postponeInstallments(ids, payload);
+            setPostponeOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 }
