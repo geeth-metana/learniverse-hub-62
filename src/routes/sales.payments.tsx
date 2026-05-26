@@ -3852,6 +3852,8 @@ type InstallmentRow = {
   amount: number;
   status: InstallmentStatus;
   proof: ProofFile | null;
+  paymentMethod: "Stripe" | "Offline";
+  stripeTxnId?: string;
 };
 
 function addMonthsFormatted(start: Date, months: number): string {
@@ -3876,14 +3878,22 @@ function seedInstallments(
     const number = i + 1;
     let status: InstallmentStatus = "Upcoming";
     let proof: ProofFile | null = null;
+    // Alternate methods for demo: 1st Stripe-auto-approved, 2nd offline pending w/ proof,
+    // 3rd offline pending awaiting proof, rest upcoming.
+    let paymentMethod: "Stripe" | "Offline" = i % 2 === 0 ? "Stripe" : "Offline";
+    let stripeTxnId: string | undefined;
     if (i === 0) {
       status = "Approved";
-      proof = { name: `installment-01.pdf`, uploadedAt: "Uploaded earlier" };
+      paymentMethod = "Stripe";
+      stripeTxnId = "ch_3Q1xR4...";
+      proof = { name: "stripe-receipt-01.pdf", uploadedAt: "Auto-saved" };
     } else if (i === 1) {
       status = "Pending";
-      proof = { name: `installment-02-proof.pdf`, uploadedAt: "Uploaded Jun 15, 2026" };
+      paymentMethod = "Offline";
+      proof = { name: "installment-02-proof.pdf", uploadedAt: "Uploaded Jun 15, 2026" };
     } else if (i === 2) {
       status = "Pending";
+      paymentMethod = "Offline";
     }
     rows.push({
       id: `inst-${number}`,
@@ -3893,6 +3903,8 @@ function seedInstallments(
       amount: details.monthlyPayment,
       status,
       proof,
+      paymentMethod,
+      stripeTxnId,
     });
   }
   return rows;
