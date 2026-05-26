@@ -2523,116 +2523,28 @@ function PaymentOverviewDrawer({
                 )}
 
                 {activeTab === "installments" && (
-                  <PanelSection title="Installment Payments">
-                    {isInstallment && inv.paymentDetails.paymentType === "Installment" ? (
-                      <>
-                        <p className="text-small" style={{ color: TEXT_MUTED }}>
-                          Review each monthly installment, upload proof, and approve
-                          payments one by one.
-                        </p>
-
-                        <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
-                          <MiniStat
-                            label="Full Amount"
-                            value={`$${inv.paymentDetails.fullAmount.toLocaleString()}`}
-                          />
-                          <MiniStat
-                            label="Down Payment"
-                            value={`$${inv.paymentDetails.initialDownPayment.toLocaleString()}`}
-                          />
-                          <MiniStat
-                            label="Monthly Payment"
-                            value={`$${inv.paymentDetails.monthlyPayment.toLocaleString()}`}
-                          />
-                          <MiniStat
-                            label="Approved"
-                            value={`${approvedCount} / ${totalCount}`}
-                          />
-                        </div>
-
-                        <div
-                          className="mt-4 rounded-xl p-4"
-                          style={{ backgroundColor: SOFT }}
-                        >
-                          <div className="mb-2 flex items-center justify-between">
-                            <span
-                              className="text-small font-semibold"
-                              style={{ color: TEXT_DARK }}
-                            >
-                              {approvedCount} / {totalCount} Installments Approved
-                            </span>
-                            <span
-                              className="text-small font-medium"
-                              style={{ color: TEXT_DARK }}
-                            >
-                              Access: {accessStatus}
-                            </span>
-                          </div>
-                          <div
-                            className="h-2 w-full overflow-hidden rounded-full"
-                            style={{ backgroundColor: "#E5E7EB" }}
-                          >
-                            <div
-                              className="h-full rounded-full transition-all"
-                              style={{
-                                width: `${progressPct}%`,
-                                backgroundColor: BRAND,
-                              }}
-                            />
-                          </div>
-                        </div>
-
-                        {/* Down payment row */}
-                        <div
-                          className="mt-4 rounded-xl p-4"
-                          style={{ border: `1px solid ${BORDER}`, backgroundColor: "#FAFAFA" }}
-                        >
-                          <div className="flex flex-wrap items-start justify-between gap-3">
-                            <div>
-                              <p className="text-small font-semibold" style={{ color: TEXT_DARK }}>
-                                Down Payment
-                              </p>
-                              <p className="mt-0.5 text-smaller" style={{ color: TEXT_MUTED }}>
-                                Due Before Orientation · $
-                                {inv.paymentDetails.initialDownPayment.toLocaleString()} · Stripe
-                              </p>
-                              <p className="mt-1 text-smaller" style={{ color: "#3F5C00" }}>
-                                Auto-saved via Stripe
-                              </p>
-                            </div>
-                            <span
-                              className="inline-flex items-center rounded-full px-2.5 py-1 text-smaller font-semibold"
-                              style={{ backgroundColor: "rgba(204,246,33,0.45)", color: "#3F5C00" }}
-                            >
-                              Approved
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="mt-4 space-y-3">
-                          {installments.map((it) => (
-                            <InstallmentCard
-                              key={it.id}
-                              row={it}
-                              onUpload={(file) => uploadInstallmentProof(it.id, file)}
-                              onRemove={() => removeInstallmentProof(it.id)}
-                              onApprove={() => approveInstallment(it.id)}
-                              onReject={() => rejectInstallment(it.id)}
-                            />
-                          ))}
-                        </div>
-                      </>
-                    ) : (
-                      <div
-                        className="rounded-xl px-4 py-10 text-center"
-                        style={{ backgroundColor: "#FAFAFA", border: `1px dashed ${BORDER}` }}
-                      >
-                        <p className="text-small" style={{ color: TEXT_MUTED }}>
-                          This student does not have an installment payment plan.
-                        </p>
-                      </div>
-                    )}
-                  </PanelSection>
+                  <InstallmentsPanel
+                    invitation={inv}
+                    isInstallment={isInstallment}
+                    installments={installments}
+                    groups={groups}
+                    approvedCount={approvedCount}
+                    totalCount={totalCount}
+                    progressPct={progressPct}
+                    accessStatus={accessStatus}
+                    showUpcoming={showUpcoming}
+                    setShowUpcoming={setShowUpcoming}
+                    selectedInstallmentId={selectedInstallmentId}
+                    setSelectedInstallmentId={setSelectedInstallmentId}
+                    onUploadProof={uploadInstallmentProof}
+                    onRemoveProof={removeInstallmentProof}
+                    onApprove={approveInstallment}
+                    onReject={rejectInstallment}
+                    onOpenPostpone={() => setPostponeOpen(true)}
+                    onUploadGroupProof={uploadGroupProof}
+                    onApproveGroup={approveGroup}
+                    onRejectGroup={rejectGroup}
+                  />
                 )}
 
                 {activeTab === "proof" && (
