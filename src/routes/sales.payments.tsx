@@ -28,6 +28,7 @@ import {
   addInvitation,
   salesCourses,
   updateInvitation,
+  deleteInvitation,
   useCustomCohorts,
   useInvitations,
   type Invitation,
