@@ -3733,26 +3733,29 @@ function Timeline({
     for (const inst of installments) {
       const state: TimelineState =
         inst.status === "Approved" ||
-        inst.status === "Combined Plan Approved" ||
-        inst.status === "Payment Failed"
+        inst.status === "Combined Plan Approved"
           ? "done"
           : inst.status === "Pending" ||
               inst.status === "Combined Plan Pending" ||
-              inst.status === "Combined Plan Pending"
+              inst.status === "Payment Failed" ||
+              inst.status === "Overdue" ||
+              inst.status === "Needs New Proof"
             ? "current"
             : "pending";
       const suffix =
         inst.status === "Approved" || inst.status === "Combined Plan Approved"
           ? "approved"
           : inst.status === "Payment Failed"
-            ? "declined"
+            ? "payment failed"
             : inst.status === "Pending"
               ? "pending"
               : inst.status === "Combined Plan Pending"
-                ? "postponed"
-                : inst.status === "Combined Plan Pending"
-                  ? "in catch-up group"
-                  : "upcoming";
+                ? "in combined plan"
+                : inst.status === "Overdue"
+                  ? "overdue"
+                  : inst.status === "Needs New Proof"
+                    ? "needs new proof"
+                    : "upcoming";
       items.push({
         label: `${inst.label} ${suffix}`,
         icon:
