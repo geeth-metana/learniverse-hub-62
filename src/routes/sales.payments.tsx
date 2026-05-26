@@ -379,47 +379,52 @@ const PAYMENT_SPLIT = [
 
 type KpiTone = "lime" | "mint" | "yellow" | "teal";
 
+const INCOMING_PERIODS = {
+  Week: { value: "$18,400", title: "This Week Incoming" },
+  Month: { value: "$72,400", title: "This Month Incoming" },
+  Year: { value: "$684,900", title: "This Year Incoming" },
+} as const;
+type IncomingPeriod = keyof typeof INCOMING_PERIODS;
+
 function AnalyticsSection() {
+  const [period, setPeriod] = useState<IncomingPeriod>("Month");
+  const incoming = INCOMING_PERIODS[period];
   return (
     <div className="mb-6 flex flex-col gap-4">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard
-          tone="lime"
-          label="Total Sales Revenue"
-          description="Overall revenue generated from student payment plans."
-          value="$284,600"
-          Icon={Wallet}
-        />
+      <div className="grid gap-4 sm:grid-cols-2">
         <KpiCard
           tone="mint"
-          label="Incoming Payments"
+          label={incoming.title}
           description="Expected payments from active student plans."
-          value="$72,400"
+          value={incoming.value}
           Icon={TrendingUp}
+          headerRight={
+            <PeriodSelector value={period} onChange={setPeriod} />
+          }
         />
         <KpiCard
           tone="yellow"
           label="Pending Payments"
           description="Payments waiting to be completed or confirmed."
           value="$41,250"
-          subValue="23 Students"
+          inlineSubValue="23 Students"
           Icon={Clock}
-        />
-        <KpiCard
-          tone="teal"
-          label="Paid Students"
-          description="Students who successfully completed payment."
-          value="39 Students"
-          Icon={Users}
         />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <ChartCard
-          className="lg:col-span-2"
-          title="Incoming Payments"
-          subtitle="Expected revenue by payment method over time."
-        >
+      <div
+        className="grid grid-cols-1 overflow-hidden bg-white lg:grid-cols-[65fr_35fr]"
+        style={{ border: `1px solid ${BORDER}`, borderRadius: 20 }}
+      >
+        <div className="flex flex-col gap-4 p-6 lg:border-r" style={{ borderColor: BORDER }}>
+          <div>
+            <h3 className="text-second-header font-semibold" style={{ color: TEXT_DARK }}>
+              Incoming Payments
+            </h3>
+            <p className="mt-1 text-small" style={{ color: TEXT_MUTED }}>
+              Expected revenue by payment method over time.
+            </p>
+          </div>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={INCOMING_DATA} barGap={4} barCategoryGap="22%">
               <CartesianGrid strokeDasharray="3 3" stroke="#EEF2E8" vertical={false} />
@@ -463,9 +468,20 @@ function AnalyticsSection() {
               <Bar dataKey="Loan" fill="#D9F99D" radius={[8, 8, 0, 0]} maxBarSize={22} />
             </BarChart>
           </ResponsiveContainer>
-        </ChartCard>
+        </div>
 
-        <ChartCard title="Payment Type Split" subtitle="Distribution of payment plans by method.">
+        <div
+          className="flex flex-col gap-4 border-t p-6 lg:border-t-0"
+          style={{ borderColor: BORDER }}
+        >
+          <div>
+            <h3 className="text-second-header font-semibold" style={{ color: TEXT_DARK }}>
+              Payment Type Split
+            </h3>
+            <p className="mt-1 text-small" style={{ color: TEXT_MUTED }}>
+              Distribution of active payment plans by method.
+            </p>
+          </div>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Tooltip
@@ -504,8 +520,42 @@ function AnalyticsSection() {
               />
             </PieChart>
           </ResponsiveContainer>
-        </ChartCard>
+        </div>
       </div>
+    </div>
+  );
+}
+
+function PeriodSelector({
+  value,
+  onChange,
+}: {
+  value: IncomingPeriod;
+  onChange: (v: IncomingPeriod) => void;
+}) {
+  const options: IncomingPeriod[] = ["Week", "Month", "Year"];
+  return (
+    <div
+      className="inline-flex items-center gap-1 rounded-full bg-white/70 p-1 backdrop-blur"
+      style={{ border: `1px solid ${BORDER}` }}
+    >
+      {options.map((opt) => {
+        const active = opt === value;
+        return (
+          <button
+            key={opt}
+            type="button"
+            onClick={() => onChange(opt)}
+            className="rounded-full px-3 py-1 text-xs font-medium transition-colors"
+            style={{
+              background: active ? "#1A1A1A" : "transparent",
+              color: active ? "#FFFFFF" : TEXT_MUTED,
+            }}
+          >
+            {opt}
+          </button>
+        );
+      })}
     </div>
   );
 }
