@@ -731,10 +731,8 @@ function InstallmentDetailPanel({
     row.status === "Approved" || row.status === "Catch-up Group Approved";
   const canApprove = row.status === "Pending";
   const canUpload =
-    row.status === "Pending" ||
-    row.status === "Pending" ||
-    row.status === "Rejected" ||
-    row.status === "Overdue";
+    (row.status === "Pending" || row.status === "Declined") &&
+    row.paymentMethod === "Offline";
 
   return (
     <div>
@@ -3025,7 +3023,7 @@ function PaymentOverviewDrawer({
   const accessStatus: "Active" | "Suspended" =
     isInstallment &&
     installments.some(
-      (i) => i.status === "Rejected" || i.status === "Overdue",
+      (i) => i.status === "Declined",
     )
       ? "Suspended"
       : "Active";
@@ -3335,10 +3333,8 @@ function PaymentOverviewDrawer({
           installments={installments.filter(
             (i) =>
               i.status === "Pending" ||
-              i.status === "Pending" ||
               i.status === "Upcoming" ||
-              i.status === "Overdue" ||
-              i.status === "Rejected",
+              i.status === "Declined",
           )}
           onClose={() => setPostponeOpen(false)}
           onConfirm={(ids, payload) => {
@@ -3622,30 +3618,25 @@ function Timeline({
       const state: TimelineState =
         inst.status === "Approved" ||
         inst.status === "Catch-up Group Approved" ||
-        inst.status === "Rejected"
+        inst.status === "Declined"
           ? "done"
           : inst.status === "Pending" ||
               inst.status === "Catch-up Group Pending" ||
-              inst.status === "Postponed" ||
-              inst.status === "Overdue"
+              inst.status === "Postponed"
             ? "current"
             : "pending";
       const suffix =
         inst.status === "Approved" || inst.status === "Catch-up Group Approved"
           ? "approved"
-          : inst.status === "Rejected"
-            ? "rejected"
+          : inst.status === "Declined"
+            ? "declined"
             : inst.status === "Pending"
-              ? "pending review"
-              : inst.status === "Pending"
-                ? "proof required"
-                : inst.status === "Postponed"
-                  ? "postponed"
-                  : inst.status === "Overdue"
-                    ? "overdue"
-                    : inst.status === "Catch-up Group Pending"
-                      ? "in catch-up group"
-                      : "upcoming";
+              ? "pending"
+              : inst.status === "Postponed"
+                ? "postponed"
+                : inst.status === "Catch-up Group Pending"
+                  ? "in catch-up group"
+                  : "upcoming";
       items.push({
         label: `${inst.label} ${suffix}`,
         icon:
@@ -3835,11 +3826,9 @@ function seedInstallments(
 function InstallmentStatusPill({ status }: { status: InstallmentStatus }) {
   const map: Record<InstallmentStatus, { bg: string; color: string }> = {
     Approved: { bg: "rgba(204,246,33,0.45)", color: "#3F5C00" },
-    "Pending": { bg: "#FEF3C7", color: "#92400E" },
-    "Pending": { bg: "#F3F4F6", color: "#4B5563" },
-    Rejected: { bg: "#FEE2E2", color: "#991B1B" },
+    Pending: { bg: "#FEF3C7", color: "#92400E" },
+    Declined: { bg: "#FEE2E2", color: "#991B1B" },
     Upcoming: { bg: "#F3F4F6", color: "#6B7280" },
-    Overdue: { bg: "#FEE4E2", color: "#B42318" },
     Postponed: { bg: "#E0E7FF", color: "#3730A3" },
     "Catch-up Group Pending": { bg: "#FEF9C3", color: "#854D0E" },
     "Catch-up Group Approved": { bg: "rgba(204,246,33,0.45)", color: "#3F5C00" },
