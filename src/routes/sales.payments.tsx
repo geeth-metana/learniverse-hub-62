@@ -2577,7 +2577,7 @@ function Step5Preview({
       ["Monthly Payment", `$${details.monthlyPayment.toLocaleString()} / month`],
       ["Purchase Amount / Due Now", `$${purchaseDue.toLocaleString()}`],
     ];
-  } else {
+  } else if (details.paymentType === "Loan") {
     extra = [
       ["Loan Provider", details.loanProviderName],
       ["Loan Application Link", details.loanApplicationLink],
