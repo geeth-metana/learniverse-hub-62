@@ -4263,12 +4263,18 @@ function InstallmentStatusPill({ status }: { status: InstallmentStatus }) {
     "Combined Plan Approved": { bg: "rgba(204,246,33,0.45)", color: "#3F5C00" },
   };
   const s = map[status];
+  const label =
+    status === "Combined Plan Pending"
+      ? "Pending"
+      : status === "Combined Plan Approved"
+        ? "Approved"
+        : status;
   return (
     <span
       className="inline-flex items-center rounded-full px-2.5 py-1 text-smaller font-semibold"
       style={{ backgroundColor: s.bg, color: s.color }}
     >
-      {status}
+      {label}
     </span>
   );
 }
