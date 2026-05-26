@@ -813,16 +813,6 @@ function InstallmentDetailPanel({
             >
               Download Proof
             </button>
-            {!isApproved && !isStripe && (
-              <button
-                type="button"
-                onClick={onRejectProof}
-                className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-small font-semibold"
-                style={{ backgroundColor: "#FFFFFF", color: "#B42318", border: "1px solid #FECDCA" }}
-              >
-                <AlertCircle className="h-4 w-4" /> Reject Proof
-              </button>
-            )}
           </div>
         </div>
       ) : canUpload ? (
@@ -905,18 +895,6 @@ function InstallmentDetailPanel({
             style={{ backgroundColor: BRAND, color: TEXT_DARK }}
           >
             <CheckCircle2 className="h-4 w-4" /> Approve Payment
-          </button>
-          <button
-            type="button"
-            onClick={onReject}
-            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
-            style={{
-              backgroundColor: "#FFFFFF",
-              color: "#B42318",
-              border: "1px solid #FECDCA",
-            }}
-          >
-            <AlertCircle className="h-4 w-4" /> Decline Payment
           </button>
         </div>
       )}
