@@ -2726,7 +2726,7 @@ function InvitationModal({
   const sendInvitation = () => {
     updateInvitation(invitation.id, { status: "Invite Sent" });
     setSent(true);
-    toast.success(`Invitation sent to ${invitation.studentEmail}`);
+    toast.success(`Payment Link sent to ${invitation.studentEmail}`);
   };
   const shareManually = () => {
     const msg = `Hi, your Metana course checkout link is ready. Use this secure link to complete your payment and get access: ${localLink}`;
