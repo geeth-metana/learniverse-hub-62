@@ -3026,7 +3026,11 @@ type InstallmentStatus =
   | "Pending Review"
   | "Proof Required"
   | "Rejected"
-  | "Upcoming";
+  | "Upcoming"
+  | "Overdue"
+  | "Postponed"
+  | "Catch-up Group Pending"
+  | "Catch-up Group Approved";
 
 type InstallmentRow = {
   id: string;
