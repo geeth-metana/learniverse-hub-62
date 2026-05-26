@@ -3772,10 +3772,8 @@ function Timeline({
 type InstallmentStatus =
   | "Approved"
   | "Pending"
-  | "Pending"
-  | "Rejected"
+  | "Declined"
   | "Upcoming"
-  | "Overdue"
   | "Postponed"
   | "Catch-up Group Pending"
   | "Catch-up Group Approved";
