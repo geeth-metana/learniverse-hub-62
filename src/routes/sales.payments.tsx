@@ -445,7 +445,7 @@ function InstallmentsPanel({
   const d = invitation.paymentDetails;
   const activeStatuses: InstallmentStatus[] = [
     "Pending",
-    "Declined",
+    "Payment Failed",
     "Postponed",
     "Combined Plan Pending",
     "Combined Plan Approved",
@@ -755,7 +755,7 @@ function InstallmentDetailPanel({
 }) {
   const isApproved =
     row.status === "Approved" || row.status === "Combined Plan Approved";
-  const isDeclined = row.status === "Declined";
+  const isDeclined = row.status === "Payment Failed";
   const isStripe = row.paymentMethod === "Stripe";
   // Offline pending payments need a proof upload before approval
   const canUpload =
@@ -3221,7 +3221,7 @@ function PaymentOverviewDrawer({
   const accessStatus: "Active" | "Suspended" =
     isInstallment &&
     installments.some(
-      (i) => i.status === "Declined",
+      (i) => i.status === "Payment Failed",
     )
       ? "Suspended"
       : "Active";
@@ -3452,7 +3452,7 @@ function PaymentOverviewDrawer({
             (i) =>
               i.status === "Pending" ||
               i.status === "Upcoming" ||
-              i.status === "Declined",
+              i.status === "Payment Failed",
           )}
           onClose={() => setPostponeOpen(false)}
           onConfirm={(ids, payload) => {
@@ -3733,21 +3733,21 @@ function Timeline({
       const state: TimelineState =
         inst.status === "Approved" ||
         inst.status === "Combined Plan Approved" ||
-        inst.status === "Declined"
+        inst.status === "Payment Failed"
           ? "done"
           : inst.status === "Pending" ||
               inst.status === "Combined Plan Pending" ||
-              inst.status === "Postponed"
+              inst.status === "Combined Plan Pending"
             ? "current"
             : "pending";
       const suffix =
         inst.status === "Approved" || inst.status === "Combined Plan Approved"
           ? "approved"
-          : inst.status === "Declined"
+          : inst.status === "Payment Failed"
             ? "declined"
             : inst.status === "Pending"
               ? "pending"
-              : inst.status === "Postponed"
+              : inst.status === "Combined Plan Pending"
                 ? "postponed"
                 : inst.status === "Combined Plan Pending"
                   ? "in catch-up group"
@@ -3878,7 +3878,7 @@ function Timeline({
 type InstallmentStatus =
   | "Approved"
   | "Pending"
-  | "Declined"
+  | "Payment Failed"
   | "Upcoming"
   | "Postponed"
   | "Combined Plan Pending"
