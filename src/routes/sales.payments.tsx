@@ -353,6 +353,708 @@ function PaymentPage() {
   );
 }
 
+// ===================== Installments Panel (split layout) =====================
+
+type GroupedPaymentLite = {
+  id: string;
+  label: string;
+  installmentIds: string[];
+  dueDate: string;
+  reason: string;
+  note: string;
+  status: "Pending Payment" | "Pending Review" | "Approved" | "Rejected";
+  proof: ProofFile | null;
+};
+
+function InstallmentsPanel({
+  invitation,
+  isInstallment,
+  installments,
+  groups,
+  approvedCount,
+  totalCount,
+  progressPct,
+  accessStatus,
+  showUpcoming,
+  setShowUpcoming,
+  selectedInstallmentId,
+  setSelectedInstallmentId,
+  onUploadProof,
+  onRemoveProof,
+  onApprove,
+  onReject,
+  onOpenPostpone,
+  onUploadGroupProof,
+  onApproveGroup,
+  onRejectGroup,
+}: {
+  invitation: Invitation;
+  isInstallment: boolean;
+  installments: InstallmentRow[];
+  groups: GroupedPaymentLite[];
+  approvedCount: number;
+  totalCount: number;
+  progressPct: number;
+  accessStatus: "Active" | "Suspended";
+  showUpcoming: boolean;
+  setShowUpcoming: (v: boolean) => void;
+  selectedInstallmentId: string | null;
+  setSelectedInstallmentId: (id: string | null) => void;
+  onUploadProof: (id: string, file: File | undefined) => void;
+  onRemoveProof: (id: string) => void;
+  onApprove: (id: string) => void;
+  onReject: (id: string) => void;
+  onOpenPostpone: () => void;
+  onUploadGroupProof: (id: string, file: File | undefined) => void;
+  onApproveGroup: (id: string) => void;
+  onRejectGroup: (id: string) => void;
+}) {
+  if (!isInstallment || invitation.paymentDetails.paymentType !== "Installment") {
+    return (
+      <PanelSection title="Installment Payments">
+        <div
+          className="rounded-xl px-4 py-10 text-center"
+          style={{ backgroundColor: "#FAFAFA", border: `1px dashed ${BORDER}` }}
+        >
+          <p className="text-small" style={{ color: TEXT_MUTED }}>
+            This student does not have an installment payment plan.
+          </p>
+        </div>
+      </PanelSection>
+    );
+  }
+
+  const d = invitation.paymentDetails;
+  const activeStatuses: InstallmentStatus[] = [
+    "Pending Review",
+    "Proof Required",
+    "Rejected",
+    "Overdue",
+    "Postponed",
+    "Catch-up Group Pending",
+    "Catch-up Group Approved",
+    "Approved",
+  ];
+  const activeRows = installments.filter((i) => activeStatuses.includes(i.status));
+  const upcomingRows = installments.filter((i) => i.status === "Upcoming");
+  const visibleRows = showUpcoming ? [...activeRows, ...upcomingRows] : activeRows;
+
+  const selected =
+    visibleRows.find((i) => i.id === selectedInstallmentId) ?? visibleRows[0] ?? null;
+
+  return (
+    <section>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <h4 className="text-second-header font-semibold" style={{ color: TEXT_DARK }}>
+          Installment Payments
+        </h4>
+        <button
+          type="button"
+          onClick={onOpenPostpone}
+          className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-small font-semibold"
+          style={{ backgroundColor: SOFT, color: TEXT_DARK }}
+        >
+          <CalendarClock className="h-4 w-4" /> Postpone Installment
+        </button>
+      </div>
+
+      {/* Top summary */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+        <MiniStat label="Full Amount" value={`$${d.fullAmount.toLocaleString()}`} />
+        <MiniStat
+          label="Down Payment"
+          value={`$${d.initialDownPayment.toLocaleString()}`}
+        />
+        <MiniStat
+          label="Monthly Payment"
+          value={`$${d.monthlyPayment.toLocaleString()}`}
+        />
+        <MiniStat label="Approved" value={`${approvedCount} / ${totalCount}`} />
+        <MiniStat label="Access" value={accessStatus} />
+      </div>
+
+      <div className="mt-4 rounded-xl p-4" style={{ backgroundColor: SOFT }}>
+        <div className="mb-2 flex items-center justify-between">
+          <span className="text-small font-semibold" style={{ color: TEXT_DARK }}>
+            {approvedCount} of {totalCount} Installments Approved
+          </span>
+          <span className="text-small font-medium" style={{ color: TEXT_DARK }}>
+            {progressPct}%
+          </span>
+        </div>
+        <div
+          className="h-2 w-full overflow-hidden rounded-full"
+          style={{ backgroundColor: "#E5E7EB" }}
+        >
+          <div
+            className="h-full rounded-full transition-all"
+            style={{ width: `${progressPct}%`, backgroundColor: BRAND }}
+          />
+        </div>
+      </div>
+
+      {/* Split view */}
+      <div
+        className="mt-4 grid grid-cols-1 overflow-hidden rounded-2xl lg:grid-cols-[42%_58%]"
+        style={{ border: `1px solid ${BORDER}`, minHeight: 420 }}
+      >
+        {/* Left list */}
+        <div
+          className="flex flex-col"
+          style={{ borderRight: `1px solid ${BORDER}` }}
+        >
+          <div
+            className="sticky top-0 z-10 flex items-center justify-between gap-2 px-4 py-3"
+            style={{ borderBottom: `1px solid ${BORDER}`, backgroundColor: "#FAFAFA" }}
+          >
+            <span className="text-small font-semibold" style={{ color: TEXT_DARK }}>
+              Installments
+            </span>
+            <label className="inline-flex cursor-pointer items-center gap-2">
+              <span className="text-smaller" style={{ color: TEXT_MUTED }}>
+                Show Upcoming
+              </span>
+              <span
+                className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors"
+                style={{ backgroundColor: showUpcoming ? TEXT_DARK : "#E5E7EB" }}
+                onClick={() => setShowUpcoming(!showUpcoming)}
+              >
+                <span
+                  className="ml-0.5 inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                  style={{ transform: `translateX(${showUpcoming ? 16 : 0}px)` }}
+                />
+              </span>
+            </label>
+          </div>
+          <div className="max-h-[440px] overflow-y-auto">
+            {/* Down payment (always first, static) */}
+            <div
+              className="flex items-center justify-between gap-3 px-4 py-3"
+              style={{ borderBottom: `1px solid ${BORDER}` }}
+            >
+              <div className="min-w-0">
+                <p
+                  className="truncate text-small font-semibold"
+                  style={{ color: TEXT_DARK }}
+                >
+                  Down Payment
+                </p>
+                <p className="text-smaller" style={{ color: TEXT_MUTED }}>
+                  Stripe · ${d.initialDownPayment.toLocaleString()}
+                </p>
+              </div>
+              <span
+                className="inline-flex items-center rounded-full px-2.5 py-1 text-smaller font-semibold"
+                style={{
+                  backgroundColor: "rgba(204,246,33,0.45)",
+                  color: "#3F5C00",
+                }}
+              >
+                Approved
+              </span>
+            </div>
+
+            {visibleRows.map((it) => {
+              const isSelected = selected?.id === it.id;
+              const isUpcoming = it.status === "Upcoming";
+              return (
+                <button
+                  key={it.id}
+                  type="button"
+                  onClick={() => !isUpcoming && setSelectedInstallmentId(it.id)}
+                  disabled={isUpcoming}
+                  className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors"
+                  style={{
+                    borderBottom: `1px solid ${BORDER}`,
+                    backgroundColor: isSelected
+                      ? "rgba(204,246,33,0.12)"
+                      : "transparent",
+                    opacity: isUpcoming ? 0.55 : 1,
+                    cursor: isUpcoming ? "not-allowed" : "pointer",
+                  }}
+                >
+                  <div className="min-w-0">
+                    <p
+                      className="truncate text-small font-semibold"
+                      style={{ color: TEXT_DARK }}
+                    >
+                      {it.label}
+                    </p>
+                    <p className="text-smaller" style={{ color: TEXT_MUTED }}>
+                      Due {it.dueDate} · ${it.amount.toLocaleString()}
+                    </p>
+                  </div>
+                  <InstallmentStatusPill status={it.status} />
+                </button>
+              );
+            })}
+
+            {/* Grouped Payments */}
+            {groups.length > 0 && (
+              <div className="px-4 pt-4">
+                <p
+                  className="mb-2 text-smaller font-semibold uppercase tracking-wide"
+                  style={{ color: TEXT_MUTED }}
+                >
+                  Grouped Payments
+                </p>
+              </div>
+            )}
+            {groups.map((g) => {
+              const includedLabels = g.installmentIds
+                .map((id) => installments.find((i) => i.id === id)?.label)
+                .filter(Boolean)
+                .join(" + ");
+              const total =
+                g.installmentIds.length *
+                (invitation.paymentDetails as InstallmentDetailsLite).monthlyPayment;
+              return (
+                <div
+                  key={g.id}
+                  className="mx-4 mb-3 rounded-xl p-3"
+                  style={{
+                    border: `1px solid ${BORDER}`,
+                    backgroundColor: "#FFFBEB",
+                  }}
+                >
+                  <div className="mb-2 flex items-center justify-between">
+                    <span
+                      className="text-small font-semibold"
+                      style={{ color: TEXT_DARK }}
+                    >
+                      {g.label}
+                    </span>
+                    <span
+                      className="rounded-full px-2 py-0.5 text-smaller font-semibold"
+                      style={{
+                        backgroundColor:
+                          g.status === "Approved"
+                            ? "rgba(204,246,33,0.45)"
+                            : g.status === "Rejected"
+                              ? "#FEE2E2"
+                              : "#FEF3C7",
+                        color:
+                          g.status === "Approved"
+                            ? "#3F5C00"
+                            : g.status === "Rejected"
+                              ? "#991B1B"
+                              : "#92400E",
+                      }}
+                    >
+                      {g.status}
+                    </span>
+                  </div>
+                  <p className="text-smaller" style={{ color: TEXT_MUTED }}>
+                    Includes: {includedLabels}
+                  </p>
+                  <p className="text-smaller" style={{ color: TEXT_MUTED }}>
+                    Total ${total.toLocaleString()} · Due {g.dueDate}
+                  </p>
+                  {g.status !== "Approved" && (
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <label className="inline-flex cursor-pointer items-center gap-2 rounded-full px-3 py-1.5 text-smaller font-semibold"
+                        style={{ backgroundColor: "#FFFFFF", border: `1px solid ${BORDER}`, color: TEXT_DARK }}
+                      >
+                        <Upload className="h-3.5 w-3.5" />
+                        {g.proof ? "Replace Proof" : "Upload Proof"}
+                        <input
+                          type="file"
+                          accept=".pdf,.png,.jpg,.jpeg"
+                          className="hidden"
+                          onChange={(e) =>
+                            onUploadGroupProof(g.id, e.target.files?.[0] ?? undefined)
+                          }
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => onApproveGroup(g.id)}
+                        disabled={!g.proof}
+                        className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-smaller font-semibold disabled:opacity-50"
+                        style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+                      >
+                        <CheckCircle2 className="h-3.5 w-3.5" /> Approve Group
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onRejectGroup(g.id)}
+                        className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-smaller font-semibold"
+                        style={{
+                          backgroundColor: "#FFFFFF",
+                          color: "#B42318",
+                          border: "1px solid #FECDCA",
+                        }}
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  )}
+                  {g.proof && (
+                    <p
+                      className="mt-2 truncate text-smaller"
+                      style={{ color: TEXT_MUTED }}
+                    >
+                      Proof: {g.proof.name} · {g.proof.uploadedAt}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Right detail */}
+        <div className="flex flex-col overflow-y-auto p-5" style={{ maxHeight: 540 }}>
+          {selected ? (
+            <InstallmentDetailPanel
+              row={selected}
+              onUpload={(file) => onUploadProof(selected.id, file)}
+              onRemove={() => onRemoveProof(selected.id)}
+              onApprove={() => onApprove(selected.id)}
+              onReject={() => onReject(selected.id)}
+            />
+          ) : (
+            <div className="grid h-full place-items-center text-small" style={{ color: TEXT_MUTED }}>
+              Select an installment to view details.
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+type InstallmentDetailsLite = { monthlyPayment: number };
+
+function InstallmentDetailPanel({
+  row,
+  onUpload,
+  onRemove,
+  onApprove,
+  onReject,
+}: {
+  row: InstallmentRow;
+  onUpload: (file: File | undefined) => void;
+  onRemove: () => void;
+  onApprove: () => void;
+  onReject: () => void;
+}) {
+  const isApproved =
+    row.status === "Approved" || row.status === "Catch-up Group Approved";
+  const canApprove = row.status === "Pending Review";
+  const canUpload =
+    row.status === "Pending Review" ||
+    row.status === "Proof Required" ||
+    row.status === "Rejected" ||
+    row.status === "Overdue";
+
+  return (
+    <div>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-second-header font-semibold" style={{ color: TEXT_DARK }}>
+            {row.label}
+          </p>
+          <p className="mt-0.5 text-small" style={{ color: TEXT_MUTED }}>
+            Due {row.dueDate} · ${row.amount.toLocaleString()}
+          </p>
+        </div>
+        <InstallmentStatusPill status={row.status} />
+      </div>
+
+      {/* Proof preview */}
+      {row.proof ? (
+        <div
+          className="mt-4 rounded-xl p-4"
+          style={{ backgroundColor: "#F9FAFB", border: `1px solid ${BORDER}` }}
+        >
+          <div
+            className="grid h-40 place-items-center rounded-lg"
+            style={{ backgroundColor: "#FFFFFF", border: `1px dashed ${BORDER}` }}
+          >
+            <div className="flex flex-col items-center gap-2">
+              <FileText className="h-7 w-7" style={{ color: TEXT_MUTED }} />
+              <span className="text-smaller" style={{ color: TEXT_MUTED }}>
+                Document preview
+              </span>
+            </div>
+          </div>
+          <div className="mt-3 space-y-1.5">
+            <Row label="File" value={row.proof.name} />
+            <Row label="Uploaded" value={row.proof.uploadedAt} />
+            {isApproved && <Row label="Approved by" value="John Miller" />}
+            {isApproved && <Row label="Approved on" value={row.dueDate} />}
+            <Row label="Amount" value={`$${row.amount.toLocaleString()}`} />
+            <Row label="Installment" value={row.label} last />
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => toast.info("Preview not available in demo")}
+              className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-small font-semibold"
+              style={{ backgroundColor: SOFT, color: TEXT_DARK }}
+            >
+              <Eye className="h-4 w-4" /> View Proof
+            </button>
+            <button
+              type="button"
+              onClick={() => toast.success("Download started")}
+              className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-small font-semibold"
+              style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+            >
+              Download Proof
+            </button>
+            {!isApproved && (
+              <button
+                type="button"
+                onClick={onRemove}
+                className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-small font-semibold"
+                style={{ backgroundColor: "#FFFFFF", color: "#B42318", border: "1px solid #FECDCA" }}
+              >
+                <Trash2 className="h-4 w-4" /> Remove
+              </button>
+            )}
+          </div>
+        </div>
+      ) : canUpload ? (
+        <label
+          className="mt-4 flex cursor-pointer flex-col items-center justify-center rounded-xl px-4 py-10 text-center"
+          style={{ border: `1.5px dashed ${BORDER}`, backgroundColor: "#FAFAFA" }}
+        >
+          <UploadCloud className="h-6 w-6" style={{ color: TEXT_MUTED }} />
+          <p className="mt-2 text-small font-medium" style={{ color: TEXT_DARK }}>
+            Drag and drop or click to upload proof
+          </p>
+          <p className="mt-0.5 text-smaller" style={{ color: TEXT_MUTED }}>
+            PDF, PNG, JPG up to 10MB
+          </p>
+          <input
+            type="file"
+            accept=".pdf,.png,.jpg,.jpeg"
+            className="hidden"
+            onChange={(e) => onUpload(e.target.files?.[0] ?? undefined)}
+          />
+        </label>
+      ) : (
+        <div
+          className="mt-4 rounded-xl px-4 py-8 text-center text-small"
+          style={{ backgroundColor: "#FAFAFA", border: `1px dashed ${BORDER}`, color: TEXT_MUTED }}
+        >
+          No upload required for this installment.
+        </div>
+      )}
+
+      {/* Approve / Reject */}
+      {canApprove && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={onApprove}
+            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
+            style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+          >
+            <CheckCircle2 className="h-4 w-4" /> Approve Payment
+          </button>
+          <button
+            type="button"
+            onClick={onReject}
+            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
+            style={{
+              backgroundColor: "#FFFFFF",
+              color: "#B42318",
+              border: "1px solid #FECDCA",
+            }}
+          >
+            <AlertCircle className="h-4 w-4" /> Reject Payment
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ===================== Postpone Modal =====================
+
+function PostponeModal({
+  installments,
+  onClose,
+  onConfirm,
+}: {
+  installments: InstallmentRow[];
+  onClose: () => void;
+  onConfirm: (
+    ids: string[],
+    payload: { dueDate: string; reason: string; note: string },
+  ) => void;
+}) {
+  const [selected, setSelected] = useState<string[]>([]);
+  const [months, setMonths] = useState(2);
+  const [reason, setReason] = useState("");
+  const [note, setNote] = useState("");
+  const newDue = (() => {
+    const d = new Date();
+    d.setMonth(d.getMonth() + months);
+    return d.toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    });
+  })();
+
+  const toggle = (id: string) =>
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+      style={{ backgroundColor: "rgba(0,0,0,0.35)" }}
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-md rounded-3xl bg-white p-6"
+        style={{ boxShadow: "0 30px 80px rgba(15,23,42,0.25)" }}
+      >
+        <div className="flex items-start justify-between">
+          <div>
+            <h3 className="text-second-header font-bold" style={{ color: TEXT_DARK }}>
+              Postpone Installment
+            </h3>
+            <p className="mt-1 text-smaller" style={{ color: TEXT_MUTED }}>
+              Group selected installments into a catch-up payment.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="grid h-8 w-8 place-items-center rounded-full hover:bg-[#F3F4F6]"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" style={{ color: TEXT_DARK }} />
+          </button>
+        </div>
+
+        <div className="mt-4 space-y-3">
+          <div>
+            <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+              Select installments
+            </p>
+            <div
+              className="max-h-40 overflow-y-auto rounded-xl"
+              style={{ border: `1px solid ${BORDER}` }}
+            >
+              {installments.length === 0 && (
+                <p className="px-3 py-2 text-smaller" style={{ color: TEXT_MUTED }}>
+                  No installments eligible to postpone.
+                </p>
+              )}
+              {installments.map((it) => (
+                <label
+                  key={it.id}
+                  className="flex cursor-pointer items-center gap-3 px-3 py-2"
+                  style={{ borderBottom: `1px solid ${BORDER}` }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selected.includes(it.id)}
+                    onChange={() => toggle(it.id)}
+                  />
+                  <span className="text-small" style={{ color: TEXT_DARK }}>
+                    {it.label}
+                  </span>
+                  <span className="ml-auto text-smaller" style={{ color: TEXT_MUTED }}>
+                    Due {it.dueDate}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+                Postpone by (months)
+              </p>
+              <input
+                type="number"
+                min={1}
+                max={12}
+                value={months}
+                onChange={(e) => setMonths(Math.max(1, Number(e.target.value) || 1))}
+                className="w-full rounded-xl px-3 py-2 text-small"
+                style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
+              />
+            </div>
+            <div>
+              <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+                New due date
+              </p>
+              <div
+                className="rounded-xl px-3 py-2 text-small"
+                style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK, backgroundColor: SOFT }}
+              >
+                {newDue}
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+              Reason
+            </p>
+            <input
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Student requested additional time"
+              className="w-full rounded-xl px-3 py-2 text-small"
+              style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
+            />
+          </div>
+
+          <div>
+            <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+              Internal note
+            </p>
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              rows={2}
+              className="w-full resize-none rounded-xl px-3 py-2 text-small"
+              style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
+            />
+          </div>
+        </div>
+
+        <div className="mt-5 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full px-4 py-2 text-small font-semibold"
+            style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              onConfirm(selected, { dueDate: newDue, reason, note })
+            }
+            disabled={selected.length === 0}
+            className="rounded-full px-4 py-2 text-small font-semibold disabled:opacity-50"
+            style={{ backgroundColor: TEXT_DARK, color: "#FFFFFF" }}
+          >
+            Confirm Postpone
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 function copyLink(link: string) {
   navigator.clipboard?.writeText(link).then(
     () => toast.success("Link copied"),
