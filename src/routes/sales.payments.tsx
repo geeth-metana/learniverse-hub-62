@@ -952,6 +952,12 @@ function PostponeModal({
   const [months, setMonths] = useState(2);
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
+  const calculatedTotal = installments
+    .filter((i) => selected.includes(i.id))
+    .reduce((sum, i) => sum + i.amount, 0);
+  const [finalAmountStr, setFinalAmountStr] = useState("");
+  const finalAmount = finalAmountStr === "" ? calculatedTotal : Number(finalAmountStr) || 0;
+  const customApplied = finalAmountStr !== "" && Number(finalAmountStr) !== calculatedTotal;
   const newDue = (() => {
     const d = new Date();
     d.setMonth(d.getMonth() + months);
@@ -977,13 +983,13 @@ function PostponeModal({
         initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md rounded-3xl bg-white p-6"
+        className="w-full max-w-lg rounded-3xl bg-white p-6"
         style={{ boxShadow: "0 30px 80px rgba(15,23,42,0.25)" }}
       >
         <div className="flex items-start justify-between">
           <div>
             <h3 className="text-second-header font-bold" style={{ color: TEXT_DARK }}>
-              Postpone Installment
+              Postpone Installments
             </h3>
             <p className="mt-1 text-smaller" style={{ color: TEXT_MUTED }}>
               Group selected installments into a catch-up payment.
@@ -1005,7 +1011,7 @@ function PostponeModal({
               Select installments
             </p>
             <div
-              className="max-h-40 overflow-y-auto rounded-xl"
+              className="max-h-44 overflow-y-auto rounded-xl"
               style={{ border: `1px solid ${BORDER}` }}
             >
               {installments.length === 0 && (
@@ -1028,11 +1034,42 @@ function PostponeModal({
                     {it.label}
                   </span>
                   <span className="ml-auto text-smaller" style={{ color: TEXT_MUTED }}>
-                    Due {it.dueDate}
+                    ${it.amount.toLocaleString()} · {it.status}
                   </span>
                 </label>
               ))}
             </div>
+          </div>
+
+          {/* Calculated + Final amount */}
+          <div className="rounded-xl p-3" style={{ backgroundColor: SOFT }}>
+            <div className="flex items-center justify-between">
+              <span className="text-smaller" style={{ color: TEXT_MUTED }}>
+                Calculated Total
+              </span>
+              <span className="text-small font-semibold" style={{ color: TEXT_DARK }}>
+                ${calculatedTotal.toLocaleString()}
+              </span>
+            </div>
+            <div className="mt-2 flex items-center justify-between gap-3">
+              <span className="text-smaller" style={{ color: TEXT_MUTED }}>
+                Final Catch-up Amount
+              </span>
+              <input
+                type="number"
+                min={0}
+                value={finalAmountStr}
+                onChange={(e) => setFinalAmountStr(e.target.value)}
+                placeholder={`${calculatedTotal}`}
+                className="w-32 rounded-lg bg-white px-2.5 py-1.5 text-right text-small font-semibold"
+                style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
+              />
+            </div>
+            {customApplied && (
+              <p className="mt-1.5 text-right text-smaller" style={{ color: TEXT_MUTED }}>
+                Custom amount applied (${finalAmount.toLocaleString()})
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -1067,13 +1104,19 @@ function PostponeModal({
             <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
               Reason
             </p>
-            <input
+            <select
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Student requested additional time"
-              className="w-full rounded-xl px-3 py-2 text-small"
+              className="w-full rounded-xl bg-white px-3 py-2 text-small"
               style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
-            />
+            >
+              <option value="">Select a reason…</option>
+              <option>Student requested more time</option>
+              <option>Financial delay</option>
+              <option>Bank transfer delay</option>
+              <option>Internal approval</option>
+              <option>Other</option>
+            </select>
           </div>
 
           <div>
@@ -1108,7 +1151,7 @@ function PostponeModal({
             className="rounded-full px-4 py-2 text-small font-semibold disabled:opacity-50"
             style={{ backgroundColor: TEXT_DARK, color: "#FFFFFF" }}
           >
-            Confirm Postpone
+            Create Catch-up Group
           </button>
         </div>
       </motion.div>
