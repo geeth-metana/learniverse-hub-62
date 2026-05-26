@@ -1061,6 +1061,18 @@ function PostponeModal({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+                Combined Payment Due Date
+              </p>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="w-full rounded-xl bg-white px-3 py-2 text-small"
+                style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
+              />
+            </div>
+            <div>
+              <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
                 Extend by (months)
               </p>
               <input
@@ -1070,18 +1082,6 @@ function PostponeModal({
                 value={months}
                 onChange={(e) => setMonths(Math.max(1, Number(e.target.value) || 1))}
                 className="w-full rounded-xl px-3 py-2 text-small"
-                style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
-              />
-            </div>
-            <div>
-              <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
-                Combined Payment Due Date
-              </p>
-              <input
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="w-full rounded-xl bg-white px-3 py-2 text-small"
                 style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
               />
             </div>
