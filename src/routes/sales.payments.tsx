@@ -3798,6 +3798,57 @@ function PaymentOverviewDrawer({
           }}
         />
       )}
+      {detachGroupId && (() => {
+        const g = groups.find((x) => x.id === detachGroupId);
+        if (!g) return null;
+        const includedLabels = g.installmentIds
+          .map((id) => installments.find((i) => i.id === id)?.label)
+          .filter(Boolean) as string[];
+        return (
+          <div
+            className="fixed inset-0 z-[110] grid place-items-center bg-black/40 p-4"
+            onClick={() => setDetachGroupId(null)}
+          >
+            <div
+              className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <p className="text-second-header font-semibold" style={{ color: TEXT_DARK }}>
+                Detach Combined Plan
+              </p>
+              <p className="mt-2 text-small" style={{ color: TEXT_MUTED }}>
+                This will separate the combined installment back into individual installment payments. The student will no longer be able to pay these installments as one grouped payment.
+              </p>
+              <ul className="mt-3 space-y-1 rounded-xl bg-[#F9FAFB] p-3 text-small" style={{ color: TEXT_DARK }}>
+                {includedLabels.map((l) => (
+                  <li key={l}>• {l}</li>
+                ))}
+              </ul>
+              <div className="mt-5 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDetachGroupId(null)}
+                  className="rounded-full px-4 py-2 text-small font-semibold"
+                  style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    detachGroup(detachGroupId);
+                    setDetachGroupId(null);
+                  }}
+                  className="rounded-full px-4 py-2 text-small font-semibold"
+                  style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+                >
+                  Detach Combined Plan
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
       {changeDueDateId && (() => {
         const target = installments.find((i) => i.id === changeDueDateId);
         if (!target) return null;
