@@ -362,7 +362,7 @@ type GroupedPaymentLite = {
   dueDate: string;
   reason: string;
   note: string;
-  status: "Pending Payment" | "Pending Review" | "Approved" | "Rejected";
+  status: "Pending Payment" | "Pending" | "Approved" | "Rejected";
   proof: ProofFile | null;
 };
 
@@ -426,10 +426,8 @@ function InstallmentsPanel({
 
   const d = invitation.paymentDetails;
   const activeStatuses: InstallmentStatus[] = [
-    "Pending Review",
-    "Proof Required",
-    "Rejected",
-    "Overdue",
+    "Pending",
+    "Declined",
     "Postponed",
     "Catch-up Group Pending",
     "Catch-up Group Approved",
@@ -444,19 +442,9 @@ function InstallmentsPanel({
 
   return (
     <section>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h4 className="text-second-header font-semibold" style={{ color: TEXT_DARK }}>
-          Installment Payments
-        </h4>
-        <button
-          type="button"
-          onClick={onOpenPostpone}
-          className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-small font-semibold"
-          style={{ backgroundColor: SOFT, color: TEXT_DARK }}
-        >
-          <CalendarClock className="h-4 w-4" /> Postpone Installment
-        </button>
-      </div>
+      <h4 className="mb-4 text-second-header font-semibold" style={{ color: TEXT_DARK }}>
+        Installment Payments
+      </h4>
 
       {/* Top summary */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
@@ -496,7 +484,7 @@ function InstallmentsPanel({
       {/* Split view */}
       <div
         className="mt-4 grid grid-cols-1 overflow-hidden rounded-2xl lg:grid-cols-[42%_58%]"
-        style={{ border: `1px solid ${BORDER}`, minHeight: 420 }}
+        style={{ border: `1px solid ${BORDER}` }}
       >
         {/* Left list */}
         <div
@@ -504,27 +492,37 @@ function InstallmentsPanel({
           style={{ borderRight: `1px solid ${BORDER}` }}
         >
           <div
-            className="sticky top-0 z-10 flex items-center justify-between gap-2 px-4 py-3"
+            className="sticky top-0 z-10 flex items-center justify-between gap-2 px-4 py-2.5"
             style={{ borderBottom: `1px solid ${BORDER}`, backgroundColor: "#FAFAFA" }}
           >
             <span className="text-small font-semibold" style={{ color: TEXT_DARK }}>
               Installments
             </span>
-            <label className="inline-flex cursor-pointer items-center gap-2">
-              <span className="text-smaller" style={{ color: TEXT_MUTED }}>
-                Show Upcoming
-              </span>
-              <span
-                className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors"
-                style={{ backgroundColor: showUpcoming ? TEXT_DARK : "#E5E7EB" }}
-                onClick={() => setShowUpcoming(!showUpcoming)}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onOpenPostpone}
+                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-smaller font-semibold transition-colors hover:bg-[#E5E7EB]"
+                style={{ backgroundColor: "#F3F4F6", color: TEXT_DARK }}
               >
+                <CalendarClock className="h-3.5 w-3.5" /> Postpone
+              </button>
+              <label className="inline-flex cursor-pointer items-center gap-2">
+                <span className="text-smaller" style={{ color: TEXT_MUTED }}>
+                  Show Upcoming
+                </span>
                 <span
-                  className="ml-0.5 inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-                  style={{ transform: `translateX(${showUpcoming ? 16 : 0}px)` }}
-                />
-              </span>
-            </label>
+                  className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors"
+                  style={{ backgroundColor: showUpcoming ? TEXT_DARK : "#E5E7EB" }}
+                  onClick={() => setShowUpcoming(!showUpcoming)}
+                >
+                  <span
+                    className="ml-0.5 inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                    style={{ transform: `translateX(${showUpcoming ? 16 : 0}px)` }}
+                  />
+                </span>
+              </label>
+            </div>
           </div>
           <div className="max-h-[440px] overflow-y-auto">
             {/* Down payment (always first, static) */}
@@ -704,12 +702,12 @@ function InstallmentsPanel({
         </div>
 
         {/* Right detail */}
-        <div className="flex flex-col overflow-y-auto p-5" style={{ maxHeight: 540 }}>
+        <div className="flex flex-col p-5">
           {selected ? (
             <InstallmentDetailPanel
               row={selected}
               onUpload={(file) => onUploadProof(selected.id, file)}
-              onRemove={() => onRemoveProof(selected.id)}
+              onRejectProof={() => onRemoveProof(selected.id)}
               onApprove={() => onApprove(selected.id)}
               onReject={() => onReject(selected.id)}
             />
@@ -729,24 +727,27 @@ type InstallmentDetailsLite = { monthlyPayment: number };
 function InstallmentDetailPanel({
   row,
   onUpload,
-  onRemove,
+  onRejectProof,
   onApprove,
   onReject,
 }: {
   row: InstallmentRow;
   onUpload: (file: File | undefined) => void;
-  onRemove: () => void;
+  onRejectProof: () => void;
   onApprove: () => void;
   onReject: () => void;
 }) {
   const isApproved =
     row.status === "Approved" || row.status === "Catch-up Group Approved";
-  const canApprove = row.status === "Pending Review";
+  const isDeclined = row.status === "Declined";
+  const isStripe = row.paymentMethod === "Stripe";
+  // Offline pending payments need a proof upload before approval
   const canUpload =
-    row.status === "Pending Review" ||
-    row.status === "Proof Required" ||
-    row.status === "Rejected" ||
-    row.status === "Overdue";
+    !isStripe && (row.status === "Pending" || isDeclined) && !row.proof;
+  // Approve only allowed when proof is uploaded for offline pending payments
+  const canApprove =
+    !isStripe && row.status === "Pending" && !!row.proof;
+  const showStripeRepay = isStripe && isDeclined;
 
   return (
     <div>
@@ -756,7 +757,7 @@ function InstallmentDetailPanel({
             {row.label}
           </p>
           <p className="mt-0.5 text-small" style={{ color: TEXT_MUTED }}>
-            Due {row.dueDate} · ${row.amount.toLocaleString()}
+            Due {row.dueDate} · ${row.amount.toLocaleString()} · {row.paymentMethod}
           </p>
         </div>
         <InstallmentStatusPill status={row.status} />
@@ -775,7 +776,7 @@ function InstallmentDetailPanel({
             <div className="flex flex-col items-center gap-2">
               <FileText className="h-7 w-7" style={{ color: TEXT_MUTED }} />
               <span className="text-smaller" style={{ color: TEXT_MUTED }}>
-                Document preview
+                {isStripe ? "Stripe receipt preview" : "Document preview"}
               </span>
             </div>
           </div>
@@ -784,6 +785,9 @@ function InstallmentDetailPanel({
             <Row label="Uploaded" value={row.proof.uploadedAt} />
             {isApproved && <Row label="Approved by" value="John Miller" />}
             {isApproved && <Row label="Approved on" value={row.dueDate} />}
+            {isStripe && row.stripeTxnId && (
+              <Row label="Stripe Txn" value={row.stripeTxnId} />
+            )}
             <Row label="Amount" value={`$${row.amount.toLocaleString()}`} />
             <Row label="Installment" value={row.label} last />
           </div>
@@ -794,7 +798,7 @@ function InstallmentDetailPanel({
               className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-small font-semibold"
               style={{ backgroundColor: SOFT, color: TEXT_DARK }}
             >
-              <Eye className="h-4 w-4" /> View Proof
+              <Eye className="h-4 w-4" /> {isStripe ? "View Receipt" : "View Proof"}
             </button>
             <button
               type="button"
@@ -804,14 +808,14 @@ function InstallmentDetailPanel({
             >
               Download Proof
             </button>
-            {!isApproved && (
+            {!isApproved && !isStripe && (
               <button
                 type="button"
-                onClick={onRemove}
+                onClick={onRejectProof}
                 className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-small font-semibold"
                 style={{ backgroundColor: "#FFFFFF", color: "#B42318", border: "1px solid #FECDCA" }}
               >
-                <Trash2 className="h-4 w-4" /> Remove
+                <AlertCircle className="h-4 w-4" /> Reject Proof
               </button>
             )}
           </div>
@@ -835,12 +839,54 @@ function InstallmentDetailPanel({
             onChange={(e) => onUpload(e.target.files?.[0] ?? undefined)}
           />
         </label>
+      ) : showStripeRepay ? (
+        <div
+          className="mt-4 rounded-xl p-4"
+          style={{ backgroundColor: "#FEF2F2", border: `1px solid #FECDCA` }}
+        >
+          <p className="text-small font-semibold" style={{ color: "#991B1B" }}>
+            Card payment was declined
+          </p>
+          <p className="mt-1 text-smaller" style={{ color: TEXT_MUTED }}>
+            Send the student a new attempt link or notify them to update their card.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => toast.success("Decline notice sent")}
+              className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-small font-semibold"
+              style={{ backgroundColor: TEXT_DARK, color: "#FFFFFF" }}
+            >
+              Send Decline Notice
+            </button>
+            <button
+              type="button"
+              onClick={() => copyLink(`https://pay.example.com/repay/${row.id}`)}
+              className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-small font-semibold"
+              style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+            >
+              Copy Repay Link
+            </button>
+            <button
+              type="button"
+              onClick={() => toast.success("Repay link sent")}
+              className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-small font-semibold"
+              style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+            >
+              Send Repay Link
+            </button>
+          </div>
+        </div>
       ) : (
         <div
           className="mt-4 rounded-xl px-4 py-8 text-center text-small"
           style={{ backgroundColor: "#FAFAFA", border: `1px dashed ${BORDER}`, color: TEXT_MUTED }}
         >
-          No upload required for this installment.
+          {isStripe
+            ? "Card payment — proof not required."
+            : row.status === "Upcoming"
+              ? "This installment is not due yet."
+              : "No action required."}
         </div>
       )}
 
@@ -865,8 +911,23 @@ function InstallmentDetailPanel({
               border: "1px solid #FECDCA",
             }}
           >
-            <AlertCircle className="h-4 w-4" /> Reject Payment
+            <AlertCircle className="h-4 w-4" /> Decline Payment
           </button>
+        </div>
+      )}
+
+      {/* Internal note */}
+      {!isApproved && (
+        <div className="mt-4">
+          <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+            Internal note
+          </p>
+          <textarea
+            rows={2}
+            placeholder="Add an internal note for this installment…"
+            className="w-full resize-none rounded-xl px-3 py-2 text-small"
+            style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
+          />
         </div>
       )}
     </div>
@@ -891,6 +952,12 @@ function PostponeModal({
   const [months, setMonths] = useState(2);
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
+  const calculatedTotal = installments
+    .filter((i) => selected.includes(i.id))
+    .reduce((sum, i) => sum + i.amount, 0);
+  const [finalAmountStr, setFinalAmountStr] = useState("");
+  const finalAmount = finalAmountStr === "" ? calculatedTotal : Number(finalAmountStr) || 0;
+  const customApplied = finalAmountStr !== "" && Number(finalAmountStr) !== calculatedTotal;
   const newDue = (() => {
     const d = new Date();
     d.setMonth(d.getMonth() + months);
@@ -916,13 +983,13 @@ function PostponeModal({
         initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md rounded-3xl bg-white p-6"
+        className="w-full max-w-lg rounded-3xl bg-white p-6"
         style={{ boxShadow: "0 30px 80px rgba(15,23,42,0.25)" }}
       >
         <div className="flex items-start justify-between">
           <div>
             <h3 className="text-second-header font-bold" style={{ color: TEXT_DARK }}>
-              Postpone Installment
+              Postpone Installments
             </h3>
             <p className="mt-1 text-smaller" style={{ color: TEXT_MUTED }}>
               Group selected installments into a catch-up payment.
@@ -944,7 +1011,7 @@ function PostponeModal({
               Select installments
             </p>
             <div
-              className="max-h-40 overflow-y-auto rounded-xl"
+              className="max-h-44 overflow-y-auto rounded-xl"
               style={{ border: `1px solid ${BORDER}` }}
             >
               {installments.length === 0 && (
@@ -967,11 +1034,42 @@ function PostponeModal({
                     {it.label}
                   </span>
                   <span className="ml-auto text-smaller" style={{ color: TEXT_MUTED }}>
-                    Due {it.dueDate}
+                    ${it.amount.toLocaleString()} · {it.status}
                   </span>
                 </label>
               ))}
             </div>
+          </div>
+
+          {/* Calculated + Final amount */}
+          <div className="rounded-xl p-3" style={{ backgroundColor: SOFT }}>
+            <div className="flex items-center justify-between">
+              <span className="text-smaller" style={{ color: TEXT_MUTED }}>
+                Calculated Total
+              </span>
+              <span className="text-small font-semibold" style={{ color: TEXT_DARK }}>
+                ${calculatedTotal.toLocaleString()}
+              </span>
+            </div>
+            <div className="mt-2 flex items-center justify-between gap-3">
+              <span className="text-smaller" style={{ color: TEXT_MUTED }}>
+                Final Catch-up Amount
+              </span>
+              <input
+                type="number"
+                min={0}
+                value={finalAmountStr}
+                onChange={(e) => setFinalAmountStr(e.target.value)}
+                placeholder={`${calculatedTotal}`}
+                className="w-32 rounded-lg bg-white px-2.5 py-1.5 text-right text-small font-semibold"
+                style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
+              />
+            </div>
+            {customApplied && (
+              <p className="mt-1.5 text-right text-smaller" style={{ color: TEXT_MUTED }}>
+                Custom amount applied (${finalAmount.toLocaleString()})
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -1006,13 +1104,19 @@ function PostponeModal({
             <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
               Reason
             </p>
-            <input
+            <select
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Student requested additional time"
-              className="w-full rounded-xl px-3 py-2 text-small"
+              className="w-full rounded-xl bg-white px-3 py-2 text-small"
               style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
-            />
+            >
+              <option value="">Select a reason…</option>
+              <option>Student requested more time</option>
+              <option>Financial delay</option>
+              <option>Bank transfer delay</option>
+              <option>Internal approval</option>
+              <option>Other</option>
+            </select>
           </div>
 
           <div>
@@ -1047,7 +1151,7 @@ function PostponeModal({
             className="rounded-full px-4 py-2 text-small font-semibold disabled:opacity-50"
             style={{ backgroundColor: TEXT_DARK, color: "#FFFFFF" }}
           >
-            Confirm Postpone
+            Create Catch-up Group
           </button>
         </div>
       </motion.div>
@@ -2798,12 +2902,12 @@ function ModalShell({
 
 type ProofFile = { name: string; uploadedAt: string };
 
-type ApprovalState = "Pending Review" | "Approved" | "Rejected";
+type ApprovalState = "Pending" | "Approved" | "Rejected";
 
 function deriveApproval(status: InvitationStatus): ApprovalState {
   if (status === "Installment Approved") return "Approved";
   if (status === "Installment Rejected") return "Rejected";
-  return "Pending Review";
+  return "Pending";
 }
 
 function PaymentOverviewDrawer({
@@ -2843,7 +2947,7 @@ function PaymentOverviewDrawer({
   const overallInstallmentStatus = (() => {
     if (!totalCount) return "Awaiting Installments";
     if (approvedCount === totalCount) return "Fully Approved";
-    if (installments.some((i) => i.status === "Pending Review")) return "Pending Review";
+    if (installments.some((i) => i.status === "Pending")) return "Pending";
     if (approvedCount > 0) return "Partially Approved";
     return "Awaiting Installments";
   })();
@@ -2861,7 +2965,7 @@ function PaymentOverviewDrawer({
     dueDate: string;
     reason: string;
     note: string;
-    status: "Pending Payment" | "Pending Review" | "Approved" | "Rejected";
+    status: "Pending Payment" | "Pending" | "Approved" | "Rejected";
     proof: ProofFile | null;
   };
   const [groups, setGroups] = useState<GroupedPayment[]>([]);
@@ -2915,7 +3019,7 @@ function PaymentOverviewDrawer({
           ? {
               ...it,
               proof: { name: file.name, uploadedAt: `Uploaded ${today}` },
-              status: it.status === "Upcoming" ? "Pending Review" : "Pending Review",
+              status: it.status === "Upcoming" ? "Pending" : "Pending",
             }
           : it,
       ),
@@ -2926,7 +3030,7 @@ function PaymentOverviewDrawer({
   const removeInstallmentProof = (id: string) => {
     setInstallments((prev) =>
       prev.map((it) =>
-        it.id === id ? { ...it, proof: null, status: "Proof Required" } : it,
+        it.id === id ? { ...it, proof: null, status: "Pending" } : it,
       ),
     );
   };
@@ -2982,7 +3086,7 @@ function PaymentOverviewDrawer({
           ? {
               ...it,
               proof: { name: file.name, uploadedAt: `Uploaded ${today}` },
-              status: "Pending Review",
+              status: "Pending",
             }
           : it,
       ),
@@ -3037,7 +3141,7 @@ function PaymentOverviewDrawer({
   const accessStatus: "Active" | "Suspended" =
     isInstallment &&
     installments.some(
-      (i) => i.status === "Rejected" || i.status === "Overdue",
+      (i) => i.status === "Declined",
     )
       ? "Suspended"
       : "Active";
@@ -3346,11 +3450,9 @@ function PaymentOverviewDrawer({
         <PostponeModal
           installments={installments.filter(
             (i) =>
-              i.status === "Pending Review" ||
-              i.status === "Proof Required" ||
+              i.status === "Pending" ||
               i.status === "Upcoming" ||
-              i.status === "Overdue" ||
-              i.status === "Rejected",
+              i.status === "Declined",
           )}
           onClose={() => setPostponeOpen(false)}
           onConfirm={(ids, payload) => {
@@ -3425,17 +3527,14 @@ function ProofRow({
       >
         View
       </button>
-      {onRemove && (
-        <button
-          type="button"
-          onClick={onRemove}
-          className="grid h-8 w-8 place-items-center rounded-full hover:bg-[#FEE2E2]"
-          style={{ color: "#B42318" }}
-          aria-label="Remove"
-        >
-          <Trash2 className="h-4 w-4" />
-        </button>
-      )}
+      <button
+        type="button"
+        onClick={() => toast.success("Download started")}
+        className="rounded-full px-3 py-1.5 text-small font-medium hover:bg-[#F3F4F6]"
+        style={{ color: TEXT_DARK }}
+      >
+        Download
+      </button>
     </div>
   );
 }
@@ -3482,7 +3581,7 @@ function MiniStat({ label, value }: { label: string; value: string }) {
 
 function ApprovalPill({ state }: { state: ApprovalState }) {
   const map: Record<ApprovalState, { bg: string; color: string }> = {
-    "Pending Review": { bg: "#F3F4F6", color: "#4B5563" },
+    "Pending": { bg: "#F3F4F6", color: "#4B5563" },
     Approved: { bg: "rgba(204, 246, 33, 0.45)", color: "#3F5C00" },
     Rejected: { bg: "#FEE2E2", color: "#991B1B" },
   };
@@ -3601,7 +3700,7 @@ function Timeline({
   groups?: {
     id: string;
     label: string;
-    status: "Pending Payment" | "Pending Review" | "Approved" | "Rejected";
+    status: "Pending Payment" | "Pending" | "Approved" | "Rejected";
   }[];
 }) {
   const status = invitation.status;
@@ -3634,30 +3733,25 @@ function Timeline({
       const state: TimelineState =
         inst.status === "Approved" ||
         inst.status === "Catch-up Group Approved" ||
-        inst.status === "Rejected"
+        inst.status === "Declined"
           ? "done"
-          : inst.status === "Pending Review" ||
+          : inst.status === "Pending" ||
               inst.status === "Catch-up Group Pending" ||
-              inst.status === "Postponed" ||
-              inst.status === "Overdue"
+              inst.status === "Postponed"
             ? "current"
             : "pending";
       const suffix =
         inst.status === "Approved" || inst.status === "Catch-up Group Approved"
           ? "approved"
-          : inst.status === "Rejected"
-            ? "rejected"
-            : inst.status === "Pending Review"
-              ? "pending review"
-              : inst.status === "Proof Required"
-                ? "proof required"
-                : inst.status === "Postponed"
-                  ? "postponed"
-                  : inst.status === "Overdue"
-                    ? "overdue"
-                    : inst.status === "Catch-up Group Pending"
-                      ? "in catch-up group"
-                      : "upcoming";
+          : inst.status === "Declined"
+            ? "declined"
+            : inst.status === "Pending"
+              ? "pending"
+              : inst.status === "Postponed"
+                ? "postponed"
+                : inst.status === "Catch-up Group Pending"
+                  ? "in catch-up group"
+                  : "upcoming";
       items.push({
         label: `${inst.label} ${suffix}`,
         icon:
@@ -3783,11 +3877,9 @@ function Timeline({
 
 type InstallmentStatus =
   | "Approved"
-  | "Pending Review"
-  | "Proof Required"
-  | "Rejected"
+  | "Pending"
+  | "Declined"
   | "Upcoming"
-  | "Overdue"
   | "Postponed"
   | "Catch-up Group Pending"
   | "Catch-up Group Approved";
@@ -3800,6 +3892,8 @@ type InstallmentRow = {
   amount: number;
   status: InstallmentStatus;
   proof: ProofFile | null;
+  paymentMethod: "Stripe" | "Offline";
+  stripeTxnId?: string;
 };
 
 function addMonthsFormatted(start: Date, months: number): string {
@@ -3824,14 +3918,22 @@ function seedInstallments(
     const number = i + 1;
     let status: InstallmentStatus = "Upcoming";
     let proof: ProofFile | null = null;
+    // Alternate methods for demo: 1st Stripe-auto-approved, 2nd offline pending w/ proof,
+    // 3rd offline pending awaiting proof, rest upcoming.
+    let paymentMethod: "Stripe" | "Offline" = i % 2 === 0 ? "Stripe" : "Offline";
+    let stripeTxnId: string | undefined;
     if (i === 0) {
       status = "Approved";
-      proof = { name: `installment-01.pdf`, uploadedAt: "Uploaded earlier" };
+      paymentMethod = "Stripe";
+      stripeTxnId = "ch_3Q1xR4...";
+      proof = { name: "stripe-receipt-01.pdf", uploadedAt: "Auto-saved" };
     } else if (i === 1) {
-      status = "Pending Review";
-      proof = { name: `installment-02-proof.pdf`, uploadedAt: "Uploaded Jun 15, 2026" };
+      status = "Pending";
+      paymentMethod = "Offline";
+      proof = { name: "installment-02-proof.pdf", uploadedAt: "Uploaded Jun 15, 2026" };
     } else if (i === 2) {
-      status = "Proof Required";
+      status = "Pending";
+      paymentMethod = "Offline";
     }
     rows.push({
       id: `inst-${number}`,
@@ -3841,6 +3943,8 @@ function seedInstallments(
       amount: details.monthlyPayment,
       status,
       proof,
+      paymentMethod,
+      stripeTxnId,
     });
   }
   return rows;
@@ -3849,11 +3953,9 @@ function seedInstallments(
 function InstallmentStatusPill({ status }: { status: InstallmentStatus }) {
   const map: Record<InstallmentStatus, { bg: string; color: string }> = {
     Approved: { bg: "rgba(204,246,33,0.45)", color: "#3F5C00" },
-    "Pending Review": { bg: "#FEF3C7", color: "#92400E" },
-    "Proof Required": { bg: "#F3F4F6", color: "#4B5563" },
-    Rejected: { bg: "#FEE2E2", color: "#991B1B" },
+    Pending: { bg: "#FEF3C7", color: "#92400E" },
+    Declined: { bg: "#FEE2E2", color: "#991B1B" },
     Upcoming: { bg: "#F3F4F6", color: "#6B7280" },
-    Overdue: { bg: "#FEE4E2", color: "#B42318" },
     Postponed: { bg: "#E0E7FF", color: "#3730A3" },
     "Catch-up Group Pending": { bg: "#FEF9C3", color: "#854D0E" },
     "Catch-up Group Approved": { bg: "rgba(204,246,33,0.45)", color: "#3F5C00" },
@@ -3885,7 +3987,7 @@ function InstallmentCard({
   const inputId = `proof-${row.id}`;
   const isUpcoming = row.status === "Upcoming";
   const isApproved = row.status === "Approved";
-  const canApprove = row.status === "Pending Review";
+  const canApprove = row.status === "Pending";
 
   return (
     <div
