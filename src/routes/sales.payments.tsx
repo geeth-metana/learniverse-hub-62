@@ -247,10 +247,9 @@ function PaymentPage() {
                         "Student",
                         "Email",
                         "Course",
-                        "Cohort Date",
                         "Payment Method",
-                        "Plan / Setup",
                         "Status",
+                        "Payment Link",
                         "Actions",
                       ].map((h) => (
                         <th
@@ -267,7 +266,7 @@ function PaymentPage() {
                     {filtered.length === 0 ? (
                       <tr>
                         <td
-                          colSpan={8}
+                          colSpan={7}
                           className="px-6 py-14 text-center text-body"
                           style={{ color: TEXT_MUTED }}
                         >
@@ -289,23 +288,31 @@ function PaymentPage() {
                           </td>
                           <td className="px-6 py-4" style={{ color: TEXT_DARK }}>{row.studentEmail}</td>
                           <td className="px-6 py-4" style={{ color: TEXT_DARK }}>{row.course}</td>
-                          <td className="px-6 py-4" style={{ color: TEXT_DARK }}>{row.cohortDate}</td>
                           <td className="px-6 py-4" style={{ color: TEXT_DARK }}>{row.paymentMethod}</td>
-                          <td className="px-6 py-4" style={{ color: TEXT_DARK }}>{planSetupLabel(row)}</td>
                           <td className="px-6 py-4">{statusPill(row.status)}</td>
+                          <td className="px-6 py-4">
+                            <button
+                              type="button"
+                              onClick={() => copyLink(row.checkoutLink)}
+                              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-smaller font-semibold transition-colors hover:bg-[#E5E7EB]"
+                              style={{ backgroundColor: SOFT, color: TEXT_DARK }}
+                            >
+                              <Link2 className="h-3.5 w-3.5" /> Copy Payment Link
+                            </button>
+                          </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-1">
                               <IconAction
-                                label={row.status === "Invite Sent" ? "Resend Invitation" : "Send Invitation"}
+                                label={row.status === "Invite Sent" ? "Resend Payment Link" : "Send Payment Link"}
                                 onClick={() => {
                                   updateInvitation(row.id, { status: "Invite Sent" });
-                                  toast.success(`Invitation sent to ${row.studentEmail}`);
+                                  toast.success(`Payment Link sent to ${row.studentEmail}`);
                                 }}
                               >
                                 <Send className="h-4 w-4" />
                               </IconAction>
                               <IconAction
-                                label="Copy Link"
+                                label="Copy Payment Link"
                                 onClick={() => copyLink(row.checkoutLink)}
                               >
                                 <Link2 className="h-4 w-4" />
@@ -507,21 +514,19 @@ function InstallmentsPanel({
               >
                 <CalendarClock className="h-3.5 w-3.5" /> Postpone
               </button>
-              <label className="inline-flex cursor-pointer items-center gap-2">
-                <span className="text-smaller" style={{ color: TEXT_MUTED }}>
-                  Show Upcoming
-                </span>
+              <button
+                type="button"
+                aria-label={showUpcoming ? "Hide upcoming installments" : "Show upcoming installments"}
+                title={showUpcoming ? "Hide upcoming" : "Show upcoming"}
+                onClick={() => setShowUpcoming(!showUpcoming)}
+                className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors"
+                style={{ backgroundColor: showUpcoming ? TEXT_DARK : "#E5E7EB" }}
+              >
                 <span
-                  className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors"
-                  style={{ backgroundColor: showUpcoming ? TEXT_DARK : "#E5E7EB" }}
-                  onClick={() => setShowUpcoming(!showUpcoming)}
-                >
-                  <span
-                    className="ml-0.5 inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-                    style={{ transform: `translateX(${showUpcoming ? 16 : 0}px)` }}
-                  />
-                </span>
-              </label>
+                  className="ml-0.5 inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                  style={{ transform: `translateX(${showUpcoming ? 16 : 0}px)` }}
+                />
+              </button>
             </div>
           </div>
           <div className="max-h-[440px] overflow-y-auto">
@@ -808,16 +813,6 @@ function InstallmentDetailPanel({
             >
               Download Proof
             </button>
-            {!isApproved && !isStripe && (
-              <button
-                type="button"
-                onClick={onRejectProof}
-                className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-small font-semibold"
-                style={{ backgroundColor: "#FFFFFF", color: "#B42318", border: "1px solid #FECDCA" }}
-              >
-                <AlertCircle className="h-4 w-4" /> Reject Proof
-              </button>
-            )}
           </div>
         </div>
       ) : canUpload ? (
@@ -900,18 +895,6 @@ function InstallmentDetailPanel({
             style={{ backgroundColor: BRAND, color: TEXT_DARK }}
           >
             <CheckCircle2 className="h-4 w-4" /> Approve Payment
-          </button>
-          <button
-            type="button"
-            onClick={onReject}
-            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
-            style={{
-              backgroundColor: "#FFFFFF",
-              color: "#B42318",
-              border: "1px solid #FECDCA",
-            }}
-          >
-            <AlertCircle className="h-4 w-4" /> Decline Payment
           </button>
         </div>
       )}
@@ -1925,7 +1908,7 @@ function AddStudentModal({
               className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-button-primary font-semibold"
               style={{ backgroundColor: BRAND, color: TEXT_DARK }}
             >
-              Confirm & Generate Invitation
+              Confirm & Generate Payment Link
             </button>
           )}
         </div>
@@ -2618,7 +2601,7 @@ function Step6Send({ invitation, onDone }: { invitation: Invitation; onDone: () 
   const sendInvitation = () => {
     updateInvitation(invitation.id, { status: "Invite Sent" });
     setSent(true);
-    toast.success(`Invitation sent to ${invitation.studentEmail}`);
+    toast.success(`Payment Link sent to ${invitation.studentEmail}`);
   };
   const shareManually = () => {
     const msg = `Hi, your Metana course checkout link is ready. Use this secure link to complete your payment and get access: ${link}`;
@@ -2634,12 +2617,12 @@ function Step6Send({ invitation, onDone }: { invitation: Invitation; onDone: () 
         className="rounded-xl p-4"
         style={{ backgroundColor: "rgba(204, 246, 33, 0.2)", color: TEXT_DARK }}
       >
-        <p className="font-semibold">The checkout invitation has been created successfully.</p>
-        <p className="mt-1 text-small" style={{ color: TEXT_MUTED }}>Invitation ID: {invitation.id}</p>
+        <p className="font-semibold">The payment link has been created successfully.</p>
+        <p className="mt-1 text-small" style={{ color: TEXT_MUTED }}>Payment Link ID: {invitation.id}</p>
       </div>
       <div>
         <p className="mb-2 text-small font-medium" style={{ color: TEXT_DARK }}>
-          Generated invitation link
+          Generated payment link
         </p>
         <div
           className="flex items-center gap-2 rounded-full bg-white pl-4 pr-1 py-1"
@@ -2666,14 +2649,14 @@ function Step6Send({ invitation, onDone }: { invitation: Invitation; onDone: () 
           className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-button-primary font-semibold"
           style={{ backgroundColor: BRAND, color: TEXT_DARK }}
         >
-          <Send className="h-4 w-4" /> Send Invitation
+          <Send className="h-4 w-4" /> Send Payment Link
         </button>
         <button
           onClick={() => copyLink(link)}
           className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-button-primary font-semibold"
           style={{ backgroundColor: SOFT, color: TEXT_DARK }}
         >
-          <Copy className="h-4 w-4" /> Copy Link
+          <Copy className="h-4 w-4" /> Copy Payment Link
         </button>
         <button
           onClick={shareManually}
@@ -2685,7 +2668,7 @@ function Step6Send({ invitation, onDone }: { invitation: Invitation; onDone: () 
       </div>
       {sent && (
         <p className="text-small" style={{ color: TEXT_MUTED }}>
-          Invitation sent to{" "}
+          Payment Link sent to{" "}
           <span className="font-semibold" style={{ color: TEXT_DARK }}>{invitation.studentEmail}</span>
         </p>
       )}
@@ -2743,7 +2726,7 @@ function InvitationModal({
   const sendInvitation = () => {
     updateInvitation(invitation.id, { status: "Invite Sent" });
     setSent(true);
-    toast.success(`Invitation sent to ${invitation.studentEmail}`);
+    toast.success(`Payment Link sent to ${invitation.studentEmail}`);
   };
   const shareManually = () => {
     const msg = `Hi, your Metana course checkout link is ready. Use this secure link to complete your payment and get access: ${localLink}`;
@@ -2754,20 +2737,20 @@ function InvitationModal({
   };
 
   return (
-    <ModalShell title="Send Invitation" onClose={onClose} maxWidth={620}>
+    <ModalShell title="Send Payment Link" onClose={onClose} maxWidth={620}>
       <div className="flex flex-col gap-5">
         <div
           className="rounded-xl p-4"
           style={{ backgroundColor: "rgba(204, 246, 33, 0.2)", color: TEXT_DARK }}
         >
-          <p className="font-semibold">The checkout invitation has been created successfully.</p>
+          <p className="font-semibold">The payment link has been created successfully.</p>
           <p className="mt-1 text-small" style={{ color: TEXT_MUTED }}>
-            Invitation ID: {invitation.id}
+            Payment Link ID: {invitation.id}
           </p>
         </div>
         <div>
           <p className="mb-2 text-small font-medium" style={{ color: TEXT_DARK }}>
-            Generated invitation link
+            Generated payment link
           </p>
           <div
             className="flex items-center gap-2 rounded-full bg-white pl-4 pr-1 py-1"
@@ -2794,14 +2777,14 @@ function InvitationModal({
             className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-button-primary font-semibold"
             style={{ backgroundColor: BRAND, color: TEXT_DARK }}
           >
-            <Send className="h-4 w-4" /> Send Invitation
+            <Send className="h-4 w-4" /> Send Payment Link
           </button>
           <button
             onClick={() => copyLink(localLink)}
             className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-button-primary font-semibold"
             style={{ backgroundColor: SOFT, color: TEXT_DARK }}
           >
-            <Copy className="h-4 w-4" /> Copy Link
+            <Copy className="h-4 w-4" /> Copy Payment Link
           </button>
           <button
             onClick={shareManually}
@@ -2813,7 +2796,7 @@ function InvitationModal({
         </div>
         {sent && (
           <p className="text-small" style={{ color: TEXT_MUTED }}>
-            Invitation sent to{" "}
+            Payment Link sent to{" "}
             <span className="font-semibold" style={{ color: TEXT_DARK }}>
               {invitation.studentEmail}
             </span>
@@ -3151,8 +3134,9 @@ function PaymentOverviewDrawer({
     { id: "course", label: "Course Access Details", icon: BookOpen },
     { id: "payment", label: "Payment Details", icon: CreditCard },
     { id: "timeline", label: "Payment Status Timeline", icon: ListChecks },
-    { id: "installments", label: "Installment Payments", icon: Layers },
-    { id: "proof", label: "Upload Payment Proof", icon: UploadCloud },
+    ...(inv.paymentMethod === "Installment"
+      ? ([{ id: "installments", label: "Installment Payments", icon: Layers }] as const)
+      : ([] as const)),
   ] as const;
   type TabId = (typeof TABS)[number]["id"];
   const [activeTab, setActiveTab] = useState<TabId>("student");
@@ -3208,11 +3192,8 @@ function PaymentOverviewDrawer({
                   key={t.id}
                   type="button"
                   onClick={() => setActiveTab(t.id)}
-                  className="group flex items-center gap-3 rounded-full px-3.5 py-2.5 text-left transition-colors"
-                  style={{
-                    backgroundColor: active ? TEXT_DARK : "transparent",
-                    color: active ? "#FFFFFF" : TEXT_MUTED,
-                  }}
+                  className="group relative flex items-center gap-3 rounded-full px-3.5 py-2.5 text-left"
+                  style={{ color: active ? "#FFFFFF" : TEXT_MUTED }}
                   onMouseEnter={(e) => {
                     if (!active) e.currentTarget.style.backgroundColor = "#F3F4F6";
                   }}
@@ -3220,11 +3201,21 @@ function PaymentOverviewDrawer({
                     if (!active) e.currentTarget.style.backgroundColor = "transparent";
                   }}
                 >
-                  <Icon
-                    className="h-4 w-4 shrink-0"
-                    style={{ color: active ? BRAND : TEXT_MUTED }}
-                  />
-                  <span className="text-small font-medium">{t.label}</span>
+                  {active && (
+                    <motion.span
+                      layoutId="overview-active-tab"
+                      className="absolute inset-0 rounded-full"
+                      style={{ backgroundColor: TEXT_DARK }}
+                      transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                    />
+                  )}
+                  <span className="relative z-10 flex items-center gap-3">
+                    <Icon
+                      className="h-4 w-4 shrink-0 transition-colors"
+                      style={{ color: active ? BRAND : TEXT_MUTED }}
+                    />
+                    <span className="text-small font-medium">{t.label}</span>
+                  </span>
                 </button>
               );
             })}
@@ -3249,10 +3240,10 @@ function PaymentOverviewDrawer({
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeTab}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-                transition={{ duration: 0.18 }}
+                initial={{ opacity: 0, x: 12 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -8 }}
+                transition={{ duration: 0.25, ease: [0.42, 0, 0.58, 1] }}
               >
                 {activeTab === "student" && (
                   <PanelSection title="Student Details">
@@ -3353,94 +3344,6 @@ function PaymentOverviewDrawer({
                   />
                 )}
 
-                {activeTab === "proof" && (
-                  <PanelSection title="Upload Payment Proof">
-                    <p className="text-small" style={{ color: TEXT_MUTED }}>
-                      Upload or review payment proof documents linked to this student.
-                    </p>
-                    <label
-                      onDragOver={(e) => {
-                        e.preventDefault();
-                        setDragOver(true);
-                      }}
-                      onDragLeave={() => setDragOver(false)}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        setDragOver(false);
-                        onFile(e.dataTransfer.files?.[0]);
-                      }}
-                      className="mt-4 flex cursor-pointer flex-col items-center justify-center rounded-xl px-4 py-10 text-center transition-colors"
-                      style={{
-                        border: `1.5px dashed ${dragOver ? TEXT_DARK : BORDER}`,
-                        backgroundColor: dragOver ? "rgba(204,246,33,0.08)" : "#FAFAFA",
-                      }}
-                    >
-                      <UploadCloud className="h-6 w-6" style={{ color: TEXT_MUTED }} />
-                      <p className="mt-2 text-small font-medium" style={{ color: TEXT_DARK }}>
-                        Drag and drop file here or click to browse
-                      </p>
-                      <p className="mt-0.5 text-smaller" style={{ color: TEXT_MUTED }}>
-                        PDF, PNG, JPG up to 10MB
-                      </p>
-                      <input
-                        type="file"
-                        accept=".pdf,.png,.jpg,.jpeg"
-                        className="hidden"
-                        onChange={(e) => onFile(e.target.files?.[0] ?? undefined)}
-                      />
-                    </label>
-
-                    <div className="mt-4">
-                      <label className="text-smaller font-medium" style={{ color: TEXT_MUTED }}>
-                        Link upload to
-                      </label>
-                      <select
-                        className="mt-1 w-full rounded-xl bg-white px-3 py-2 text-small"
-                        style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
-                        defaultValue="Down Payment"
-                      >
-                        <option>Down Payment</option>
-                        <option>Installment 01</option>
-                        <option>Installment 02</option>
-                        <option>Catch-up Payment</option>
-                        <option>Bank Transfer</option>
-                        <option>Loan Approval</option>
-                        <option>Other</option>
-                      </select>
-                    </div>
-
-                    {/* Library */}
-                    <div className="mt-6 space-y-2">
-                      <p className="text-small font-semibold" style={{ color: TEXT_DARK }}>
-                        Proof Library
-                      </p>
-                      {proof && (
-                        <ProofRow
-                          name={proof.name}
-                          linked="General"
-                          uploadedAt={proof.uploadedAt}
-                          status="Uploaded"
-                          onRemove={() => setProof(null)}
-                        />
-                      )}
-                      {proofLibrary.length === 0 && !proof ? (
-                        <p className="text-smaller" style={{ color: TEXT_MUTED }}>
-                          No proof files uploaded yet.
-                        </p>
-                      ) : (
-                        proofLibrary.map((p) => (
-                          <ProofRow
-                            key={p.linked}
-                            name={p.name}
-                            linked={p.linked}
-                            uploadedAt={p.uploadedAt}
-                            status={p.status}
-                          />
-                        ))
-                      )}
-                    </div>
-                  </PanelSection>
-                )}
               </motion.div>
             </AnimatePresence>
           </div>
@@ -3709,7 +3612,7 @@ function Timeline({
   const items: { label: string; icon: React.ComponentType<{ className?: string }>; state: TimelineState }[] = [
     { label: "Payment plan created", icon: FileText, state: "done" },
     {
-      label: "Invitation sent",
+      label: "Payment Link sent",
       icon: Mail,
       state:
         status === "Pending"
