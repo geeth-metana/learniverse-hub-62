@@ -428,6 +428,7 @@ function InstallmentsPanel({
   onUploadGroupProof: (id: string, file: File | undefined) => void;
   onApproveGroup: (id: string) => void;
   onRejectGroup: (id: string) => void;
+  onDetachGroup: (id: string) => void;
 }) {
   if (!isInstallment || invitation.paymentDetails.paymentType !== "Installment") {
     return (
