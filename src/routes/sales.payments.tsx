@@ -113,12 +113,18 @@ function statusPill(status: InvitationStatus) {
     "Loan Approved": paid,
   };
   const s = map[status];
+  const displayLabel =
+    status === "Combined Plan Pending"
+      ? "Pending"
+      : status === "Combined Plan Approved"
+        ? "Approved"
+        : status;
   return (
     <span
       className="inline-flex items-center rounded-full px-2.5 py-1 text-smaller font-semibold"
       style={{ backgroundColor: s.bg, color: s.color }}
     >
-      {status}
+      {displayLabel}
     </span>
   );
 }
