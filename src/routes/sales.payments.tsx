@@ -3512,6 +3512,26 @@ function PaymentOverviewDrawer({
     toast.success("Group payment rejected");
   };
 
+  const [detachGroupId, setDetachGroupId] = useState<string | null>(null);
+  const detachGroup = (groupId: string) => {
+    const group = groups.find((g) => g.id === groupId);
+    if (!group) return;
+    if (group.status === "Approved") {
+      toast.error("Approved combined plans cannot be detached");
+      return;
+    }
+    setInstallments((prev) =>
+      prev.map((it) =>
+        group.installmentIds.includes(it.id)
+          ? { ...it, status: "Pending" as InstallmentStatus }
+          : it,
+      ),
+    );
+    setGroups((g) => g.filter((it) => it.id !== groupId));
+    if (selectedInstallmentId === groupId) setSelectedInstallmentId(null);
+    toast.success("Combined plan detached");
+  };
+
   const onFile = (file: File | undefined) => {
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) {
