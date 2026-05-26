@@ -3216,11 +3216,8 @@ function PaymentOverviewDrawer({
                   key={t.id}
                   type="button"
                   onClick={() => setActiveTab(t.id)}
-                  className="group flex items-center gap-3 rounded-full px-3.5 py-2.5 text-left transition-colors"
-                  style={{
-                    backgroundColor: active ? TEXT_DARK : "transparent",
-                    color: active ? "#FFFFFF" : TEXT_MUTED,
-                  }}
+                  className="group relative flex items-center gap-3 rounded-full px-3.5 py-2.5 text-left"
+                  style={{ color: active ? "#FFFFFF" : TEXT_MUTED }}
                   onMouseEnter={(e) => {
                     if (!active) e.currentTarget.style.backgroundColor = "#F3F4F6";
                   }}
@@ -3228,11 +3225,21 @@ function PaymentOverviewDrawer({
                     if (!active) e.currentTarget.style.backgroundColor = "transparent";
                   }}
                 >
-                  <Icon
-                    className="h-4 w-4 shrink-0"
-                    style={{ color: active ? BRAND : TEXT_MUTED }}
-                  />
-                  <span className="text-small font-medium">{t.label}</span>
+                  {active && (
+                    <motion.span
+                      layoutId="overview-active-tab"
+                      className="absolute inset-0 rounded-full"
+                      style={{ backgroundColor: TEXT_DARK }}
+                      transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                    />
+                  )}
+                  <span className="relative z-10 flex items-center gap-3">
+                    <Icon
+                      className="h-4 w-4 shrink-0 transition-colors"
+                      style={{ color: active ? BRAND : TEXT_MUTED }}
+                    />
+                    <span className="text-small font-medium">{t.label}</span>
+                  </span>
                 </button>
               );
             })}
