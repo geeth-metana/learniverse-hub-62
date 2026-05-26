@@ -446,7 +446,8 @@ function InstallmentsPanel({
   const activeStatuses: InstallmentStatus[] = [
     "Pending",
     "Payment Failed",
-    "Postponed",
+    "Overdue",
+    "Needs New Proof",
     "Combined Plan Pending",
     "Combined Plan Approved",
     "Approved",
