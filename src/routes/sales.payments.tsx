@@ -247,10 +247,9 @@ function PaymentPage() {
                         "Student",
                         "Email",
                         "Course",
-                        "Cohort Date",
                         "Payment Method",
-                        "Plan / Setup",
                         "Status",
+                        "Payment Link",
                         "Actions",
                       ].map((h) => (
                         <th
@@ -267,7 +266,7 @@ function PaymentPage() {
                     {filtered.length === 0 ? (
                       <tr>
                         <td
-                          colSpan={8}
+                          colSpan={7}
                           className="px-6 py-14 text-center text-body"
                           style={{ color: TEXT_MUTED }}
                         >
@@ -289,23 +288,31 @@ function PaymentPage() {
                           </td>
                           <td className="px-6 py-4" style={{ color: TEXT_DARK }}>{row.studentEmail}</td>
                           <td className="px-6 py-4" style={{ color: TEXT_DARK }}>{row.course}</td>
-                          <td className="px-6 py-4" style={{ color: TEXT_DARK }}>{row.cohortDate}</td>
                           <td className="px-6 py-4" style={{ color: TEXT_DARK }}>{row.paymentMethod}</td>
-                          <td className="px-6 py-4" style={{ color: TEXT_DARK }}>{planSetupLabel(row)}</td>
                           <td className="px-6 py-4">{statusPill(row.status)}</td>
+                          <td className="px-6 py-4">
+                            <button
+                              type="button"
+                              onClick={() => copyLink(row.checkoutLink)}
+                              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-smaller font-semibold transition-colors hover:bg-[#E5E7EB]"
+                              style={{ backgroundColor: SOFT, color: TEXT_DARK }}
+                            >
+                              <Link2 className="h-3.5 w-3.5" /> Copy Payment Link
+                            </button>
+                          </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-1">
                               <IconAction
-                                label={row.status === "Invite Sent" ? "Resend Invitation" : "Send Invitation"}
+                                label={row.status === "Invite Sent" ? "Resend Payment Link" : "Send Payment Link"}
                                 onClick={() => {
                                   updateInvitation(row.id, { status: "Invite Sent" });
-                                  toast.success(`Invitation sent to ${row.studentEmail}`);
+                                  toast.success(`Payment Link sent to ${row.studentEmail}`);
                                 }}
                               >
                                 <Send className="h-4 w-4" />
                               </IconAction>
                               <IconAction
-                                label="Copy Link"
+                                label="Copy Payment Link"
                                 onClick={() => copyLink(row.checkoutLink)}
                               >
                                 <Link2 className="h-4 w-4" />
