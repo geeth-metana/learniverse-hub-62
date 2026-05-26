@@ -2375,14 +2375,15 @@ function PaymentOverviewDrawer({
         className="relative grid w-[90vw] grid-cols-[28%_72%] overflow-hidden bg-white"
         style={{
           maxWidth: 1100,
-          maxHeight: "85vh",
+          height: "80vh",
+          maxHeight: "80vh",
           borderRadius: 24,
           boxShadow: "0 30px 80px rgba(15,23,42,0.22)",
         }}
       >
         {/* Left tab rail */}
         <aside
-          className="flex flex-col p-6"
+          className="flex h-full min-h-0 flex-col overflow-y-auto p-6"
           style={{ borderRight: `1px solid ${BORDER}`, backgroundColor: "#FFFFFF" }}
         >
           <h3 className="text-main-header font-bold" style={{ color: TEXT_DARK }}>
@@ -2425,12 +2426,12 @@ function PaymentOverviewDrawer({
         </aside>
 
         {/* Right content */}
-        <div className="relative flex min-h-0 flex-col">
+        <div className="relative flex h-full min-h-0 flex-col">
           <button
             onClick={onClose}
             className="absolute right-5 top-5 z-10 grid h-9 w-9 place-items-center rounded-full bg-white hover:bg-[#F3F4F6]"
             aria-label="Close"
-            style={{ border: `1px solid ${BORDER}` }}
+            style={{ border: "none", outline: "none" }}
           >
             <X className="h-4 w-4" style={{ color: TEXT_DARK }} />
           </button>
