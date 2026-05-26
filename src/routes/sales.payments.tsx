@@ -355,6 +355,18 @@ function PaymentPage() {
           onClose={() => setViewDetailsId(null)}
         />
       )}
+
+      {removeTarget && (
+        <ConfirmRemoveModal
+          invitation={removeTarget}
+          onClose={() => setRemoveTarget(null)}
+          onConfirm={() => {
+            deleteInvitation(removeTarget.id);
+            toast.success(`Removed ${removeTarget.studentName ?? removeTarget.studentEmail}`);
+            setRemoveTarget(null);
+          }}
+        />
+      )}
     </div>
   );
 }
