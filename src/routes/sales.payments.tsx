@@ -52,6 +52,13 @@ import {
   AlertCircle,
 } from "lucide-react";
 import {
+  User as UserIcon,
+  BookOpen,
+  ListChecks,
+  Layers,
+  UploadCloud,
+} from "lucide-react";
+import {
   BarChart,
   Bar,
   XAxis,
