@@ -2236,10 +2236,9 @@ function Step3PaymentMethod({
   setMethod: (m: PaymentMethod) => void;
 }) {
   const options: { id: PaymentMethod; icon: React.ComponentType<{ className?: string }>; desc: string }[] = [
-    { id: "Upfront", icon: Wallet, desc: "Pay the full amount at once." },
-    { id: "Installment", icon: CalendarClock, desc: "Set an initial down payment and monthly schedule." },
-    { id: "Bank", icon: Landmark, desc: "Share bank transfer details with the student." },
-    { id: "Loan", icon: Banknote, desc: "Share loan application link with the student." },
+    { id: "Upfront", icon: Wallet, desc: "Student pays the full amount at once." },
+    { id: "Installment", icon: CalendarClock, desc: "Student pays a down payment first, then monthly installments." },
+    { id: "Loan", icon: Banknote, desc: "Student continues through a loan application link." },
   ];
   return (
     <div className="flex flex-col gap-4">
@@ -2288,8 +2287,12 @@ function Step4PlanSetup(props: {
   method: PaymentMethod;
   upfrontPlanId: "plan-01" | "plan-02";
   setUpfrontPlanId: (v: "plan-01" | "plan-02") => void;
+  upfrontAmount: Record<"plan-01" | "plan-02", number>;
+  setUpfrontAmount: (v: Record<"plan-01" | "plan-02", number>) => void;
   upfrontDiscount: Record<"plan-01" | "plan-02", number>;
   setUpfrontDiscount: (v: Record<"plan-01" | "plan-02", number>) => void;
+  installmentPlanId: "plan-01" | "plan-02" | "custom";
+  setInstallmentPlanId: (v: "plan-01" | "plan-02" | "custom") => void;
   fullAmount: number;
   setFullAmount: (v: number) => void;
   downPayment: number;
@@ -2317,8 +2320,9 @@ function Step4PlanSetup(props: {
         <div className="grid gap-4 sm:grid-cols-2">
           {UPFRONT_PLANS.map((p) => {
             const active = props.upfrontPlanId === p.id;
+            const planAmount = props.upfrontAmount[p.id];
             const dp = props.upfrontDiscount[p.id];
-            const checkout = Math.round(p.planAmount * (1 - dp / 100));
+            const checkout = Math.round(planAmount * (1 - dp / 100));
             return (
               <div
                 key={p.id}
@@ -2330,10 +2334,26 @@ function Step4PlanSetup(props: {
                   <p className="font-semibold" style={{ color: TEXT_DARK }}>{p.name}</p>
                   <span className="text-small" style={{ color: TEXT_MUTED }}>Upfront</span>
                 </div>
-                <p className="mt-2 text-primary-header font-bold" style={{ color: TEXT_DARK }}>
-                  ${p.planAmount.toLocaleString()}
-                </p>
-                <div className="my-3 h-px w-full" style={{ backgroundColor: BORDER }} />
+                <label className="mt-3 flex flex-col gap-1.5">
+                  <span className="text-small" style={{ color: TEXT_MUTED }}>Full Amount</span>
+                  <div className="flex items-center rounded-lg bg-white" style={{ border: `1px solid ${BORDER}` }}>
+                    <span className="pl-3 text-body" style={{ color: TEXT_MUTED }}>$</span>
+                    <input
+                      type="number"
+                      min={0}
+                      value={planAmount}
+                      onClick={(e) => e.stopPropagation()}
+                      onChange={(e) =>
+                        props.setUpfrontAmount({
+                          ...props.upfrontAmount,
+                          [p.id]: Math.max(0, Number(e.target.value) || 0),
+                        })
+                      }
+                      className="w-full bg-transparent px-2 py-2 text-body outline-none"
+                      style={{ color: TEXT_DARK }}
+                    />
+                  </div>
+                </label>
                 <label className="flex flex-col gap-1.5">
                   <span className="text-small" style={{ color: TEXT_MUTED }}>Discount</span>
                   <div
@@ -2352,7 +2372,7 @@ function Step4PlanSetup(props: {
                           [p.id]: Math.max(0, Math.min(100, Number(e.target.value) || 0)),
                         })
                       }
-                      placeholder="20"
+                      placeholder="0"
                       className="w-full bg-transparent px-3 py-2 text-body outline-none"
                       style={{ color: TEXT_DARK }}
                     />
@@ -2384,11 +2404,52 @@ function Step4PlanSetup(props: {
   if (props.method === "Installment") {
     const remaining = Math.max(0, props.fullAmount - props.downPayment);
     const monthly = props.months > 0 ? Math.round(remaining / props.months) : 0;
+    const planChoices: { id: "plan-01" | "plan-02" | "custom"; name: string; defaults?: { full: number; down: number; months: 3 | 6 | 9 | 12 } }[] = [
+      { id: "plan-01", name: "Plan 01", defaults: { full: 14000, down: 2000, months: 6 } },
+      { id: "plan-02", name: "Plan 02", defaults: { full: 17500, down: 3000, months: 9 } },
+      { id: "custom", name: "Custom Plan" },
+    ];
     return (
       <div className="flex flex-col gap-4">
         <h4 className="text-second-header font-semibold" style={{ color: TEXT_DARK }}>
           Setup Installment Plan
         </h4>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {planChoices.map((p) => {
+            const active = props.installmentPlanId === p.id;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => {
+                  props.setInstallmentPlanId(p.id);
+                  if (p.defaults) {
+                    props.setFullAmount(p.defaults.full);
+                    props.setDownPayment(p.defaults.down);
+                    props.setMonths(p.defaults.months);
+                  }
+                }}
+                className={`relative rounded-xl bg-white p-4 text-left transition-colors ${active ? "" : "hover:bg-[#F3F4F6]"}`}
+                style={{ border: `2px solid ${active ? TEXT_DARK : BORDER}` }}
+              >
+                <p className="font-semibold" style={{ color: TEXT_DARK }}>{p.name}</p>
+                <p className="mt-1 text-smaller" style={{ color: TEXT_MUTED }}>
+                  {p.defaults
+                    ? `$${p.defaults.full.toLocaleString()} · ${p.defaults.months} mo`
+                    : "Set your own amounts"}
+                </p>
+                {active && (
+                  <span
+                    className="absolute right-3 top-3 grid h-5 w-5 place-items-center rounded-full"
+                    style={{ backgroundColor: TEXT_DARK, color: "#FFFFFF" }}
+                  >
+                    <Check className="h-3 w-3" />
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Full Amount" required>
             <CurrencyInput value={props.fullAmount} onChange={props.setFullAmount} />
@@ -2396,7 +2457,7 @@ function Step4PlanSetup(props: {
           <Field label="Initial Down Payment" required>
             <CurrencyInput value={props.downPayment} onChange={props.setDownPayment} />
           </Field>
-          <Field label="Time Period" required>
+          <Field label="Number of Installments" required>
             <select
               value={props.months}
               onChange={(e) => props.setMonths(Number(e.target.value) as 3 | 6 | 9 | 12)}
@@ -2404,17 +2465,17 @@ function Step4PlanSetup(props: {
               style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
             >
               {[3, 6, 9, 12].map((m) => (
-                <option key={m} value={m}>{m} months</option>
+                <option key={m} value={m}>{m} installments</option>
               ))}
             </select>
           </Field>
         </div>
         <div className="rounded-2xl bg-white p-5" style={{ border: `1px solid ${BORDER}` }}>
           {[
-            ["Initial Payment", `$${props.downPayment.toLocaleString()}`],
+            ["Initial Down Payment", `$${props.downPayment.toLocaleString()}`],
             ["Monthly Payment", `$${monthly.toLocaleString()} / month`],
-            ["Duration", `${props.months} months`],
-            ["Total Amount", `$${props.fullAmount.toLocaleString()}`],
+            ["Installments", `${props.months}`],
+            ["Full Amount", `$${props.fullAmount.toLocaleString()}`],
           ].map(([k, v], i, arr) => (
             <div
               key={k}
@@ -2426,38 +2487,6 @@ function Step4PlanSetup(props: {
             </div>
           ))}
         </div>
-      </div>
-    );
-  }
-
-  if (props.method === "Bank") {
-    return (
-      <div className="flex flex-col gap-4">
-        <h4 className="text-second-header font-semibold" style={{ color: TEXT_DARK }}>
-          Bank Transfer Details
-        </h4>
-        <div className="rounded-2xl bg-white p-5" style={{ border: `1px solid ${BORDER}` }}>
-          {[
-            ["Account Name", props.bank.accountName],
-            ["Bank Name", props.bank.bankName],
-            ["Account Number", props.bank.accountNumber],
-            ["Routing Number", props.bank.routingNumber],
-            ["SWIFT Code", props.bank.swiftCode],
-            ["Reference Note", "Student email + course name"],
-          ].map(([k, v], i, arr) => (
-            <div
-              key={k}
-              className="flex items-center justify-between py-2.5"
-              style={{ borderBottom: i < arr.length - 1 ? `1px solid ${BORDER}` : undefined }}
-            >
-              <span style={{ color: TEXT_MUTED }}>{k}</span>
-              <span className="font-semibold" style={{ color: TEXT_DARK }}>{v}</span>
-            </div>
-          ))}
-        </div>
-        <p className="text-small" style={{ color: TEXT_MUTED }}>
-          The student will receive these bank transfer details in the invitation and checkout page.
-        </p>
       </div>
     );
   }
@@ -2468,10 +2497,6 @@ function Step4PlanSetup(props: {
       <h4 className="text-second-header font-semibold" style={{ color: TEXT_DARK }}>
         Loan Payment Link
       </h4>
-      <div className="rounded-xl bg-white p-4" style={{ border: `1px solid ${BORDER}` }}>
-        <p className="text-small font-semibold" style={{ color: TEXT_DARK }}>Redirect Preview</p>
-        <p className="mt-1 break-all text-small" style={{ color: TEXT_MUTED }}>{props.loanLink}</p>
-      </div>
       <Field label="Loan Provider Name" required>
         <input
           value={props.loanProvider}
@@ -2489,7 +2514,7 @@ function Step4PlanSetup(props: {
         />
       </Field>
       <p className="text-small" style={{ color: TEXT_MUTED }}>
-        The student will be redirected to the loan application page to complete financing before accessing the course.
+        The student will be redirected to this loan application link to complete financing.
       </p>
     </div>
   );
