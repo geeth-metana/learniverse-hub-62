@@ -2235,242 +2235,475 @@ function PaymentOverviewDrawer({
     year: "numeric",
   });
 
+  const accessStatus: "Active" | "Suspended" =
+    isInstallment && installments.some((i) => i.status === "Rejected")
+      ? "Suspended"
+      : "Active";
+
+  const TABS = [
+    { id: "student", label: "Student Details", icon: UserIcon },
+    { id: "course", label: "Course Access Details", icon: BookOpen },
+    { id: "payment", label: "Payment Details", icon: CreditCard },
+    { id: "timeline", label: "Payment Status Timeline", icon: ListChecks },
+    { id: "installments", label: "Installment Payments", icon: Layers },
+    { id: "proof", label: "Upload Payment Proof", icon: UploadCloud },
+  ] as const;
+  type TabId = (typeof TABS)[number]["id"];
+  const [activeTab, setActiveTab] = useState<TabId>("student");
+
+  const proofLibrary = installments
+    .filter((i) => i.proof)
+    .map((i) => ({
+      name: i.proof!.name,
+      linked: i.label,
+      uploadedAt: i.proof!.uploadedAt,
+      status: i.status,
+    }));
+
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-end"
-      style={{ backgroundColor: "rgba(0, 0, 0, 0.35)" }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ backgroundColor: "rgba(0, 0, 0, 0.25)" }}
       onClick={onClose}
     >
-      <motion.aside
-        initial={{ x: "100%" }}
-        animate={{ x: 0 }}
-        exit={{ x: "100%" }}
-        transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.96, y: 12 }}
+        transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
         onClick={(e) => e.stopPropagation()}
-        className="flex h-full w-full max-w-[640px] flex-col bg-white"
-        style={{ boxShadow: "-20px 0 60px rgba(15,23,42,0.18)" }}
+        className="relative grid w-[90vw] grid-cols-[28%_72%] overflow-hidden bg-white"
+        style={{
+          maxWidth: 1100,
+          maxHeight: "85vh",
+          borderRadius: 24,
+          boxShadow: "0 30px 80px rgba(15,23,42,0.22)",
+        }}
       >
-        {/* Header */}
-        <div
-          className="flex items-start justify-between px-6 py-5"
-          style={{ borderBottom: `1px solid ${BORDER}` }}
+        {/* Left tab rail */}
+        <aside
+          className="flex flex-col p-6"
+          style={{ borderRight: `1px solid ${BORDER}`, backgroundColor: "#FFFFFF" }}
         >
-          <div>
-            <h3 className="text-main-header font-bold" style={{ color: TEXT_DARK }}>
-              Payment Overview
-            </h3>
-            <p className="mt-1 text-small" style={{ color: TEXT_MUTED }}>
-              Student and payment plan details
-            </p>
-          </div>
+          <h3 className="text-main-header font-bold" style={{ color: TEXT_DARK }}>
+            Payment Overview
+          </h3>
+          <p className="mt-2 text-small" style={{ color: TEXT_MUTED }}>
+            Review student access, payment status, installments, and proof documents.
+          </p>
+
+          <nav className="mt-6 flex flex-col gap-1.5">
+            {TABS.map((t) => {
+              const active = activeTab === t.id;
+              const Icon = t.icon;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setActiveTab(t.id)}
+                  className="group flex items-center gap-3 rounded-full px-3.5 py-2.5 text-left transition-colors"
+                  style={{
+                    backgroundColor: active ? TEXT_DARK : "transparent",
+                    color: active ? "#FFFFFF" : TEXT_MUTED,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!active) e.currentTarget.style.backgroundColor = "#F3F4F6";
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!active) e.currentTarget.style.backgroundColor = "transparent";
+                  }}
+                >
+                  <Icon
+                    className="h-4 w-4 shrink-0"
+                    style={{ color: active ? BRAND : TEXT_MUTED }}
+                  />
+                  <span className="text-small font-medium">{t.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+        </aside>
+
+        {/* Right content */}
+        <div className="relative flex min-h-0 flex-col">
           <button
             onClick={onClose}
-            className="grid h-9 w-9 place-items-center rounded-full hover:bg-[#F3F4F6]"
+            className="absolute right-5 top-5 z-10 grid h-9 w-9 place-items-center rounded-full bg-white hover:bg-[#F3F4F6]"
             aria-label="Close"
+            style={{ border: `1px solid ${BORDER}` }}
           >
-            <X className="h-4 w-4" style={{ color: TEXT_MUTED }} />
+            <X className="h-4 w-4" style={{ color: TEXT_DARK }} />
           </button>
-        </div>
 
-        {/* Body */}
-        <div className="flex-1 space-y-4 overflow-y-auto p-6" style={{ backgroundColor: "#FAFAFA" }}>
-          {/* Student Details */}
-          <DrawerSection title="Student Details">
-            <Row label="Student Name" value={inv.studentName ?? "—"} />
-            <Row label="Email" value={inv.studentEmail} />
-            <Row label="Assigned Salesperson" value="John Miller" />
-            <Row label="Status" value={<span>{statusPill(inv.status)}</span>} />
-            <Row label="Created Date" value={createdDate} last />
-          </DrawerSection>
-
-          {/* Course Access */}
-          <DrawerSection title="Course Access Details">
-            <Row label="Course" value={inv.course} />
-            <Row label="Access Type" value={inv.accessType} />
-            <Row label="Cohort Date" value={inv.cohortDate} />
-            <Row label="Duration" value="4 Months" />
-            <Row label="Lessons" value="70 Lessons" />
-            <Row
-              label="Certificate"
-              value={inv.certificateIncluded ? "Included" : "Not included"}
-              last
-            />
-          </DrawerSection>
-
-          {/* Payment Details */}
-          <DrawerSection title="Payment Details">
-            <PaymentDetailsBlock
-              invitation={inv}
-              installmentSummary={
-                isInstallment
-                  ? {
-                      approvedCount,
-                      totalCount,
-                      overall: overallInstallmentStatus,
-                      nextDue,
-                    }
-                  : undefined
-              }
-            />
-          </DrawerSection>
-
-          {/* Timeline */}
-          <DrawerSection title="Payment Status Timeline">
-            <Timeline
-              invitation={inv}
-              approval={approval}
-              installments={installments}
-              extraEvents={timelineLog}
-            />
-          </DrawerSection>
-
-          {/* Installment Payments — only for installment plans */}
-          {isInstallment && inv.paymentDetails.paymentType === "Installment" && (
-            <DrawerSection title="Installment Payments">
-              <p className="text-small" style={{ color: TEXT_MUTED }}>
-                Review each monthly installment, upload proof, and approve payments one by one.
-              </p>
-
-              {/* Summary */}
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <MiniStat
-                  label="Full Amount"
-                  value={`$${inv.paymentDetails.fullAmount.toLocaleString()}`}
-                />
-                <MiniStat
-                  label="Initial Down Payment"
-                  value={`$${inv.paymentDetails.initialDownPayment.toLocaleString()}`}
-                />
-                <MiniStat
-                  label="Monthly Payment"
-                  value={`$${inv.paymentDetails.monthlyPayment.toLocaleString()} / month`}
-                />
-                <MiniStat
-                  label="Payment Status"
-                  value={`${approvedCount} of ${totalCount} Approved`}
-                />
-              </div>
-
-              {/* Progress */}
-              <div
-                className="mt-4 rounded-xl p-4"
-                style={{ backgroundColor: SOFT }}
+          <div
+            className="flex-1 overflow-y-auto px-8 py-7"
+            style={{ backgroundColor: "#FFFFFF" }}
+          >
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.18 }}
               >
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-small font-semibold" style={{ color: TEXT_DARK }}>
-                    Installment Progress
-                  </span>
-                  <span className="text-small font-medium" style={{ color: TEXT_DARK }}>
-                    {approvedCount} / {totalCount} Approved · {progressPct}%
-                  </span>
-                </div>
-                <div className="h-2 w-full overflow-hidden rounded-full" style={{ backgroundColor: "#E5E7EB" }}>
-                  <div
-                    className="h-full rounded-full transition-all"
-                    style={{ width: `${progressPct}%`, backgroundColor: BRAND }}
-                  />
-                </div>
-              </div>
+                {activeTab === "student" && (
+                  <PanelSection title="Student Details">
+                    <Row label="Student Name" value={inv.studentName ?? "—"} />
+                    <Row label="Email" value={inv.studentEmail} />
+                    <Row label="Assigned Salesperson" value="John Miller" />
+                    <Row label="Status" value={statusPill(inv.status)} />
+                    <Row label="Created Date" value={createdDate} />
+                    <Row label="Last Activity" value="Jun 15, 2026" last />
+                  </PanelSection>
+                )}
 
-              {/* Installment list */}
-              <div className="mt-4 space-y-3">
-                {installments.map((it) => (
-                  <InstallmentCard
-                    key={it.id}
-                    row={it}
-                    onUpload={(file) => uploadInstallmentProof(it.id, file)}
-                    onRemove={() => removeInstallmentProof(it.id)}
-                    onApprove={() => approveInstallment(it.id)}
-                    onReject={() => rejectInstallment(it.id)}
-                  />
-                ))}
-              </div>
-            </DrawerSection>
-          )}
+                {activeTab === "course" && (
+                  <PanelSection title="Course Access Details">
+                    <Row label="Course" value={inv.course} />
+                    <Row label="Access Type" value={inv.accessType} />
+                    <Row label="Cohort Date" value={inv.cohortDate} />
+                    <Row label="Orientation Date" value="Jun 10, 2026" />
+                    <Row label="Course Start Date" value={inv.cohortDate} />
+                    <Row label="Duration" value="4 Months" />
+                    <Row label="Lessons" value="70 Lessons" />
+                    <Row
+                      label="Certificate"
+                      value={inv.certificateIncluded ? "Included" : "Not included"}
+                    />
+                    <Row
+                      label="Access Status"
+                      value={
+                        <span
+                          className="inline-flex items-center rounded-full px-2.5 py-1 text-smaller font-semibold"
+                          style={{
+                            backgroundColor:
+                              accessStatus === "Active"
+                                ? "rgba(204,246,33,0.35)"
+                                : "#FEE2E2",
+                            color: accessStatus === "Active" ? "#3F5C00" : "#991B1B",
+                          }}
+                        >
+                          {accessStatus}
+                        </span>
+                      }
+                      last
+                    />
+                  </PanelSection>
+                )}
 
-          {/* Proof Upload — only for non-installment plans */}
-          {!isInstallment && (
-          <DrawerSection title="Payment Proof">
-            <p className="text-small" style={{ color: TEXT_MUTED }}>
-              Upload proof of payment, bank transfer receipt, installment approval PDF, or
-              other supporting documents.
-            </p>
-            <label
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDragOver(true);
-              }}
-              onDragLeave={() => setDragOver(false)}
-              onDrop={(e) => {
-                e.preventDefault();
-                setDragOver(false);
-                onFile(e.dataTransfer.files?.[0]);
-              }}
-              className="mt-3 flex cursor-pointer flex-col items-center justify-center rounded-xl px-4 py-8 text-center transition-colors"
-              style={{
-                border: `1.5px dashed ${dragOver ? TEXT_DARK : BORDER}`,
-                backgroundColor: dragOver ? "rgba(204,246,33,0.08)" : "#FFFFFF",
-              }}
-            >
-              <Upload className="h-5 w-5" style={{ color: TEXT_MUTED }} />
-              <p className="mt-2 text-small font-medium" style={{ color: TEXT_DARK }}>
-                Drop file here or click to upload
-              </p>
-              <p className="mt-0.5 text-smaller" style={{ color: TEXT_MUTED }}>
-                PDF, PNG, JPG up to 10MB
-              </p>
-              <input
-                type="file"
-                accept=".pdf,.png,.jpg,.jpeg"
-                className="hidden"
-                onChange={(e) => onFile(e.target.files?.[0] ?? undefined)}
-              />
-            </label>
-            {proof && (
-              <div
-                className="mt-3 flex items-center gap-3 rounded-xl bg-white px-3 py-2.5"
-                style={{ border: `1px solid ${BORDER}` }}
-              >
-                <span
-                  className="grid h-9 w-9 place-items-center rounded-lg"
-                  style={{ backgroundColor: SOFT, color: TEXT_DARK }}
-                >
-                  <FileText className="h-4 w-4" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p
-                    className="truncate text-small font-medium"
-                    style={{ color: TEXT_DARK }}
-                  >
-                    {proof.name}
-                  </p>
-                  <p className="text-smaller" style={{ color: TEXT_MUTED }}>
-                    {proof.uploadedAt}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => toast.info("Preview not available in demo")}
-                  className="rounded-full px-3 py-1.5 text-small font-medium hover:bg-[#F3F4F6]"
-                  style={{ color: TEXT_DARK }}
-                >
-                  View
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setProof(null)}
-                  className="grid h-8 w-8 place-items-center rounded-full hover:bg-[#FEE2E2]"
-                  style={{ color: "#B42318" }}
-                  aria-label="Remove"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            )}
-          </DrawerSection>
-          )}
+                {activeTab === "payment" && (
+                  <PanelSection title="Payment Details">
+                    <PaymentDetailsBlock
+                      invitation={inv}
+                      installmentSummary={
+                        isInstallment
+                          ? {
+                              approvedCount,
+                              totalCount,
+                              overall: overallInstallmentStatus,
+                              nextDue,
+                            }
+                          : undefined
+                      }
+                    />
+                  </PanelSection>
+                )}
+
+                {activeTab === "timeline" && (
+                  <PanelSection title="Payment Status Timeline">
+                    <Timeline
+                      invitation={inv}
+                      approval={approval}
+                      installments={installments}
+                      extraEvents={timelineLog}
+                    />
+                  </PanelSection>
+                )}
+
+                {activeTab === "installments" && (
+                  <PanelSection title="Installment Payments">
+                    {isInstallment && inv.paymentDetails.paymentType === "Installment" ? (
+                      <>
+                        <p className="text-small" style={{ color: TEXT_MUTED }}>
+                          Review each monthly installment, upload proof, and approve
+                          payments one by one.
+                        </p>
+
+                        <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+                          <MiniStat
+                            label="Full Amount"
+                            value={`$${inv.paymentDetails.fullAmount.toLocaleString()}`}
+                          />
+                          <MiniStat
+                            label="Down Payment"
+                            value={`$${inv.paymentDetails.initialDownPayment.toLocaleString()}`}
+                          />
+                          <MiniStat
+                            label="Monthly Payment"
+                            value={`$${inv.paymentDetails.monthlyPayment.toLocaleString()}`}
+                          />
+                          <MiniStat
+                            label="Approved"
+                            value={`${approvedCount} / ${totalCount}`}
+                          />
+                        </div>
+
+                        <div
+                          className="mt-4 rounded-xl p-4"
+                          style={{ backgroundColor: SOFT }}
+                        >
+                          <div className="mb-2 flex items-center justify-between">
+                            <span
+                              className="text-small font-semibold"
+                              style={{ color: TEXT_DARK }}
+                            >
+                              {approvedCount} / {totalCount} Installments Approved
+                            </span>
+                            <span
+                              className="text-small font-medium"
+                              style={{ color: TEXT_DARK }}
+                            >
+                              Access: {accessStatus}
+                            </span>
+                          </div>
+                          <div
+                            className="h-2 w-full overflow-hidden rounded-full"
+                            style={{ backgroundColor: "#E5E7EB" }}
+                          >
+                            <div
+                              className="h-full rounded-full transition-all"
+                              style={{
+                                width: `${progressPct}%`,
+                                backgroundColor: BRAND,
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Down payment row */}
+                        <div
+                          className="mt-4 rounded-xl p-4"
+                          style={{ border: `1px solid ${BORDER}`, backgroundColor: "#FAFAFA" }}
+                        >
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                              <p className="text-small font-semibold" style={{ color: TEXT_DARK }}>
+                                Down Payment
+                              </p>
+                              <p className="mt-0.5 text-smaller" style={{ color: TEXT_MUTED }}>
+                                Due Before Orientation · $
+                                {inv.paymentDetails.initialDownPayment.toLocaleString()} · Stripe
+                              </p>
+                              <p className="mt-1 text-smaller" style={{ color: "#3F5C00" }}>
+                                Auto-saved via Stripe
+                              </p>
+                            </div>
+                            <span
+                              className="inline-flex items-center rounded-full px-2.5 py-1 text-smaller font-semibold"
+                              style={{ backgroundColor: "rgba(204,246,33,0.45)", color: "#3F5C00" }}
+                            >
+                              Approved
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 space-y-3">
+                          {installments.map((it) => (
+                            <InstallmentCard
+                              key={it.id}
+                              row={it}
+                              onUpload={(file) => uploadInstallmentProof(it.id, file)}
+                              onRemove={() => removeInstallmentProof(it.id)}
+                              onApprove={() => approveInstallment(it.id)}
+                              onReject={() => rejectInstallment(it.id)}
+                            />
+                          ))}
+                        </div>
+                      </>
+                    ) : (
+                      <div
+                        className="rounded-xl px-4 py-10 text-center"
+                        style={{ backgroundColor: "#FAFAFA", border: `1px dashed ${BORDER}` }}
+                      >
+                        <p className="text-small" style={{ color: TEXT_MUTED }}>
+                          This student does not have an installment payment plan.
+                        </p>
+                      </div>
+                    )}
+                  </PanelSection>
+                )}
+
+                {activeTab === "proof" && (
+                  <PanelSection title="Upload Payment Proof">
+                    <p className="text-small" style={{ color: TEXT_MUTED }}>
+                      Upload or review payment proof documents linked to this student.
+                    </p>
+                    <label
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setDragOver(true);
+                      }}
+                      onDragLeave={() => setDragOver(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setDragOver(false);
+                        onFile(e.dataTransfer.files?.[0]);
+                      }}
+                      className="mt-4 flex cursor-pointer flex-col items-center justify-center rounded-xl px-4 py-10 text-center transition-colors"
+                      style={{
+                        border: `1.5px dashed ${dragOver ? TEXT_DARK : BORDER}`,
+                        backgroundColor: dragOver ? "rgba(204,246,33,0.08)" : "#FAFAFA",
+                      }}
+                    >
+                      <UploadCloud className="h-6 w-6" style={{ color: TEXT_MUTED }} />
+                      <p className="mt-2 text-small font-medium" style={{ color: TEXT_DARK }}>
+                        Drag and drop file here or click to browse
+                      </p>
+                      <p className="mt-0.5 text-smaller" style={{ color: TEXT_MUTED }}>
+                        PDF, PNG, JPG up to 10MB
+                      </p>
+                      <input
+                        type="file"
+                        accept=".pdf,.png,.jpg,.jpeg"
+                        className="hidden"
+                        onChange={(e) => onFile(e.target.files?.[0] ?? undefined)}
+                      />
+                    </label>
+
+                    <div className="mt-4">
+                      <label className="text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+                        Link upload to
+                      </label>
+                      <select
+                        className="mt-1 w-full rounded-xl bg-white px-3 py-2 text-small"
+                        style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
+                        defaultValue="Down Payment"
+                      >
+                        <option>Down Payment</option>
+                        <option>Installment 01</option>
+                        <option>Installment 02</option>
+                        <option>Catch-up Payment</option>
+                        <option>Bank Transfer</option>
+                        <option>Loan Approval</option>
+                        <option>Other</option>
+                      </select>
+                    </div>
+
+                    {/* Library */}
+                    <div className="mt-6 space-y-2">
+                      <p className="text-small font-semibold" style={{ color: TEXT_DARK }}>
+                        Proof Library
+                      </p>
+                      {proof && (
+                        <ProofRow
+                          name={proof.name}
+                          linked="General"
+                          uploadedAt={proof.uploadedAt}
+                          status="Uploaded"
+                          onRemove={() => setProof(null)}
+                        />
+                      )}
+                      {proofLibrary.length === 0 && !proof ? (
+                        <p className="text-smaller" style={{ color: TEXT_MUTED }}>
+                          No proof files uploaded yet.
+                        </p>
+                      ) : (
+                        proofLibrary.map((p) => (
+                          <ProofRow
+                            key={p.linked}
+                            name={p.name}
+                            linked={p.linked}
+                            uploadedAt={p.uploadedAt}
+                            status={p.status}
+                          />
+                        ))
+                      )}
+                    </div>
+                  </PanelSection>
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
-      </motion.aside>
+      </motion.div>
+    </div>
+  );
+}
+
+function PanelSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section>
+      <h4 className="mb-4 text-second-header font-semibold" style={{ color: TEXT_DARK }}>
+        {title}
+      </h4>
+      <div
+        className="rounded-2xl p-5"
+        style={{ backgroundColor: "#FAFAFA", border: `1px solid ${BORDER}` }}
+      >
+        {children}
+      </div>
+    </section>
+  );
+}
+
+function ProofRow({
+  name,
+  linked,
+  uploadedAt,
+  status,
+  onRemove,
+}: {
+  name: string;
+  linked: string;
+  uploadedAt: string;
+  status: string;
+  onRemove?: () => void;
+}) {
+  return (
+    <div
+      className="flex items-center gap-3 rounded-xl bg-white px-3 py-2.5"
+      style={{ border: `1px solid ${BORDER}` }}
+    >
+      <span
+        className="grid h-9 w-9 place-items-center rounded-lg"
+        style={{ backgroundColor: SOFT, color: TEXT_DARK }}
+      >
+        <FileText className="h-4 w-4" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-small font-medium" style={{ color: TEXT_DARK }}>
+          {name}
+        </p>
+        <p className="text-smaller" style={{ color: TEXT_MUTED }}>
+          {linked} · {uploadedAt} · {status}
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={() => toast.info("Preview not available in demo")}
+        className="rounded-full px-3 py-1.5 text-small font-medium hover:bg-[#F3F4F6]"
+        style={{ color: TEXT_DARK }}
+      >
+        View
+      </button>
+      {onRemove && (
+        <button
+          type="button"
+          onClick={onRemove}
+          className="grid h-8 w-8 place-items-center rounded-full hover:bg-[#FEE2E2]"
+          style={{ color: "#B42318" }}
+          aria-label="Remove"
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+      )}
     </div>
   );
 }
