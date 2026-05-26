@@ -396,33 +396,40 @@ function AnalyticsSection() {
   const [period, setPeriod] = useState<IncomingPeriod>("Month");
   const incoming = INCOMING_PERIODS[period];
   return (
-    <div className="mb-6 flex flex-col gap-4">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <KpiCard
-          tone="mint"
-          label={incoming.title}
-          description="Expected payments from active student plans."
-          value={incoming.value}
-          Icon={TrendingUp}
-          headerRight={
-            <PeriodSelector value={period} onChange={setPeriod} />
-          }
-        />
-        <KpiCard
-          tone="yellow"
-          label="Pending Payments"
-          description="Payments waiting to be completed or confirmed."
-          value="$41,250"
-          inlineSubValue="23 Students"
-          Icon={Clock}
-        />
-      </div>
-
+    <div className="mb-6">
       <div
-        className="grid grid-cols-1 overflow-hidden bg-white lg:grid-cols-[65fr_35fr]"
-        style={{ border: `1px solid ${BORDER}`, borderRadius: 20 }}
+        className="grid grid-cols-1 overflow-hidden bg-white lg:grid-cols-[28fr_47fr_25fr]"
+        style={{ border: `1px solid #E5E7EB`, borderRadius: 22 }}
       >
-        <div className="flex flex-col gap-4 p-6 lg:border-r" style={{ borderColor: BORDER }}>
+        {/* Left summary column */}
+        <div
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 lg:border-r"
+          style={{ borderColor: "#E5E7EB" }}
+        >
+          <SummaryTile
+            tone="mint"
+            label={incoming.title}
+            description="Expected payments from active student plans."
+            value={incoming.value}
+            Icon={TrendingUp}
+            headerRight={<PeriodSelector value={period} onChange={setPeriod} />}
+            dividerClass="border-b lg:border-b"
+          />
+          <SummaryTile
+            tone="yellow"
+            label="Pending Payments"
+            description="Payments waiting to be completed or confirmed."
+            value="$41,250"
+            inlineSubValue="23 Students"
+            Icon={Clock}
+          />
+        </div>
+
+        {/* Incoming Payments chart */}
+        <div
+          className="flex flex-col gap-4 border-t p-6 lg:border-t-0 lg:border-r"
+          style={{ borderColor: "#E5E7EB" }}
+        >
           <div>
             <h3 className="text-second-header font-semibold" style={{ color: TEXT_DARK }}>
               Incoming Payments
@@ -476,9 +483,10 @@ function AnalyticsSection() {
           </ResponsiveContainer>
         </div>
 
+        {/* Payment type split */}
         <div
           className="flex flex-col gap-4 border-t p-6 lg:border-t-0"
-          style={{ borderColor: BORDER }}
+          style={{ borderColor: "#E5E7EB" }}
         >
           <div>
             <h3 className="text-second-header font-semibold" style={{ color: TEXT_DARK }}>
@@ -505,8 +513,8 @@ function AnalyticsSection() {
                 data={PAYMENT_SPLIT}
                 dataKey="value"
                 nameKey="name"
-                innerRadius={60}
-                outerRadius={100}
+                innerRadius={50}
+                outerRadius={85}
                 paddingAngle={2}
                 stroke="#FFFFFF"
                 strokeWidth={2}
@@ -527,6 +535,76 @@ function AnalyticsSection() {
             </PieChart>
           </ResponsiveContainer>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function SummaryTile({
+  tone,
+  label,
+  description,
+  value,
+  inlineSubValue,
+  headerRight,
+  Icon,
+  dividerClass,
+}: {
+  tone: KpiTone;
+  label: string;
+  description: string;
+  value: string;
+  inlineSubValue?: string;
+  headerRight?: React.ReactNode;
+  Icon: React.ComponentType<{ className?: string }>;
+  dividerClass?: string;
+}) {
+  const t = KPI_TONES[tone];
+  return (
+    <div
+      className={`relative flex h-full flex-col gap-3 overflow-hidden p-6 ${dividerClass ?? ""}`}
+      style={{
+        background: t.bgSoft,
+        borderColor: "#E5E7EB",
+      }}
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-10 -top-10 h-32 w-32"
+        style={{ background: t.glowSoft }}
+      />
+      <div className="relative flex items-start justify-between gap-3">
+        <span
+          className="grid h-10 w-10 place-items-center rounded-full bg-white/70 backdrop-blur"
+          style={{ color: t.icon, border: `1px solid rgba(255,255,255,0.6)` }}
+        >
+          <Icon className="h-5 w-5" />
+        </span>
+        {headerRight}
+      </div>
+      <div className="relative">
+        <p className="text-small font-semibold" style={{ color: TEXT_DARK }}>
+          {label}
+        </p>
+        <p className="mt-1 text-small leading-snug" style={{ color: TEXT_MUTED }}>
+          {description}
+        </p>
+      </div>
+      <div className="relative mt-auto">
+        {inlineSubValue ? (
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-second-header font-bold leading-tight" style={{ color: TEXT_DARK }}>
+              {value}
+            </p>
+            <p className="text-small font-medium" style={{ color: TEXT_DARK }}>
+              {inlineSubValue}
+            </p>
+          </div>
+        ) : (
+          <p className="text-second-header font-bold leading-tight" style={{ color: TEXT_DARK }}>
+            {value}
+          </p>
+        )}
       </div>
     </div>
   );
