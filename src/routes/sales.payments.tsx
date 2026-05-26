@@ -3501,6 +3501,20 @@ function PaymentOverviewDrawer({
           }}
         />
       )}
+      {changeDueDateId && (() => {
+        const target = installments.find((i) => i.id === changeDueDateId);
+        if (!target) return null;
+        return (
+          <ChangeDueDateModal
+            row={target}
+            onClose={() => setChangeDueDateId(null)}
+            onConfirm={(payload) => {
+              changeInstallmentDueDate(target.id, payload);
+              setChangeDueDateId(null);
+            }}
+          />
+        );
+      })()}
     </div>
   );
 }
