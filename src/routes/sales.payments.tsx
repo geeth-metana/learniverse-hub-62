@@ -447,8 +447,8 @@ function InstallmentsPanel({
     "Pending",
     "Declined",
     "Postponed",
-    "Catch-up Group Pending",
-    "Catch-up Group Approved",
+    "Combined Plan Pending",
+    "Combined Plan Approved",
     "Approved",
   ];
   const activeRows = installments.filter((i) => activeStatuses.includes(i.status));
@@ -754,7 +754,7 @@ function InstallmentDetailPanel({
   onReject: () => void;
 }) {
   const isApproved =
-    row.status === "Approved" || row.status === "Catch-up Group Approved";
+    row.status === "Approved" || row.status === "Combined Plan Approved";
   const isDeclined = row.status === "Declined";
   const isStripe = row.paymentMethod === "Stripe";
   // Offline pending payments need a proof upload before approval
@@ -3019,7 +3019,7 @@ function PaymentOverviewDrawer({
   );
 
   const approvedCount = installments.filter(
-    (i) => i.status === "Approved" || i.status === "Catch-up Group Approved",
+    (i) => i.status === "Approved" || i.status === "Combined Plan Approved",
   ).length;
   const totalCount = installments.length;
   const progressPct = totalCount ? Math.round((approvedCount / totalCount) * 100) : 0;
@@ -3034,7 +3034,7 @@ function PaymentOverviewDrawer({
 
   const nextDue =
     installments.find(
-      (i) => i.status !== "Approved" && i.status !== "Catch-up Group Approved",
+      (i) => i.status !== "Approved" && i.status !== "Combined Plan Approved",
     )?.dueDate ?? "—";
 
   // Grouped (catch-up) payments — created when student postpones installments
@@ -3061,7 +3061,7 @@ function PaymentOverviewDrawer({
         it.id === id ? { ...it, status: "Approved" as InstallmentStatus } : it,
       );
       const allApproved = next.every(
-        (i) => i.status === "Approved" || i.status === "Catch-up Group Approved",
+        (i) => i.status === "Approved" || i.status === "Combined Plan Approved",
       );
       if (allApproved) updateInvitation(inv.id, { status: "Installment Approved" });
       else updateInvitation(inv.id, { status: "Installment Pending Approval" });
@@ -3129,7 +3129,7 @@ function PaymentOverviewDrawer({
     setInstallments((prev) =>
       prev.map((it) =>
         ids.includes(it.id)
-          ? { ...it, status: "Catch-up Group Pending" as InstallmentStatus }
+          ? { ...it, status: "Combined Plan Pending" as InstallmentStatus }
           : it,
       ),
     );
@@ -3183,7 +3183,7 @@ function PaymentOverviewDrawer({
     setInstallments((prev) =>
       prev.map((it) =>
         group.installmentIds.includes(it.id)
-          ? { ...it, status: "Catch-up Group Approved" as InstallmentStatus }
+          ? { ...it, status: "Combined Plan Approved" as InstallmentStatus }
           : it,
       ),
     );
@@ -3732,16 +3732,16 @@ function Timeline({
     for (const inst of installments) {
       const state: TimelineState =
         inst.status === "Approved" ||
-        inst.status === "Catch-up Group Approved" ||
+        inst.status === "Combined Plan Approved" ||
         inst.status === "Declined"
           ? "done"
           : inst.status === "Pending" ||
-              inst.status === "Catch-up Group Pending" ||
+              inst.status === "Combined Plan Pending" ||
               inst.status === "Postponed"
             ? "current"
             : "pending";
       const suffix =
-        inst.status === "Approved" || inst.status === "Catch-up Group Approved"
+        inst.status === "Approved" || inst.status === "Combined Plan Approved"
           ? "approved"
           : inst.status === "Declined"
             ? "declined"
@@ -3749,13 +3749,13 @@ function Timeline({
               ? "pending"
               : inst.status === "Postponed"
                 ? "postponed"
-                : inst.status === "Catch-up Group Pending"
+                : inst.status === "Combined Plan Pending"
                   ? "in catch-up group"
                   : "upcoming";
       items.push({
         label: `${inst.label} ${suffix}`,
         icon:
-          inst.status === "Approved" || inst.status === "Catch-up Group Approved"
+          inst.status === "Approved" || inst.status === "Combined Plan Approved"
             ? ShieldCheck
             : CreditCard,
         state,
@@ -3881,8 +3881,8 @@ type InstallmentStatus =
   | "Declined"
   | "Upcoming"
   | "Postponed"
-  | "Catch-up Group Pending"
-  | "Catch-up Group Approved";
+  | "Combined Plan Pending"
+  | "Combined Plan Approved";
 
 type InstallmentRow = {
   id: string;
@@ -3957,8 +3957,8 @@ function InstallmentStatusPill({ status }: { status: InstallmentStatus }) {
     Declined: { bg: "#FEE2E2", color: "#991B1B" },
     Upcoming: { bg: "#F3F4F6", color: "#6B7280" },
     Postponed: { bg: "#E0E7FF", color: "#3730A3" },
-    "Catch-up Group Pending": { bg: "#FEF9C3", color: "#854D0E" },
-    "Catch-up Group Approved": { bg: "rgba(204,246,33,0.45)", color: "#3F5C00" },
+    "Combined Plan Pending": { bg: "#FEF9C3", color: "#854D0E" },
+    "Combined Plan Approved": { bg: "rgba(204,246,33,0.45)", color: "#3F5C00" },
   };
   const s = map[status];
   return (
