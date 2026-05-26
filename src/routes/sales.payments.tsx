@@ -1908,7 +1908,7 @@ function AddStudentModal({
               className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-button-primary font-semibold"
               style={{ backgroundColor: BRAND, color: TEXT_DARK }}
             >
-              Confirm & Generate Invitation
+              Confirm & Generate Payment Link
             </button>
           )}
         </div>
