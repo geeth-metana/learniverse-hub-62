@@ -1145,7 +1145,7 @@ function PostponeModal({
             className="rounded-full px-4 py-2 text-small font-semibold disabled:opacity-50"
             style={{ backgroundColor: TEXT_DARK, color: "#FFFFFF" }}
           >
-            Create Catch-up Group
+            Create Combined Plan
           </button>
         </div>
       </motion.div>
@@ -3137,7 +3137,7 @@ function PaymentOverviewDrawer({
       ...g,
       {
         id: groupId,
-        label: `Catch-up Group ${String(groupNumber).padStart(2, "0")}`,
+        label: `Combined Plan ${String(groupNumber).padStart(2, "0")}`,
         installmentIds: ids,
         dueDate: payload.dueDate,
         reason: payload.reason,
