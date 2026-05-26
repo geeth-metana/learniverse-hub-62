@@ -406,6 +406,7 @@ function InstallmentsPanel({
   onUploadGroupProof,
   onApproveGroup,
   onRejectGroup,
+  onDetachGroup,
 }: {
   invitation: Invitation;
   isInstallment: boolean;
