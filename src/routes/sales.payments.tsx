@@ -514,21 +514,19 @@ function InstallmentsPanel({
               >
                 <CalendarClock className="h-3.5 w-3.5" /> Postpone
               </button>
-              <label className="inline-flex cursor-pointer items-center gap-2">
-                <span className="text-smaller" style={{ color: TEXT_MUTED }}>
-                  Show Upcoming
-                </span>
+              <button
+                type="button"
+                aria-label={showUpcoming ? "Hide upcoming installments" : "Show upcoming installments"}
+                title={showUpcoming ? "Hide upcoming" : "Show upcoming"}
+                onClick={() => setShowUpcoming(!showUpcoming)}
+                className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors"
+                style={{ backgroundColor: showUpcoming ? TEXT_DARK : "#E5E7EB" }}
+              >
                 <span
-                  className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors"
-                  style={{ backgroundColor: showUpcoming ? TEXT_DARK : "#E5E7EB" }}
-                  onClick={() => setShowUpcoming(!showUpcoming)}
-                >
-                  <span
-                    className="ml-0.5 inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-                    style={{ transform: `translateX(${showUpcoming ? 16 : 0}px)` }}
-                  />
-                </span>
-              </label>
+                  className="ml-0.5 inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                  style={{ transform: `translateX(${showUpcoming ? 16 : 0}px)` }}
+                />
+              </button>
             </div>
           </div>
           <div className="max-h-[440px] overflow-y-auto">
