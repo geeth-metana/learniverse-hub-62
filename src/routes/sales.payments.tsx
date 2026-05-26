@@ -402,6 +402,7 @@ function InstallmentsPanel({
   onApprove,
   onReject,
   onOpenPostpone,
+  onChangeDueDate,
   onUploadGroupProof,
   onApproveGroup,
   onRejectGroup,
@@ -423,6 +424,7 @@ function InstallmentsPanel({
   onApprove: (id: string) => void;
   onReject: (id: string) => void;
   onOpenPostpone: () => void;
+  onChangeDueDate: (id: string) => void;
   onUploadGroupProof: (id: string, file: File | undefined) => void;
   onApproveGroup: (id: string) => void;
   onRejectGroup: (id: string) => void;
@@ -727,6 +729,8 @@ function InstallmentsPanel({
               onRejectProof={() => onRemoveProof(selected.id)}
               onApprove={() => onApprove(selected.id)}
               onReject={() => onReject(selected.id)}
+              onOpenPostpone={onOpenPostpone}
+              onOpenChangeDueDate={() => onChangeDueDate(selected.id)}
             />
           ) : (
             <div className="grid h-full place-items-center text-small" style={{ color: TEXT_MUTED }}>
