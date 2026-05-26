@@ -206,6 +206,11 @@ export function updateInvitation(id: string, patch: Partial<Invitation>) {
   write(list);
 }
 
+export function deleteInvitation(id: string) {
+  const list = read().filter((i) => i.id !== id);
+  write(list);
+}
+
 export function getInvitation(id: string): Invitation | undefined {
   return read().find((i) => i.id === id);
 }
