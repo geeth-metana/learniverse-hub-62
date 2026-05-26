@@ -2314,7 +2314,7 @@ function Step3PaymentMethod({
       <h4 className="text-second-header font-semibold" style={{ color: TEXT_DARK }}>
         Select Payment Method
       </h4>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-3">
         {options.map((o) => {
           const active = method === o.id;
           const Icon = o.icon;
@@ -2323,7 +2323,7 @@ function Step3PaymentMethod({
               key={o.id}
               type="button"
               onClick={() => setMethod(o.id)}
-              className={`relative flex items-start gap-3 rounded-xl bg-white p-4 text-left transition-colors ${active ? "" : "hover:bg-[#F3F4F6]"}`}
+              className={`relative flex h-full flex-col items-start gap-3 rounded-xl bg-white p-4 text-left transition-colors ${active ? "" : "hover:bg-[#F3F4F6]"}`}
               style={{ border: `2px solid ${active ? TEXT_DARK : BORDER}` }}
             >
               <span
