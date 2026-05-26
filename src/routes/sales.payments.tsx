@@ -170,9 +170,20 @@ function PaymentPage() {
 
             <AnalyticsSection />
 
-            <div className="mb-4 flex flex-wrap items-center gap-3">
+            <div className="mb-3 flex justify-end">
+              <div className="text-right">
+                <h2 className="text-second-header font-semibold leading-tight" style={{ color: TEXT_DARK }}>
+                  Assigned Users
+                </h2>
+                <span className="text-small" style={{ color: TEXT_MUTED }}>
+                  {filtered.length} {filtered.length === 1 ? "user" : "users"}
+                </span>
+              </div>
+            </div>
+
+            <div className="mb-4 flex flex-wrap items-center justify-start gap-3">
               <div
-                className="flex min-w-[260px] flex-1 items-center gap-2 rounded-full bg-white px-4 py-2.5"
+                className="flex min-w-[260px] max-w-[420px] flex-1 items-center gap-2 rounded-full bg-white px-4 py-2.5"
                 style={{ border: `1px solid ${BORDER}` }}
               >
                 <Search className="h-4 w-4" style={{ color: TEXT_MUTED }} />
@@ -193,7 +204,7 @@ function PaymentPage() {
               </button>
               <button
                 onClick={() => setAddOpen(true)}
-                className="ml-auto inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-button-primary font-semibold transition-opacity hover:opacity-90"
+                className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-button-primary font-semibold transition-opacity hover:opacity-90"
                 style={{ backgroundColor: BRAND, color: TEXT_DARK }}
               >
                 <Plus className="h-4 w-4" /> Create Payment Plan
@@ -204,17 +215,12 @@ function PaymentPage() {
               className="overflow-hidden rounded-2xl bg-white"
               style={{ border: `1px solid ${BORDER}` }}
             >
-              <div
-                className="flex items-center justify-between px-6 py-4"
-                style={{ borderBottom: `1px solid ${BORDER}` }}
-              >
-                <h2 className="text-second-header font-semibold" style={{ color: TEXT_DARK }}>
-                  Assigned Users
-                </h2>
-                <span className="text-small" style={{ color: TEXT_MUTED }}>
-                  {filtered.length} {filtered.length === 1 ? "user" : "users"}
-                </span>
-              </div>
+              <style>{`
+                .pay-row { transition: background-color 0.2s ease, box-shadow 0.25s ease; }
+                .pay-row:hover { background: rgba(204, 246, 33, 0.08); box-shadow: inset 0 0 0 1px #CCF621; border-radius: 12px; }
+                .pay-row:hover td:first-child { border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
+                .pay-row:hover td:last-child { border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
+              `}</style>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-body">
                   <thead>
@@ -254,7 +260,7 @@ function PaymentPage() {
                       filtered.map((row, idx) => (
                         <tr
                           key={row.id}
-                          className="transition-colors hover:bg-[#F8F8F8]"
+                          className="pay-row"
                           style={{
                             borderBottom:
                               idx < filtered.length - 1 ? `1px solid ${BORDER}` : undefined,
