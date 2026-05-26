@@ -484,7 +484,7 @@ function InstallmentsPanel({
       {/* Split view */}
       <div
         className="mt-4 grid grid-cols-1 overflow-hidden rounded-2xl lg:grid-cols-[42%_58%]"
-        style={{ border: `1px solid ${BORDER}`, minHeight: 420 }}
+        style={{ border: `1px solid ${BORDER}` }}
       >
         {/* Left list */}
         <div
@@ -492,27 +492,37 @@ function InstallmentsPanel({
           style={{ borderRight: `1px solid ${BORDER}` }}
         >
           <div
-            className="sticky top-0 z-10 flex items-center justify-between gap-2 px-4 py-3"
+            className="sticky top-0 z-10 flex items-center justify-between gap-2 px-4 py-2.5"
             style={{ borderBottom: `1px solid ${BORDER}`, backgroundColor: "#FAFAFA" }}
           >
             <span className="text-small font-semibold" style={{ color: TEXT_DARK }}>
               Installments
             </span>
-            <label className="inline-flex cursor-pointer items-center gap-2">
-              <span className="text-smaller" style={{ color: TEXT_MUTED }}>
-                Show Upcoming
-              </span>
-              <span
-                className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors"
-                style={{ backgroundColor: showUpcoming ? TEXT_DARK : "#E5E7EB" }}
-                onClick={() => setShowUpcoming(!showUpcoming)}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onOpenPostpone}
+                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-smaller font-semibold transition-colors hover:bg-[#E5E7EB]"
+                style={{ backgroundColor: "#F3F4F6", color: TEXT_DARK }}
               >
+                <CalendarClock className="h-3.5 w-3.5" /> Postpone
+              </button>
+              <label className="inline-flex cursor-pointer items-center gap-2">
+                <span className="text-smaller" style={{ color: TEXT_MUTED }}>
+                  Show Upcoming
+                </span>
                 <span
-                  className="ml-0.5 inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-                  style={{ transform: `translateX(${showUpcoming ? 16 : 0}px)` }}
-                />
-              </span>
-            </label>
+                  className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors"
+                  style={{ backgroundColor: showUpcoming ? TEXT_DARK : "#E5E7EB" }}
+                  onClick={() => setShowUpcoming(!showUpcoming)}
+                >
+                  <span
+                    className="ml-0.5 inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
+                    style={{ transform: `translateX(${showUpcoming ? 16 : 0}px)` }}
+                  />
+                </span>
+              </label>
+            </div>
           </div>
           <div className="max-h-[440px] overflow-y-auto">
             {/* Down payment (always first, static) */}
@@ -692,12 +702,12 @@ function InstallmentsPanel({
         </div>
 
         {/* Right detail */}
-        <div className="flex flex-col overflow-y-auto p-5" style={{ maxHeight: 540 }}>
+        <div className="flex flex-col p-5">
           {selected ? (
             <InstallmentDetailPanel
               row={selected}
               onUpload={(file) => onUploadProof(selected.id, file)}
-              onRemove={() => onRemoveProof(selected.id)}
+              onRejectProof={() => onRemoveProof(selected.id)}
               onApprove={() => onApprove(selected.id)}
               onReject={() => onReject(selected.id)}
             />
