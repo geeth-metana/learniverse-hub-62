@@ -769,6 +769,21 @@ function CheckoutPage() {
                       <span style={{ color: TEXT_MUTED }}>Amount Due</span>
                       <span className="font-semibold" style={{ color: TEXT_DARK }}>${amountDue.toLocaleString()}</span>
                     </div>
+                    <div>
+                      <label className="text-body block mb-2" style={{ color: TEXT_MAIN }}>Transaction Address</label>
+                      <input
+                        value={txAddress}
+                        onChange={(e) => { setTxAddress(e.target.value); if (txError) setTxError(false); }}
+                        placeholder="Paste your transaction address or hash"
+                        className="w-full px-4 py-3 rounded-xl"
+                        style={{ backgroundColor: "#F3F4F6", color: TEXT_DARK, border: "none" }}
+                      />
+                      <p className="text-smaller mt-1.5" style={{ color: txError ? "#DC2626" : TEXT_MUTED }}>
+                        {txError
+                          ? "Please paste your transaction address to continue."
+                          : "Paste the transaction address after completing the crypto payment."}
+                      </p>
+                    </div>
                     <p className="text-smaller" style={{ color: TEXT_MUTED }}>
                       Your course access will be activated after payment confirmation.
                     </p>
