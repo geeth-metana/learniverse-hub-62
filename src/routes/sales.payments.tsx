@@ -2947,6 +2947,51 @@ function CurrencyInput({ value, onChange }: { value: number; onChange: (v: numbe
   );
 }
 
+function StepPrimePlanSetup({
+  subscriptionAmount,
+  setSubscriptionAmount,
+  monthlyPayment,
+  setMonthlyPayment,
+}: {
+  subscriptionAmount: number;
+  setSubscriptionAmount: (v: number) => void;
+  monthlyPayment: number;
+  setMonthlyPayment: (v: number) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-5">
+      <h4 className="text-second-header font-semibold" style={{ color: TEXT_DARK }}>
+        Setup Metana Prime Subscription
+      </h4>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Subscription Amount" required>
+          <CurrencyInput value={subscriptionAmount} onChange={setSubscriptionAmount} />
+        </Field>
+        <Field label="Monthly Payment" required>
+          <div
+            className="flex items-center rounded-xl bg-white"
+            style={{ border: `1px solid ${BORDER}` }}
+          >
+            <span className="pl-4 text-body" style={{ color: TEXT_MUTED }}>$</span>
+            <input
+              type="number"
+              min={0}
+              value={monthlyPayment}
+              onChange={(e) => setMonthlyPayment(Math.max(0, Number(e.target.value) || 0))}
+              className="w-full bg-transparent px-3 py-3 text-body outline-none"
+              style={{ color: TEXT_DARK }}
+            />
+            <span className="pr-4 text-small" style={{ color: TEXT_MUTED }}>/ month</span>
+          </div>
+        </Field>
+      </div>
+      <p className="text-small" style={{ color: TEXT_MUTED }}>
+        This amount will be used to generate the student's pre-filled Metana Prime payment link.
+      </p>
+    </div>
+  );
+}
+
 function Step5Preview({
   email,
   course,
