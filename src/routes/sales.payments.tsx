@@ -1459,6 +1459,184 @@ function copyLink(link: string) {
   );
 }
 
+// ===================== Edit Amount Modal =====================
+
+function EditAmountModal({
+  title = "Edit Installment Amount",
+  originalAmount,
+  originalLabel,
+  carryOptions,
+  isLast,
+  onClose,
+  onConfirm,
+}: {
+  title?: string;
+  originalAmount: number;
+  originalLabel: string;
+  carryOptions: { id: string; label: string }[];
+  isLast: boolean;
+  onClose: () => void;
+  onConfirm: (payload: {
+    amountPaid: number;
+    remaining: number;
+    carryToId: string | null;
+    note: string;
+  }) => void;
+}) {
+  const [amountPaid, setAmountPaid] = useState<number>(originalAmount);
+  const [carryToId, setCarryToId] = useState<string>(
+    carryOptions[0]?.id ?? "",
+  );
+  const [note, setNote] = useState("");
+  const remaining = Math.max(0, originalAmount - (Number(amountPaid) || 0));
+  const showCarry = !isLast && remaining > 0;
+  const showNeglected = isLast && remaining > 0;
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+      style={{ backgroundColor: "rgba(0,0,0,0.35)" }}
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-md rounded-3xl bg-white p-6"
+        style={{ boxShadow: "0 30px 80px rgba(15,23,42,0.25)" }}
+      >
+        <div className="flex items-start justify-between">
+          <div>
+            <h3 className="text-second-header font-bold" style={{ color: TEXT_DARK }}>
+              {title}
+            </h3>
+            <p className="mt-1 text-smaller" style={{ color: TEXT_MUTED }}>
+              Record a partial payment for {originalLabel}.
+              {isLast
+                ? " This is the final installment — any unpaid balance will be recorded as neglected balance."
+                : " The remaining amount will be carried forward to a future installment."}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="grid h-8 w-8 place-items-center rounded-full hover:bg-[#F3F4F6]"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" style={{ color: TEXT_DARK }} />
+          </button>
+        </div>
+
+        <div className="mt-4 space-y-3">
+          <div>
+            <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+              Original Installment Amount
+            </p>
+            <div
+              className="rounded-xl px-3 py-2 text-small"
+              style={{ backgroundColor: SOFT, color: TEXT_DARK }}
+            >
+              ${originalAmount.toLocaleString()}
+            </div>
+          </div>
+          <div>
+            <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+              Amount Paid
+            </p>
+            <input
+              type="number"
+              min={0}
+              max={originalAmount}
+              value={amountPaid}
+              onChange={(e) => setAmountPaid(Number(e.target.value) || 0)}
+              className="w-full rounded-xl bg-white px-3 py-2 text-small"
+              style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
+            />
+          </div>
+          <div>
+            <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+              {showNeglected ? "Neglected Balance" : "Remaining Amount"}
+            </p>
+            <div
+              className="rounded-xl px-3 py-2 text-small font-semibold"
+              style={{
+                backgroundColor: showNeglected ? "#FEF2F2" : SOFT,
+                color: showNeglected ? "#991B1B" : TEXT_DARK,
+              }}
+            >
+              ${remaining.toLocaleString()}
+            </div>
+            {showNeglected && (
+              <p className="mt-1 text-smaller" style={{ color: TEXT_MUTED }}>
+                This is the final installment. Any unpaid balance will be recorded as neglected balance.
+              </p>
+            )}
+          </div>
+          {showCarry && (
+            <div>
+              <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+                Carry Forward To
+              </p>
+              <select
+                value={carryToId}
+                onChange={(e) => setCarryToId(e.target.value)}
+                className="w-full rounded-xl bg-white px-3 py-2 text-small"
+                style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
+              >
+                {carryOptions.map((opt) => (
+                  <option key={opt.id} value={opt.id}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          <div>
+            <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+              Internal Note
+            </p>
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              rows={2}
+              placeholder="Student paid partial amount and will pay the balance with next installment…"
+              className="w-full resize-none rounded-xl px-3 py-2 text-small"
+              style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
+            />
+          </div>
+        </div>
+
+        <div className="mt-5 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full px-4 py-2 text-small font-semibold"
+            style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled={amountPaid <= 0 || amountPaid > originalAmount}
+            onClick={() =>
+              onConfirm({
+                amountPaid,
+                remaining,
+                carryToId: showCarry ? carryToId : null,
+                note,
+              })
+            }
+            className="rounded-full px-4 py-2 text-small font-semibold disabled:opacity-50"
+            style={{ backgroundColor: TEXT_DARK, color: "#FFFFFF" }}
+          >
+            Save Amount
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 function IconAction({
   label,
   onClick,
