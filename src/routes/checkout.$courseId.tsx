@@ -354,14 +354,14 @@ function CheckoutPage() {
                       type="button"
                       className="text-left rounded-2xl bg-white p-5 transition-all relative"
                       style={{
-                        outline: plan === p.id ? `2px solid ${BRAND}` : "2px solid transparent",
+                        outline: plan === p.id ? `2px solid ${TEXT_DARK}` : "2px solid transparent",
                         outlineOffset: "-2px",
                       }}
                     >
                       {plan === p.id && (
                         <span
                           className="absolute top-3 right-3 h-6 w-6 rounded-full grid place-items-center"
-                          style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+                          style={{ backgroundColor: TEXT_DARK, color: "#FFFFFF" }}
                         >
                           <svg viewBox="0 0 16 16" className="h-3.5 w-3.5"><path fill="none" stroke="currentColor" strokeWidth="3" d="M3 8l3.5 3.5L13 5" /></svg>
                         </span>
