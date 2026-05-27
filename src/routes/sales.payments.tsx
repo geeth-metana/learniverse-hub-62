@@ -4504,6 +4504,85 @@ function PaymentOverviewDrawer({
           />
         );
       })()}
+      {changeGroupDueDateId && (() => {
+        const target = groups.find((g) => g.id === changeGroupDueDateId);
+        if (!target) return null;
+        return (
+          <ChangeDueDateModal
+            row={{ label: "Combined Installment", dueDate: target.dueDate }}
+            title="Change Combined Installment Due Date"
+            description="Update the due date for this combined installment. Status stays Pending."
+            onClose={() => setChangeGroupDueDateId(null)}
+            onConfirm={(payload) => {
+              changeGroupDueDate(target.id, payload);
+              setChangeGroupDueDateId(null);
+            }}
+          />
+        );
+      })()}
+      {editAmountId && (() => {
+        const target = installments.find((i) => i.id === editAmountId);
+        if (!target) return null;
+        const futureOptions = installments
+          .filter(
+            (i) =>
+              i.number > target.number &&
+              (i.status === "Upcoming" ||
+                i.status === "Pending" ||
+                i.status === "Combined Plan Pending"),
+          )
+          .map((i) => ({ id: i.id, label: i.label }));
+        const isLast = futureOptions.length === 0;
+        return (
+          <EditAmountModal
+            originalAmount={target.amount}
+            originalLabel={target.label}
+            carryOptions={futureOptions}
+            isLast={isLast}
+            onClose={() => setEditAmountId(null)}
+            onConfirm={(payload) => {
+              editInstallmentAmount(target.id, payload);
+              setEditAmountId(null);
+            }}
+          />
+        );
+      })()}
+      {editGroupAmountId && (() => {
+        const target = groups.find((g) => g.id === editGroupAmountId);
+        if (!target) return null;
+        const total = target.installmentIds
+          .map((id) => installments.find((i) => i.id === id)?.amount ?? 0)
+          .reduce((s, a) => s + a, 0);
+        const maxNumber = Math.max(
+          ...target.installmentIds
+            .map((id) => installments.find((i) => i.id === id)?.number ?? 0),
+        );
+        const futureOptions = installments
+          .filter(
+            (i) =>
+              i.number > maxNumber &&
+              !target.installmentIds.includes(i.id) &&
+              (i.status === "Upcoming" ||
+                i.status === "Pending" ||
+                i.status === "Combined Plan Pending"),
+          )
+          .map((i) => ({ id: i.id, label: i.label }));
+        const isLast = futureOptions.length === 0;
+        return (
+          <EditAmountModal
+            title="Edit Combined Installment Amount"
+            originalAmount={total}
+            originalLabel="Combined Installment"
+            carryOptions={futureOptions}
+            isLast={isLast}
+            onClose={() => setEditGroupAmountId(null)}
+            onConfirm={(payload) => {
+              editGroupAmount(target.id, payload);
+              setEditGroupAmountId(null);
+            }}
+          />
+        );
+      })()}
     </div>
   );
 }
