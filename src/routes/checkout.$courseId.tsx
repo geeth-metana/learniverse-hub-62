@@ -664,7 +664,7 @@ function CheckoutPage() {
               {(() => {
                 const methods = [
                   { id: "card" as const, label: "Card", icon: CreditCard },
-                  { id: "cashapp" as const, label: "Cash App Pay", icon: DollarSign },
+                  { id: "crypto" as const, label: "Crypto", icon: Bitcoin },
                   { id: "bank" as const, label: "Bank", icon: Building2 },
                 ];
                 const idx = methods.findIndex((m) => m.id === method);
@@ -676,7 +676,7 @@ function CheckoutPage() {
                       style={{
                         width: "calc((100% - 8px) / 3)",
                         transform: `translateX(${idx * 100}%)`,
-                        backgroundColor: BRAND,
+                        backgroundColor: TEXT_DARK,
                       }}
                     />
                     {methods.map((m) => (
@@ -685,7 +685,7 @@ function CheckoutPage() {
                         key={m.id}
                         onClick={() => setMethod(m.id)}
                         className="relative z-10 flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-full px-3 py-3 text-small font-semibold transition-colors"
-                        style={{ color: method === m.id ? TEXT_DARK : TEXT_MUTED }}
+                        style={{ color: method === m.id ? "#FFFFFF" : TEXT_MUTED }}
                       >
                         <m.icon className="h-4 w-4 shrink-0" /> {m.label}
                       </button>
@@ -724,16 +724,168 @@ function CheckoutPage() {
                   </div>
                 </div>
               )}
-              {method === "cashapp" && (
-                <p className="mt-5 text-body" style={{ color: TEXT_MUTED }}>
-                  You'll be redirected to Cash App to complete the payment (demo).
-                </p>
-              )}
-              {method === "bank" && (
-                <p className="mt-5 text-body" style={{ color: TEXT_MUTED }}>
-                  Bank transfer instructions will be emailed (demo).
-                </p>
-              )}
+              {method === "crypto" && (() => {
+                const walletAddress = "TX9a82kLm2039xMetanaDemo";
+                const amountDue = isSubscriptionInvite
+                  ? subscriptionAmount
+                  : isInstallmentInvite && invitation?.paymentDetails.paymentType === "Installment"
+                    ? invitation.paymentDetails.initialDownPayment
+                    : total;
+                return (
+                  <div className="mt-5 space-y-3">
+                    <div>
+                      <label className="text-body block mb-2" style={{ color: TEXT_MAIN }}>Crypto Network</label>
+                      <select
+                        value={cryptoNetwork}
+                        onChange={(e) => setCryptoNetwork(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl"
+                        style={{ backgroundColor: PAGE_BG, color: TEXT_DARK }}
+                      >
+                        <option>USDT TRC20</option>
+                        <option>Ethereum</option>
+                        <option>Bitcoin</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-body block mb-2" style={{ color: TEXT_MAIN }}>Wallet Address</label>
+                      <div className="flex items-center gap-2 px-4 py-3 rounded-xl" style={{ backgroundColor: PAGE_BG }}>
+                        <span className="flex-1 truncate text-small font-mono" style={{ color: TEXT_DARK }}>{walletAddress}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(walletAddress);
+                            toast.success("Wallet address copied");
+                          }}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-smaller font-semibold"
+                          style={{ backgroundColor: "#F3F4F6", color: TEXT_DARK }}
+                        >
+                          <Copy className="h-3 w-3" /> Copy
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between px-4 py-3 rounded-xl" style={{ backgroundColor: PAGE_BG }}>
+                      <span style={{ color: TEXT_MUTED }}>Amount Due</span>
+                      <span className="font-semibold" style={{ color: TEXT_DARK }}>${amountDue.toLocaleString()}</span>
+                    </div>
+                    <p className="text-smaller" style={{ color: TEXT_MUTED }}>
+                      Your course access will be activated after payment confirmation.
+                    </p>
+                  </div>
+                );
+              })()}
+              {method === "bank" && (() => {
+                const bank =
+                  invitation?.paymentDetails.paymentType === "Bank"
+                    ? invitation.paymentDetails
+                    : {
+                        accountName: "Metana / Edmore LLC",
+                        bankName: "Example Business Bank",
+                        accountNumber: "000123456789",
+                        routingNumber: "021000021",
+                        swiftCode: "EXAMPLEUS",
+                        referenceNote: `${effectiveEmail} · ${invitation?.course ?? course.title}`,
+                      };
+                const uploadLabel = isSubscriptionInvite
+                  ? "Upload Subscription Payment Receipt"
+                  : isInstallmentInvite
+                    ? "Upload Down Payment Receipt"
+                    : "Upload Bank Receipt";
+                const onFile = (file: File) => {
+                  setReceipt({
+                    name: file.name,
+                    uploadedAt: new Date().toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }),
+                  });
+                };
+                return (
+                  <div className="mt-5 space-y-4">
+                    <div className="rounded-2xl p-4" style={{ backgroundColor: PAGE_BG }}>
+                      <h4 className="font-semibold mb-3 inline-flex items-center gap-2" style={{ color: TEXT_DARK }}>
+                        <Landmark className="h-4 w-4" /> Bank Transfer Details
+                      </h4>
+                      <dl className="bg-white rounded-xl px-4">
+                        {([
+                          ["Account Name", bank.accountName],
+                          ["Bank Name", bank.bankName],
+                          ["Account Number", bank.accountNumber],
+                          ["Routing Number", bank.routingNumber],
+                          ["SWIFT Code", bank.swiftCode],
+                          ["Reference Note", bank.referenceNote],
+                        ] as const).map(([k, v], i, arr) => (
+                          <div
+                            key={k}
+                            className="flex items-center justify-between py-2.5"
+                            style={{ borderBottom: i < arr.length - 1 ? "1px solid #F0F0F0" : undefined }}
+                          >
+                            <dt className="text-small" style={{ color: TEXT_MUTED }}>{k}</dt>
+                            <dd className="text-small font-semibold text-right break-all" style={{ color: TEXT_DARK }}>{v}</dd>
+                          </div>
+                        ))}
+                      </dl>
+                      <p className="mt-3 text-smaller" style={{ color: TEXT_MUTED }}>
+                        Please include the reference note when making the transfer.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold" style={{ color: TEXT_DARK }}>{uploadLabel}</h4>
+                      <p className="text-small mt-1 mb-3" style={{ color: TEXT_MUTED }}>
+                        Upload your bank transfer receipt to complete your payment request.
+                      </p>
+                      {!receipt ? (
+                        <div
+                          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                          onDragLeave={() => setDragOver(false)}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            setDragOver(false);
+                            const f = e.dataTransfer.files?.[0];
+                            if (f) onFile(f);
+                          }}
+                          className="rounded-xl border-2 border-dashed p-6 text-center cursor-pointer transition-colors"
+                          style={{
+                            borderColor: dragOver ? TEXT_DARK : "#E5E7EB",
+                            backgroundColor: dragOver ? "#F9FAFB" : "#FFFFFF",
+                          }}
+                          onClick={() => fileInputRef.current?.click()}
+                        >
+                          <UploadCloud className="h-6 w-6 mx-auto mb-2" style={{ color: TEXT_MUTED }} />
+                          <p className="text-small" style={{ color: TEXT_DARK }}>
+                            Drag and drop receipt here
+                          </p>
+                          <p className="text-smaller mt-1" style={{ color: TEXT_MUTED }}>
+                            or <span className="underline">Browse files</span> · PDF, PNG, JPG · Max 10MB
+                          </p>
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept=".pdf,.png,.jpg,.jpeg"
+                            className="hidden"
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              if (f) onFile(f);
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white" style={{ border: "1px solid #F0F0F0" }}>
+                          <FileText className="h-5 w-5 shrink-0" style={{ color: TEXT_DARK }} />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-small font-semibold truncate" style={{ color: TEXT_DARK }}>{receipt.name}</p>
+                            <p className="text-smaller" style={{ color: TEXT_MUTED }}>Uploaded {receipt.uploadedAt}</p>
+                          </div>
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-smaller font-semibold"
+                            style={{ backgroundColor: "#F3F4F6", color: TEXT_DARK }}
+                          >
+                            <Eye className="h-3 w-3" /> View
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {isLoanInvite && invitation?.paymentDetails.paymentType === "Loan" ? (
                 <a
@@ -745,24 +897,42 @@ function CheckoutPage() {
                 >
                   Continue to Loan Application <ExternalLink className="h-4 w-4" />
                 </a>
-              ) : (
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="mt-6 w-full py-3.5 rounded-full font-semibold hover:opacity-90 disabled:opacity-60"
-                  style={{ backgroundColor: BRAND, color: TEXT_DARK }}
-                >
-                  {submitting
-                    ? "Processing..."
-                    : isSubscriptionInvite
-                      ? `Start Subscription · $${subscriptionAmount.toLocaleString()}`
-                      : isBankInvite
-                      ? "I Have Made the Transfer"
-                      : isInstallmentInvite && invitation?.paymentDetails.paymentType === "Installment"
-                        ? `Pay Down Payment · $${invitation.paymentDetails.initialDownPayment.toLocaleString()}`
-                        : `Purchase Now · ${fmt(total)}`}
-                </button>
-              )}
+              ) : (() => {
+                const amount = isSubscriptionInvite
+                  ? subscriptionAmount
+                  : isInstallmentInvite && invitation?.paymentDetails.paymentType === "Installment"
+                    ? invitation.paymentDetails.initialDownPayment
+                    : total;
+                const amountLabel = `$${Math.round(amount).toLocaleString()}`;
+                const isBank = method === "bank";
+                const isCrypto = method === "crypto";
+                const disabled = submitting || (isBank && !receipt);
+                let label: string;
+                if (submitting) label = "Processing...";
+                else if (isBank) {
+                  label = isSubscriptionInvite
+                    ? `Send Receipt and Start Subscription · ${amountLabel}`
+                    : `Send Receipt and Purchase · ${amountLabel}`;
+                } else if (isCrypto) {
+                  label = `Confirm Crypto Payment · ${amountLabel}`;
+                } else if (isSubscriptionInvite) {
+                  label = `Start Subscription · ${amountLabel}`;
+                } else if (isInstallmentInvite && invitation?.paymentDetails.paymentType === "Installment") {
+                  label = `Pay Down Payment · ${amountLabel}`;
+                } else {
+                  label = `Purchase Now · ${fmt(total)}`;
+                }
+                return (
+                  <button
+                    type="submit"
+                    disabled={disabled}
+                    className="mt-6 w-full py-3.5 rounded-full font-semibold hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
+                    style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+                  >
+                    {label}
+                  </button>
+                );
+              })()}
 
               <div className="mt-4 flex items-center justify-center gap-2 text-small" style={{ color: TEXT_MUTED }}>
                 <Lock className="h-3 w-3" /> Powered by <span className="font-bold" style={{ color: TEXT_DARK }}>stripe</span>
