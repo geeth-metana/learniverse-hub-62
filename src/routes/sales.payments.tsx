@@ -134,6 +134,8 @@ function planSetupLabel(inv: Invitation): string {
       return "Bank Transfer";
     case "Loan":
       return "Loan Redirect";
+    case "Subscription":
+      return `Subscription · $${d.monthlyPayment.toLocaleString()}/mo`;
   }
 }
 
