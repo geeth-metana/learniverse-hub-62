@@ -371,6 +371,11 @@ export const salesCourses: SalesCourse[] = [
       { date: "Sep 13, 2026", day: "Sunday", time: "2:00 PM", seats: 18 },
     ],
   },
+  {
+    id: "metana-prime",
+    title: "Metana Prime",
+    cohorts: [],
+  },
 ];
 
 export const salesPlans = [
