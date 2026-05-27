@@ -4413,6 +4413,9 @@ function PaymentOverviewDrawer({
                     onApproveGroup={approveGroup}
                     onRejectGroup={rejectGroup}
                     onDetachGroup={(id) => setDetachGroupId(id)}
+                    onChangeGroupDueDate={(id) => setChangeGroupDueDateId(id)}
+                    onEditAmount={(id) => setEditAmountId(id)}
+                    onEditGroupAmount={(id) => setEditGroupAmountId(id)}
                   />
                 )}
 
