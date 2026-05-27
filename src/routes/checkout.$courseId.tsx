@@ -768,6 +768,19 @@ function CheckoutPage() {
                       <span style={{ color: TEXT_MUTED }}>Amount Due</span>
                       <span className="font-semibold" style={{ color: TEXT_DARK }}>${amountDue.toLocaleString()}</span>
                     </div>
+                    <div>
+                      <label className="text-body block mb-2" style={{ color: TEXT_MAIN }}>Transaction Address</label>
+                      <input
+                        value={cryptoTxAddress}
+                        onChange={(e) => setCryptoTxAddress(e.target.value)}
+                        placeholder="Paste transaction address"
+                        className="w-full px-4 py-3 rounded-xl"
+                        style={{ backgroundColor: PAGE_BG, color: TEXT_DARK }}
+                      />
+                      <p className="text-smaller mt-1" style={{ color: TEXT_MUTED }}>
+                        Paste the transaction hash or wallet transaction address after sending the payment.
+                      </p>
+                    </div>
                     <p className="text-smaller" style={{ color: TEXT_MUTED }}>
                       Your course access will be activated after payment confirmation.
                     </p>
