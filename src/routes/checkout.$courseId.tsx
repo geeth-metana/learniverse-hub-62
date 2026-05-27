@@ -11,6 +11,12 @@ export const Route = createFileRoute("/checkout/$courseId")({
   validateSearch: z.object({
     plan: z.enum(["plan-01", "plan-02"]).optional(),
     invite: z.string().optional(),
+    email: z.string().optional(),
+    course: z.string().optional(),
+    paymentMethod: z.string().optional(),
+    subscriptionAmount: z.string().optional(),
+    monthlyPayment: z.string().optional(),
+    billingCycle: z.string().optional(),
   }),
   head: () => ({ meta: [{ title: "Checkout — Metana" }] }),
   component: CheckoutPage,
@@ -45,6 +51,17 @@ function CheckoutPage() {
   const isBankInvite = prefilled && inviteMethod === "Bank";
   const isLoanInvite = prefilled && inviteMethod === "Loan";
   const isInstallmentInvite = prefilled && inviteMethod === "Installment";
+  const isSubscriptionInvite =
+    (prefilled && (inviteMethod as string) === "Subscription") ||
+    search.paymentMethod === "subscription";
+  const subscriptionAmount =
+    invitation?.paymentDetails.paymentType === "Subscription"
+      ? invitation.paymentDetails.subscriptionAmount
+      : Number(search.subscriptionAmount ?? 499);
+  const subscriptionMonthly =
+    invitation?.paymentDetails.paymentType === "Subscription"
+      ? invitation.paymentDetails.monthlyPayment
+      : Number(search.monthlyPayment ?? 499);
 
   const TEXT_MAIN = "#24324A";
   const TEXT_DARK = "#1A1A1A";
@@ -92,7 +109,10 @@ function CheckoutPage() {
       ? "installment"
       : "upfront"
     : billing;
-  const effectiveEmail = prefilled ? (invitation?.studentEmail ?? "student@example.com") : email;
+  const effectiveEmail = prefilled
+    ? (invitation?.studentEmail ?? "student@example.com")
+    : (search.email ?? email);
+  const emailLocked = prefilled || Boolean(search.email);
 
   const planAmount =
     effectiveBilling === "installment"
@@ -283,7 +303,7 @@ function CheckoutPage() {
                   : "Choose the payment method that works best for you and complete your course purchase securely and easily."}
               </p>
 
-              {!prefilled && (
+              {!prefilled && !isSubscriptionInvite && (
                 <>
                 <h3 className="text-second-header font-bold mt-8 mb-4" style={{ color: TEXT_DARK }}>
                   Choose Your Plan
@@ -337,6 +357,31 @@ function CheckoutPage() {
               <h3 className="text-second-header font-bold mt-8 mb-4" style={{ color: TEXT_DARK }}>
                 Payment Plan
               </h3>
+              {isSubscriptionInvite ? (
+                <div className="rounded-2xl bg-white p-5">
+                  {([
+                    ["Plan Type", "Subscription"],
+                    ["Subscription Amount", `$${subscriptionAmount.toLocaleString()}`],
+                    ["Monthly Payment", `$${subscriptionMonthly.toLocaleString()} / month`],
+                    ["Billing Cycle", "Monthly"],
+                  ] as const).map(([k, v], i, arr) => (
+                    <div key={k}>
+                      <div className="flex items-center justify-between py-2">
+                        <span style={{ color: TEXT_MUTED }}>{k}</span>
+                        <span className="font-semibold" style={{ color: TEXT_DARK }}>{v}</span>
+                      </div>
+                      {i < arr.length - 1 && <div className="my-2" style={{ borderTop: "1px solid #F0F0F0" }} />}
+                    </div>
+                  ))}
+                  <div className="my-3" style={{ borderTop: "1px solid #F0F0F0" }} />
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold" style={{ color: TEXT_DARK }}>Due Today</span>
+                    <span className="font-extrabold text-main-header" style={{ color: TEXT_DARK }}>
+                      ${subscriptionAmount.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              ) : (
               <div className="rounded-2xl bg-white p-5">
                 {/* Plan Type */}
                 {prefilled ? (
@@ -426,8 +471,37 @@ function CheckoutPage() {
                   <span className="font-extrabold text-main-header" style={{ color: TEXT_DARK }}>{fmt(total)}</span>
                 </div>
               </div>
+              )}
 
-              {prefilled && (
+              {isSubscriptionInvite && (
+                <>
+                  <h3 className="text-second-header font-bold mt-8 mb-4" style={{ color: TEXT_DARK }}>
+                    Product Details
+                  </h3>
+                  <div className="bg-white rounded-2xl p-6 lg:p-8">
+                    <dl className="flex flex-col">
+                      {([
+                        ["Course", "Metana Prime"],
+                        ["Access Type", "Subscription Access"],
+                        ["Payment Type", "Subscription"],
+                        ["Billing Cycle", "Monthly"],
+                        ["Monthly Payment", `$${subscriptionMonthly.toLocaleString()} / month`],
+                        ["Certificate", "Not Applicable"],
+                      ] as const).map(([k, v], i, arr) => (
+                        <div
+                          key={k}
+                          className="flex items-center justify-between py-3"
+                          style={{ borderBottom: i < arr.length - 1 ? "1px solid #F0F0F0" : undefined }}
+                        >
+                          <dt style={{ color: TEXT_MUTED }}>{k}</dt>
+                          <dd className="font-semibold text-right" style={{ color: TEXT_DARK }}>{v}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </div>
+                </>
+              )}
+              {prefilled && !isSubscriptionInvite && (
                 <>
                   {isBankInvite && invitation?.paymentDetails.paymentType === "Bank" && (
                     <>
@@ -548,12 +622,12 @@ function CheckoutPage() {
                 value={effectiveEmail}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                disabled={prefilled}
-                readOnly={prefilled}
+                disabled={emailLocked}
+                readOnly={emailLocked}
                 className="w-full px-4 py-3 rounded-xl disabled:cursor-not-allowed"
                 style={{
-                  backgroundColor: prefilled ? "#F3F4F6" : PAGE_BG,
-                  color: prefilled ? TEXT_MUTED : TEXT_DARK,
+                  backgroundColor: emailLocked ? "#F3F4F6" : PAGE_BG,
+                  color: emailLocked ? TEXT_MUTED : TEXT_DARK,
                 }}
                 required
               />
@@ -652,7 +726,9 @@ function CheckoutPage() {
                 >
                   {submitting
                     ? "Processing..."
-                    : isBankInvite
+                    : isSubscriptionInvite
+                      ? `Start Subscription · $${subscriptionAmount.toLocaleString()}`
+                      : isBankInvite
                       ? "I Have Made the Transfer"
                       : isInstallmentInvite && invitation?.paymentDetails.paymentType === "Installment"
                         ? `Pay Initial Down Payment · $${invitation.paymentDetails.initialDownPayment.toLocaleString()}`

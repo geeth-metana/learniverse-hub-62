@@ -44,6 +44,17 @@ export const myCourses: Course[] = [
 
 export const allCourses: Course[] = [
   {
+    id: "metana-prime",
+    title: "Metana Prime",
+    description: "Premium subscription access to Metana programs and resources.",
+    meta: "Subscription · Monthly",
+    gradient: "linear-gradient(180deg, oklch(0.95 0.18 122), oklch(0.92 0.12 100))",
+    icon: "ai",
+    category: "all",
+    longDescription:
+      "Metana Prime subscription with ongoing access to curated content and support.",
+  },
+  {
     id: "solidity",
     title: "Solidity Smart Contracts Bootcamp",
     description: "Build, test and deploy production-grade Solidity contracts on EVM chains.",

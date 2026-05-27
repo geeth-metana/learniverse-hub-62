@@ -134,6 +134,8 @@ function planSetupLabel(inv: Invitation): string {
       return "Bank Transfer";
     case "Loan":
       return "Loan Redirect";
+    case "Subscription":
+      return `Subscription · $${d.monthlyPayment.toLocaleString()}/mo`;
   }
 }
 
@@ -1989,6 +1991,7 @@ function SelectPill({
 // ===================== Add Student Modal =====================
 
 type Step = 1 | 2 | 3 | 4 | 5;
+type StepKey = "student" | "cohort" | "method" | "plan" | "preview";
 
 type UpfrontPlanState = {
   id: "plan-01" | "plan-02";
@@ -2046,31 +2049,53 @@ function AddStudentModal({
   const [loanProvider, setLoanProvider] = useState("Metana Financing Partner");
   const [loanLink, setLoanLink] = useState("https://metana.io/finance/apply?invite=INV-10294");
 
+  // Metana Prime subscription state
+  const [subscriptionAmount, setSubscriptionAmount] = useState(499);
+  const [monthlyPayment, setMonthlyPayment] = useState(499);
+
   const [createdInvitation, setCreatedInvitation] = useState<Invitation | null>(null);
 
   const emailOk = /.+@.+\..+/.test(email.trim());
 
+  const isMetanaPrime = course?.title === "Metana Prime";
+  const stepKeys: StepKey[] = isMetanaPrime
+    ? ["student", "plan", "preview"]
+    : ["student", "cohort", "method", "plan", "preview"];
+  const stepperLabels = isMetanaPrime
+    ? ["Student & Course", "Plan Setup", "Preview & Confirm"]
+    : ["Student & Course", "Cohort Date", "Payment Method", "Plan Setup", "Preview & Confirm"];
+  const currentKey: StepKey = stepKeys[Math.min(step, stepKeys.length) - 1];
+  const isLastStep = step >= stepKeys.length;
+
   const next = () => {
-    if (step === 1) {
+    if (currentKey === "student") {
       if (!emailOk) return toast.error("Enter a valid email.");
       if (!course) return toast.error("Select a course.");
-      setStep(2);
-    } else if (step === 2) {
+    } else if (currentKey === "cohort") {
       if (!cohort) return toast.error("Select a cohort date.");
-      setStep(3);
-    } else if (step === 3) {
+    } else if (currentKey === "method") {
       if (!paymentMethod) return toast.error("Select a payment method.");
-      setStep(4);
-    } else if (step === 4) {
-      if (paymentMethod === "Installment") {
+    } else if (currentKey === "plan") {
+      if (isMetanaPrime) {
+        if (subscriptionAmount <= 0) return toast.error("Enter a subscription amount.");
+        if (monthlyPayment <= 0) return toast.error("Enter a monthly payment.");
+      } else if (paymentMethod === "Installment") {
         if (downPayment >= fullAmount) return toast.error("Down payment cannot exceed full amount.");
       }
-      setStep(5);
     }
+    setStep((s) => Math.min(s + 1, stepKeys.length) as Step);
   };
   const back = () => setStep((s) => (s > 1 ? ((s - 1) as Step) : s));
 
   const buildPaymentDetails = (): PaymentDetails => {
+    if (isMetanaPrime) {
+      return {
+        paymentType: "Subscription",
+        subscriptionAmount,
+        monthlyPayment,
+        billingCycle: "Monthly",
+      };
+    }
     if (paymentMethod === "Upfront") {
       const plan = UPFRONT_PLANS.find((p) => p.id === upfrontPlanId)!;
       const planAmount = upfrontAmount[plan.id];
@@ -2105,7 +2130,8 @@ function AddStudentModal({
   };
 
   const confirm = () => {
-    if (!course || !cohort || !paymentMethod) return;
+    if (!course) return;
+    if (!isMetanaPrime && (!cohort || !paymentMethod)) return;
     const details = buildPaymentDetails();
 
     // Back-compat fields used by the pre-filled checkout for upfront/installment
@@ -2120,7 +2146,9 @@ function AddStudentModal({
         ? details.checkoutAmount
         : details.paymentType === "Installment"
           ? details.totalAmount
-          : 0;
+          : details.paymentType === "Subscription"
+            ? details.subscriptionAmount
+            : 0;
     const discountPercent = details.paymentType === "Upfront" ? details.discountPercent : 0;
     const planLabel: "Plan 01" | "Plan 02" =
       details.paymentType === "Upfront"
@@ -2129,35 +2157,32 @@ function AddStudentModal({
     const planId: "plan-01" | "plan-02" =
       details.paymentType === "Upfront" ? upfrontPlanId : "plan-01";
 
+    const effectivePaymentMethod = (isMetanaPrime
+      ? ("Subscription" as unknown as PaymentMethod)
+      : (paymentMethod as PaymentMethod));
+    const effectiveAccessType = isMetanaPrime ? "Subscription Access" : "Full Program Access";
+
     const inv = addInvitation({
       studentName: email.split("@")[0].replace(/[._-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
       studentEmail: email.trim(),
       course: course.title,
       courseId: course.id,
-      cohortDate: cohort.date,
+      cohortDate: cohort?.date ?? "—",
       plan: planLabel,
       planId,
-      paymentType: paymentMethod,
+      paymentType: effectivePaymentMethod,
       planAmount,
       discountPercent,
       checkoutAmount,
-      paymentMethod,
+      paymentMethod: effectivePaymentMethod,
       paymentDetails: details,
-      accessType: "Full Program Access",
-      certificateIncluded: true,
+      accessType: effectiveAccessType,
+      certificateIncluded: !isMetanaPrime,
       status: "Pending",
     });
     setCreatedInvitation(inv);
     onConfirm(inv);
   };
-
-  const stepperLabels = [
-    "Student & Course",
-    "Cohort Date",
-    "Payment Method",
-    "Plan Setup",
-    "Preview & Confirm",
-  ];
 
   return (
     <ModalShell
@@ -2186,24 +2211,30 @@ function AddStudentModal({
         ) : (
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
-              key={step}
+              key={currentKey}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.22, ease: "easeInOut" }}
             >
-            {step === 1 && (
+            {currentKey === "student" && (
               <Step1
                 email={email}
                 setEmail={setEmail}
                 course={course}
                 setCourse={(c) => {
+                  const wasPrime = course?.title === "Metana Prime";
+                  const becomesPrime = c?.title === "Metana Prime";
                   setCourse(c);
                   setCohort(null);
+                  if (wasPrime !== becomesPrime) {
+                    setPaymentMethod(null);
+                    setStep(1);
+                  }
                 }}
               />
             )}
-            {step === 2 && course && (
+            {currentKey === "cohort" && course && (
               <Step2
                 course={course}
                 cohort={cohort}
@@ -2211,10 +2242,18 @@ function AddStudentModal({
                 onCreateNew={() => setCreateCohortMode(true)}
               />
             )}
-            {step === 3 && (
+            {currentKey === "method" && (
               <Step3PaymentMethod method={paymentMethod} setMethod={setPaymentMethod} />
             )}
-            {step === 4 && paymentMethod && (
+            {currentKey === "plan" && isMetanaPrime && (
+              <StepPrimePlanSetup
+                subscriptionAmount={subscriptionAmount}
+                setSubscriptionAmount={setSubscriptionAmount}
+                monthlyPayment={monthlyPayment}
+                setMonthlyPayment={setMonthlyPayment}
+              />
+            )}
+            {currentKey === "plan" && !isMetanaPrime && paymentMethod && (
               <Step4PlanSetup
                 method={paymentMethod}
                 upfrontPlanId={upfrontPlanId}
@@ -2238,12 +2277,12 @@ function AddStudentModal({
                 setLoanLink={setLoanLink}
               />
             )}
-            {step === 5 && course && cohort && paymentMethod && (
+            {currentKey === "preview" && course && (
               <Step5Preview
                 email={email}
                 course={course}
                 cohort={cohort}
-                paymentMethod={paymentMethod}
+                paymentMethod={isMetanaPrime ? ("Subscription" as unknown as PaymentMethod) : (paymentMethod as PaymentMethod)}
                 details={buildPaymentDetails()}
               />
             )}
@@ -2266,7 +2305,7 @@ function AddStudentModal({
               <ArrowLeft className="h-4 w-4" /> Back
             </button>
           )}
-          {step < 5 ? (
+          {!isLastStep ? (
             <button
               onClick={next}
               className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-button-primary font-semibold"
@@ -2908,6 +2947,51 @@ function CurrencyInput({ value, onChange }: { value: number; onChange: (v: numbe
   );
 }
 
+function StepPrimePlanSetup({
+  subscriptionAmount,
+  setSubscriptionAmount,
+  monthlyPayment,
+  setMonthlyPayment,
+}: {
+  subscriptionAmount: number;
+  setSubscriptionAmount: (v: number) => void;
+  monthlyPayment: number;
+  setMonthlyPayment: (v: number) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-5">
+      <h4 className="text-second-header font-semibold" style={{ color: TEXT_DARK }}>
+        Setup Metana Prime Subscription
+      </h4>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Subscription Amount" required>
+          <CurrencyInput value={subscriptionAmount} onChange={setSubscriptionAmount} />
+        </Field>
+        <Field label="Monthly Payment" required>
+          <div
+            className="flex items-center rounded-xl bg-white"
+            style={{ border: `1px solid ${BORDER}` }}
+          >
+            <span className="pl-4 text-body" style={{ color: TEXT_MUTED }}>$</span>
+            <input
+              type="number"
+              min={0}
+              value={monthlyPayment}
+              onChange={(e) => setMonthlyPayment(Math.max(0, Number(e.target.value) || 0))}
+              className="w-full bg-transparent px-3 py-3 text-body outline-none"
+              style={{ color: TEXT_DARK }}
+            />
+            <span className="pr-4 text-small" style={{ color: TEXT_MUTED }}>/ month</span>
+          </div>
+        </Field>
+      </div>
+      <p className="text-small" style={{ color: TEXT_MUTED }}>
+        This amount will be used to generate the student's pre-filled Metana Prime payment link.
+      </p>
+    </div>
+  );
+}
+
 function Step5Preview({
   email,
   course,
@@ -2917,16 +3001,24 @@ function Step5Preview({
 }: {
   email: string;
   course: SalesCourse;
-  cohort: SalesCourse["cohorts"][number];
+  cohort: SalesCourse["cohorts"][number] | null;
   paymentMethod: PaymentMethod;
   details: PaymentDetails;
 }) {
-  const baseTop: [string, string][] = [
-    ["Student Email", email],
-    ["Course", course.title],
-    ["Cohort Date", cohort.date],
-    ["Payment Method", paymentMethod],
-  ];
+  const isPrime = details.paymentType === "Subscription";
+  const baseTop: [string, string][] = isPrime
+    ? [
+        ["Student Email", email],
+        ["Course", course.title],
+        ["Access Type", "Subscription Access"],
+        ["Payment Type", "Subscription"],
+      ]
+    : [
+        ["Student Email", email],
+        ["Course", course.title],
+        ["Cohort Date", cohort?.date ?? "—"],
+        ["Payment Method", paymentMethod],
+      ];
 
   let extra: [string, string][] = [];
   if (details.paymentType === "Upfront") {
@@ -2951,9 +3043,17 @@ function Step5Preview({
       ["Loan Provider", details.loanProviderName],
       ["Loan Application Link", details.loanApplicationLink],
     ];
+  } else if (details.paymentType === "Subscription") {
+    extra = [
+      ["Subscription Amount", `$${details.subscriptionAmount.toLocaleString()}`],
+      ["Monthly Payment", `$${details.monthlyPayment.toLocaleString()} / month`],
+      ["Billing Cycle", details.billingCycle],
+    ];
   }
 
-  const rows = [...baseTop, ...extra, ["Certificate", "Included"] as [string, string]];
+  const rows = isPrime
+    ? [...baseTop, ...extra]
+    : [...baseTop, ...extra, ["Certificate", "Included"] as [string, string]];
 
   return (
     <div className="flex flex-col gap-4">
@@ -2984,7 +3084,20 @@ function Step5Preview({
 function Step6Send({ invitation, onDone }: { invitation: Invitation; onDone: () => void }) {
   const link = useMemo(() => {
     if (typeof window === "undefined") return invitation.checkoutLink;
-    return `${window.location.origin}/checkout/${invitation.courseId}?invite=${invitation.id}`;
+    const base = `${window.location.origin}/checkout/${invitation.courseId}?invite=${invitation.id}`;
+    if (invitation.paymentDetails.paymentType === "Subscription") {
+      const d = invitation.paymentDetails;
+      const params = new URLSearchParams({
+        email: invitation.studentEmail,
+        course: "metana-prime",
+        paymentMethod: "subscription",
+        subscriptionAmount: String(d.subscriptionAmount),
+        monthlyPayment: String(d.monthlyPayment),
+        billingCycle: "monthly",
+      });
+      return `${base}&${params.toString()}`;
+    }
+    return base;
   }, [invitation]);
   const [sent, setSent] = useState(false);
 
@@ -4062,6 +4175,17 @@ function PaymentDetailsBlock({
         <Row label="Account Name" value={d.accountName} />
         <Row label="Reference Note" value={d.referenceNote} />
         <Row label="Transfer Status" value={statusPill(invitation.status)} last />
+      </>
+    );
+  }
+  if (d.paymentType === "Subscription") {
+    return (
+      <>
+        <Row label="Payment Method" value="Subscription" />
+        <Row label="Subscription Amount" value={`$${d.subscriptionAmount.toLocaleString()}`} />
+        <Row label="Monthly Payment" value={`$${d.monthlyPayment.toLocaleString()} / month`} />
+        <Row label="Billing Cycle" value={d.billingCycle} />
+        <Row label="Payment Status" value={statusPill(invitation.status)} last />
       </>
     );
   }

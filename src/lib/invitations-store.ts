@@ -14,6 +14,7 @@ export type InvitationStatus =
   | "Loan Approved";
 
 export type PaymentMethod = "Upfront" | "Installment" | "Bank" | "Loan";
+export type ExtendedPaymentMethod = PaymentMethod | "Subscription";
 
 export type UpfrontDetails = {
   paymentType: "Upfront";
@@ -45,11 +46,18 @@ export type LoanDetails = {
   loanApplicationLink: string;
   redirectRequired: true;
 };
+export type SubscriptionDetails = {
+  paymentType: "Subscription";
+  subscriptionAmount: number;
+  monthlyPayment: number;
+  billingCycle: "Monthly";
+};
 export type PaymentDetails =
   | UpfrontDetails
   | InstallmentDetails
   | BankDetails
-  | LoanDetails;
+  | LoanDetails
+  | SubscriptionDetails;
 
 export type Invitation = {
   id: string; // e.g. INV-10294
@@ -362,6 +370,11 @@ export const salesCourses: SalesCourse[] = [
       { date: "Jul 19, 2026", day: "Sunday", time: "2:00 PM", seats: 20 },
       { date: "Sep 13, 2026", day: "Sunday", time: "2:00 PM", seats: 18 },
     ],
+  },
+  {
+    id: "metana-prime",
+    title: "Metana Prime",
+    cohorts: [],
   },
 ];
 
