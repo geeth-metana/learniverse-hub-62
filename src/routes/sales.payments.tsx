@@ -409,6 +409,9 @@ function InstallmentsPanel({
   onApproveGroup,
   onRejectGroup,
   onDetachGroup,
+  onChangeGroupDueDate,
+  onEditAmount,
+  onEditGroupAmount,
 }: {
   invitation: Invitation;
   isInstallment: boolean;
@@ -432,6 +435,9 @@ function InstallmentsPanel({
   onApproveGroup: (id: string) => void;
   onRejectGroup: (id: string) => void;
   onDetachGroup: (id: string) => void;
+  onChangeGroupDueDate: (id: string) => void;
+  onEditAmount: (id: string) => void;
+  onEditGroupAmount: (id: string) => void;
 }) {
   if (!isInstallment || invitation.paymentDetails.paymentType !== "Installment") {
     return (
@@ -617,8 +623,26 @@ function InstallmentsPanel({
                       {it.label}
                     </p>
                     <p className="text-smaller" style={{ color: TEXT_MUTED }}>
-                      Due {it.dueDate} · ${it.amount.toLocaleString()}
+                      Due {it.dueDate} ·{" "}
+                      {it.paidAmount !== undefined && it.paidAmount < it.amount
+                        ? `Paid $${it.paidAmount.toLocaleString()} / $${it.amount.toLocaleString()}`
+                        : `$${it.amount.toLocaleString()}`}
                     </p>
+                    {it.carriedFromAmount ? (
+                      <p className="text-smaller" style={{ color: TEXT_MUTED }}>
+                        Includes ${it.carriedFromAmount.toLocaleString()} carried forward
+                      </p>
+                    ) : null}
+                    {it.paidAmount !== undefined && it.paidAmount < it.amount && (
+                      <span
+                        className="mt-1 inline-flex items-center rounded-full px-2 py-0.5 text-smaller font-semibold"
+                        style={{ backgroundColor: "#FEF3C7", color: "#92400E" }}
+                      >
+                        {it.neglectedBalance !== undefined
+                          ? `Neglected Balance: $${it.neglectedBalance.toLocaleString()}`
+                          : "Partial Payment"}
+                      </span>
+                    )}
                   </div>
                   <InstallmentStatusPill status={it.status} />
                 </button>
@@ -675,6 +699,8 @@ function InstallmentsPanel({
               onUpload={(file) => onUploadGroupProof(selectedGroup.id, file)}
               onApprove={() => onApproveGroup(selectedGroup.id)}
               onDetach={() => onDetachGroup(selectedGroup.id)}
+              onChangeDueDate={() => onChangeGroupDueDate(selectedGroup.id)}
+              onEditAmount={() => onEditGroupAmount(selectedGroup.id)}
             />
           ) : selected ? (
             <InstallmentDetailPanel
@@ -685,6 +711,7 @@ function InstallmentsPanel({
               onReject={() => onReject(selected.id)}
               onOpenPostpone={onOpenPostpone}
               onOpenChangeDueDate={() => onChangeDueDate(selected.id)}
+              onOpenEditAmount={() => onEditAmount(selected.id)}
             />
           ) : (
             <div className="grid h-full place-items-center text-small" style={{ color: TEXT_MUTED }}>
@@ -708,6 +735,8 @@ function CombinedPlanDetailPanel({
   onUpload,
   onApprove,
   onDetach,
+  onChangeDueDate,
+  onEditAmount,
 }: {
   group: GroupedPaymentLite;
   index: number;
@@ -717,6 +746,8 @@ function CombinedPlanDetailPanel({
   onUpload: (file: File | undefined) => void;
   onApprove: () => void;
   onDetach: () => void;
+  onChangeDueDate: () => void;
+  onEditAmount: () => void;
 }) {
   const isApproved = group.status === "Approved";
   const status: InstallmentStatus = isApproved
@@ -849,14 +880,19 @@ function CombinedPlanDetailPanel({
         <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={() => {
-              copyLink(`https://pay.example.com/combined/${group.id}`);
-              toast.success("Payment link sent");
-            }}
+            onClick={onChangeDueDate}
             className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
             style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
           >
-            Send Payment Link
+            <CalendarClock className="h-4 w-4" /> Change Due Date
+          </button>
+          <button
+            type="button"
+            onClick={onEditAmount}
+            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
+            style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+          >
+            Edit Amount
           </button>
           <button
             type="button"
@@ -890,6 +926,7 @@ function InstallmentDetailPanel({
   onReject,
   onOpenPostpone,
   onOpenChangeDueDate,
+  onOpenEditAmount,
 }: {
   row: InstallmentRow;
   onUpload: (file: File | undefined) => void;
@@ -898,6 +935,7 @@ function InstallmentDetailPanel({
   onReject: () => void;
   onOpenPostpone: () => void;
   onOpenChangeDueDate: () => void;
+  onOpenEditAmount: () => void;
 }) {
   const isApproved =
     row.status === "Approved" || row.status === "Combined Plan Approved";
@@ -912,6 +950,12 @@ function InstallmentDetailPanel({
   const showStripeRepay = isStripe && isDeclined;
   const showSecondaryActions =
     !isApproved && (row.status === "Pending" || isDeclined);
+  const canEditAmount =
+    !isStripe &&
+    (row.status === "Pending" ||
+      row.status === "Payment Failed" ||
+      row.status === "Overdue" ||
+      row.status === "Combined Plan Pending");
 
   return (
     <div>
@@ -1052,18 +1096,8 @@ function InstallmentDetailPanel({
       )}
 
       {/* Action buttons — appear AFTER the internal note */}
-      {(canApprove || showSecondaryActions) && (
+      {(canApprove || showSecondaryActions || canEditAmount) && (
         <div className="mt-4 flex flex-wrap gap-2">
-          {canApprove && (
-            <button
-              type="button"
-              onClick={onApprove}
-              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
-              style={{ backgroundColor: BRAND, color: TEXT_DARK }}
-            >
-              <CheckCircle2 className="h-4 w-4" /> Approve Payment
-            </button>
-          )}
           {showSecondaryActions && (
             <>
               <button
@@ -1074,6 +1108,16 @@ function InstallmentDetailPanel({
               >
                 <CalendarClock className="h-4 w-4" /> Change Due Date
               </button>
+              {canEditAmount && (
+                <button
+                  type="button"
+                  onClick={onOpenEditAmount}
+                  className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
+                  style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+                >
+                  Edit Amount
+                </button>
+              )}
               <button
                 type="button"
                 onClick={onOpenPostpone}
@@ -1083,6 +1127,16 @@ function InstallmentDetailPanel({
                 <Layers className="h-4 w-4" /> Combined Plans
               </button>
             </>
+          )}
+          {canApprove && (
+            <button
+              type="button"
+              onClick={onApprove}
+              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
+              style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+            >
+              <CheckCircle2 className="h-4 w-4" /> Approve Payment
+            </button>
           )}
         </div>
       )}
@@ -1311,10 +1365,14 @@ function PostponeModal({
 
 function ChangeDueDateModal({
   row,
+  title = "Change Due Date",
+  description,
   onClose,
   onConfirm,
 }: {
-  row: InstallmentRow;
+  row: { label: string; dueDate: string };
+  title?: string;
+  description?: string;
   onClose: () => void;
   onConfirm: (payload: { newDueDate: string; reason: string; note: string }) => void;
 }) {
@@ -1351,10 +1409,10 @@ function ChangeDueDateModal({
         <div className="flex items-start justify-between">
           <div>
             <h3 className="text-second-header font-bold" style={{ color: TEXT_DARK }}>
-              Change Due Date
+              {title}
             </h3>
             <p className="mt-1 text-smaller" style={{ color: TEXT_MUTED }}>
-              Update the due date for {row.label}. The installment stays Pending.
+              {description ?? `Update the due date for ${row.label}. The installment stays Pending.`}
             </p>
           </div>
           <button
@@ -1452,6 +1510,184 @@ function copyLink(link: string) {
   navigator.clipboard?.writeText(link).then(
     () => toast.success("Link copied"),
     () => toast.error("Could not copy link"),
+  );
+}
+
+// ===================== Edit Amount Modal =====================
+
+function EditAmountModal({
+  title = "Edit Installment Amount",
+  originalAmount,
+  originalLabel,
+  carryOptions,
+  isLast,
+  onClose,
+  onConfirm,
+}: {
+  title?: string;
+  originalAmount: number;
+  originalLabel: string;
+  carryOptions: { id: string; label: string }[];
+  isLast: boolean;
+  onClose: () => void;
+  onConfirm: (payload: {
+    amountPaid: number;
+    remaining: number;
+    carryToId: string | null;
+    note: string;
+  }) => void;
+}) {
+  const [amountPaid, setAmountPaid] = useState<number>(originalAmount);
+  const [carryToId, setCarryToId] = useState<string>(
+    carryOptions[0]?.id ?? "",
+  );
+  const [note, setNote] = useState("");
+  const remaining = Math.max(0, originalAmount - (Number(amountPaid) || 0));
+  const showCarry = !isLast && remaining > 0;
+  const showNeglected = isLast && remaining > 0;
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+      style={{ backgroundColor: "rgba(0,0,0,0.35)" }}
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-md rounded-3xl bg-white p-6"
+        style={{ boxShadow: "0 30px 80px rgba(15,23,42,0.25)" }}
+      >
+        <div className="flex items-start justify-between">
+          <div>
+            <h3 className="text-second-header font-bold" style={{ color: TEXT_DARK }}>
+              {title}
+            </h3>
+            <p className="mt-1 text-smaller" style={{ color: TEXT_MUTED }}>
+              Record a partial payment for {originalLabel}.
+              {isLast
+                ? " This is the final installment — any unpaid balance will be recorded as neglected balance."
+                : " The remaining amount will be carried forward to a future installment."}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="grid h-8 w-8 place-items-center rounded-full hover:bg-[#F3F4F6]"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" style={{ color: TEXT_DARK }} />
+          </button>
+        </div>
+
+        <div className="mt-4 space-y-3">
+          <div>
+            <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+              Original Installment Amount
+            </p>
+            <div
+              className="rounded-xl px-3 py-2 text-small"
+              style={{ backgroundColor: SOFT, color: TEXT_DARK }}
+            >
+              ${originalAmount.toLocaleString()}
+            </div>
+          </div>
+          <div>
+            <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+              Amount Paid
+            </p>
+            <input
+              type="number"
+              min={0}
+              max={originalAmount}
+              value={amountPaid}
+              onChange={(e) => setAmountPaid(Number(e.target.value) || 0)}
+              className="w-full rounded-xl bg-white px-3 py-2 text-small"
+              style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
+            />
+          </div>
+          <div>
+            <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+              {showNeglected ? "Neglected Balance" : "Remaining Amount"}
+            </p>
+            <div
+              className="rounded-xl px-3 py-2 text-small font-semibold"
+              style={{
+                backgroundColor: showNeglected ? "#FEF2F2" : SOFT,
+                color: showNeglected ? "#991B1B" : TEXT_DARK,
+              }}
+            >
+              ${remaining.toLocaleString()}
+            </div>
+            {showNeglected && (
+              <p className="mt-1 text-smaller" style={{ color: TEXT_MUTED }}>
+                This is the final installment. Any unpaid balance will be recorded as neglected balance.
+              </p>
+            )}
+          </div>
+          {showCarry && (
+            <div>
+              <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+                Carry Forward To
+              </p>
+              <select
+                value={carryToId}
+                onChange={(e) => setCarryToId(e.target.value)}
+                className="w-full rounded-xl bg-white px-3 py-2 text-small"
+                style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
+              >
+                {carryOptions.map((opt) => (
+                  <option key={opt.id} value={opt.id}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          <div>
+            <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+              Internal Note
+            </p>
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              rows={2}
+              placeholder="Student paid partial amount and will pay the balance with next installment…"
+              className="w-full resize-none rounded-xl px-3 py-2 text-small"
+              style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
+            />
+          </div>
+        </div>
+
+        <div className="mt-5 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full px-4 py-2 text-small font-semibold"
+            style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled={amountPaid <= 0 || amountPaid > originalAmount}
+            onClick={() =>
+              onConfirm({
+                amountPaid,
+                remaining,
+                carryToId: showCarry ? carryToId : null,
+                note,
+              })
+            }
+            className="rounded-full px-4 py-2 text-small font-semibold disabled:opacity-50"
+            style={{ backgroundColor: TEXT_DARK, color: "#FFFFFF" }}
+          >
+            Save Amount
+          </button>
+        </div>
+      </motion.div>
+    </div>
   );
 }
 
@@ -3660,6 +3896,9 @@ function PaymentOverviewDrawer({
   const [showUpcoming, setShowUpcoming] = useState(false);
   const [postponeOpen, setPostponeOpen] = useState(false);
   const [changeDueDateId, setChangeDueDateId] = useState<string | null>(null);
+  const [changeGroupDueDateId, setChangeGroupDueDateId] = useState<string | null>(null);
+  const [editAmountId, setEditAmountId] = useState<string | null>(null);
+  const [editGroupAmountId, setEditGroupAmountId] = useState<string | null>(null);
   const [selectedInstallmentId, setSelectedInstallmentId] = useState<string | null>(
     null,
   );
@@ -3743,6 +3982,108 @@ function PaymentOverviewDrawer({
     void payload.reason;
     void payload.note;
     toast.success(`Due date updated to ${payload.newDueDate}`);
+  };
+
+  const changeGroupDueDate = (
+    groupId: string,
+    payload: { newDueDate: string; reason: string; note: string },
+  ) => {
+    setGroups((g) =>
+      g.map((it) =>
+        it.id === groupId ? { ...it, dueDate: payload.newDueDate } : it,
+      ),
+    );
+    void payload.reason;
+    void payload.note;
+    toast.success(`Combined plan due date updated to ${payload.newDueDate}`);
+  };
+
+  const editInstallmentAmount = (
+    id: string,
+    payload: {
+      amountPaid: number;
+      remaining: number;
+      carryToId: string | null;
+      note: string;
+    },
+  ) => {
+    const source = installments.find((i) => i.id === id);
+    if (!source) return;
+    const sourceLabel = source.label;
+    setInstallments((prev) =>
+      prev.map((it) => {
+        if (it.id === id) {
+          return {
+            ...it,
+            paidAmount: payload.amountPaid,
+            neglectedBalance: !payload.carryToId ? payload.remaining : undefined,
+            status: "Approved" as InstallmentStatus,
+          };
+        }
+        if (payload.carryToId && it.id === payload.carryToId) {
+          const base = (it.carriedFromAmount ? it.amount - it.carriedFromAmount : it.amount);
+          const newCarried = (it.carriedFromAmount ?? 0) + payload.remaining;
+          return {
+            ...it,
+            amount: base + newCarried,
+            carriedFromAmount: newCarried,
+            carriedFromLabel: sourceLabel,
+          };
+        }
+        return it;
+      }),
+    );
+    void payload.note;
+    toast.success(
+      payload.carryToId
+        ? `Partial payment recorded. $${payload.remaining.toLocaleString()} carried forward.`
+        : `Final installment recorded. $${payload.remaining.toLocaleString()} neglected balance.`,
+    );
+  };
+
+  const editGroupAmount = (
+    groupId: string,
+    payload: {
+      amountPaid: number;
+      remaining: number;
+      carryToId: string | null;
+      note: string;
+    },
+  ) => {
+    const group = groups.find((g) => g.id === groupId);
+    if (!group) return;
+    setGroups((g) =>
+      g.map((it) => (it.id === groupId ? { ...it, status: "Approved" } : it)),
+    );
+    setInstallments((prev) =>
+      prev.map((it) => {
+        if (group.installmentIds.includes(it.id)) {
+          return {
+            ...it,
+            paidAmount: it.amount,
+            status: "Combined Plan Approved" as InstallmentStatus,
+          };
+        }
+        if (payload.carryToId && it.id === payload.carryToId) {
+          const base = (it.carriedFromAmount ? it.amount - it.carriedFromAmount : it.amount);
+          const newCarried = (it.carriedFromAmount ?? 0) + payload.remaining;
+          return {
+            ...it,
+            amount: base + newCarried,
+            carriedFromAmount: newCarried,
+            carriedFromLabel: "Combined Installment",
+          };
+        }
+        return it;
+      }),
+    );
+    void payload.note;
+    void payload.amountPaid;
+    toast.success(
+      payload.carryToId
+        ? `Combined payment recorded. $${payload.remaining.toLocaleString()} carried forward.`
+        : `Combined payment recorded. $${payload.remaining.toLocaleString()} neglected balance.`,
+    );
   };
 
   const postponeInstallments = (
@@ -4090,6 +4431,9 @@ function PaymentOverviewDrawer({
                     onApproveGroup={approveGroup}
                     onRejectGroup={rejectGroup}
                     onDetachGroup={(id) => setDetachGroupId(id)}
+                    onChangeGroupDueDate={(id) => setChangeGroupDueDateId(id)}
+                    onEditAmount={(id) => setEditAmountId(id)}
+                    onEditGroupAmount={(id) => setEditGroupAmountId(id)}
                   />
                 )}
 
@@ -4174,6 +4518,85 @@ function PaymentOverviewDrawer({
             onConfirm={(payload) => {
               changeInstallmentDueDate(target.id, payload);
               setChangeDueDateId(null);
+            }}
+          />
+        );
+      })()}
+      {changeGroupDueDateId && (() => {
+        const target = groups.find((g) => g.id === changeGroupDueDateId);
+        if (!target) return null;
+        return (
+          <ChangeDueDateModal
+            row={{ label: "Combined Installment", dueDate: target.dueDate }}
+            title="Change Combined Installment Due Date"
+            description="Update the due date for this combined installment. Status stays Pending."
+            onClose={() => setChangeGroupDueDateId(null)}
+            onConfirm={(payload) => {
+              changeGroupDueDate(target.id, payload);
+              setChangeGroupDueDateId(null);
+            }}
+          />
+        );
+      })()}
+      {editAmountId && (() => {
+        const target = installments.find((i) => i.id === editAmountId);
+        if (!target) return null;
+        const futureOptions = installments
+          .filter(
+            (i) =>
+              i.number > target.number &&
+              (i.status === "Upcoming" ||
+                i.status === "Pending" ||
+                i.status === "Combined Plan Pending"),
+          )
+          .map((i) => ({ id: i.id, label: i.label }));
+        const isLast = futureOptions.length === 0;
+        return (
+          <EditAmountModal
+            originalAmount={target.amount}
+            originalLabel={target.label}
+            carryOptions={futureOptions}
+            isLast={isLast}
+            onClose={() => setEditAmountId(null)}
+            onConfirm={(payload) => {
+              editInstallmentAmount(target.id, payload);
+              setEditAmountId(null);
+            }}
+          />
+        );
+      })()}
+      {editGroupAmountId && (() => {
+        const target = groups.find((g) => g.id === editGroupAmountId);
+        if (!target) return null;
+        const total = target.installmentIds
+          .map((id) => installments.find((i) => i.id === id)?.amount ?? 0)
+          .reduce((s, a) => s + a, 0);
+        const maxNumber = Math.max(
+          ...target.installmentIds
+            .map((id) => installments.find((i) => i.id === id)?.number ?? 0),
+        );
+        const futureOptions = installments
+          .filter(
+            (i) =>
+              i.number > maxNumber &&
+              !target.installmentIds.includes(i.id) &&
+              (i.status === "Upcoming" ||
+                i.status === "Pending" ||
+                i.status === "Combined Plan Pending"),
+          )
+          .map((i) => ({ id: i.id, label: i.label }));
+        const isLast = futureOptions.length === 0;
+        return (
+          <EditAmountModal
+            title="Edit Combined Installment Amount"
+            originalAmount={total}
+            originalLabel="Combined Installment"
+            carryOptions={futureOptions}
+            isLast={isLast}
+            onClose={() => setEditGroupAmountId(null)}
+            onConfirm={(payload) => {
+              editGroupAmount(target.id, payload);
+              setEditGroupAmountId(null);
             }}
           />
         );
@@ -4629,6 +5052,11 @@ type InstallmentRow = {
   paymentMethod: "Stripe" | "Offline";
   stripeTxnId?: string;
   dueDateChanged?: boolean;
+  // Partial payment / carry-forward bookkeeping
+  paidAmount?: number;
+  carriedFromLabel?: string;
+  carriedFromAmount?: number;
+  neglectedBalance?: number;
 };
 
 function addMonthsFormatted(start: Date, months: number): string {
