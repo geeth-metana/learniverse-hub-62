@@ -269,6 +269,10 @@ function CheckoutPage() {
       if (!/^\d{2}\s*\/\s*\d{2}$/.test(exp)) return "Expiry must be MM/YY.";
       if (cvc.length < 3) return "CVC must be at least 3 digits.";
     }
+    if (method === "crypto" && !txAddress.trim()) {
+      setTxError(true);
+      return "Please paste your transaction address to continue.";
+    }
     return null;
   };
 
