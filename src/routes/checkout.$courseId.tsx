@@ -5,7 +5,28 @@ import { plans, getCourse, type PlanId } from "@/lib/courses-data";
 import { useEnrollments } from "@/lib/enrollment";
 import { getInvitation } from "@/lib/invitations-store";
 import { toast } from "sonner";
-import { CreditCard, DollarSign, Building2, Lock, ArrowLeft, Landmark, Banknote, ExternalLink } from "lucide-react";
+import {
+  CreditCard,
+  Building2,
+  Lock,
+  ArrowLeft,
+  Landmark,
+  Banknote,
+  ExternalLink,
+  Bitcoin,
+  Copy,
+  UploadCloud,
+  FileText,
+  Eye,
+  BookOpen,
+  Shield,
+  Calendar,
+  PlayCircle,
+  Clock,
+  Timer,
+  Users,
+  Award,
+} from "lucide-react";
 
 export const Route = createFileRoute("/checkout/$courseId")({
   validateSearch: z.object({
@@ -38,7 +59,11 @@ function CheckoutPage() {
   const existing = get(courseId);
 
   const [plan, setPlan] = useState<PlanId>(search.plan ?? "plan-01");
-  const [method, setMethod] = useState<"card" | "cashapp" | "bank">("card");
+  const [method, setMethod] = useState<"card" | "crypto" | "bank">("card");
+  const [cryptoNetwork, setCryptoNetwork] = useState("USDT TRC20");
+  const [receipt, setReceipt] = useState<{ name: string; uploadedAt: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [dragOver, setDragOver] = useState(false);
   const [email, setEmail] = useState("");
   const [card, setCard] = useState("");
   const [exp, setExp] = useState("");
