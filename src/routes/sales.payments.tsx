@@ -3966,6 +3966,108 @@ function PaymentOverviewDrawer({
     toast.success(`Due date updated to ${payload.newDueDate}`);
   };
 
+  const changeGroupDueDate = (
+    groupId: string,
+    payload: { newDueDate: string; reason: string; note: string },
+  ) => {
+    setGroups((g) =>
+      g.map((it) =>
+        it.id === groupId ? { ...it, dueDate: payload.newDueDate } : it,
+      ),
+    );
+    void payload.reason;
+    void payload.note;
+    toast.success(`Combined plan due date updated to ${payload.newDueDate}`);
+  };
+
+  const editInstallmentAmount = (
+    id: string,
+    payload: {
+      amountPaid: number;
+      remaining: number;
+      carryToId: string | null;
+      note: string;
+    },
+  ) => {
+    const source = installments.find((i) => i.id === id);
+    if (!source) return;
+    const sourceLabel = source.label;
+    setInstallments((prev) =>
+      prev.map((it) => {
+        if (it.id === id) {
+          return {
+            ...it,
+            paidAmount: payload.amountPaid,
+            neglectedBalance: !payload.carryToId ? payload.remaining : undefined,
+            status: "Approved" as InstallmentStatus,
+          };
+        }
+        if (payload.carryToId && it.id === payload.carryToId) {
+          const base = (it.carriedFromAmount ? it.amount - it.carriedFromAmount : it.amount);
+          const newCarried = (it.carriedFromAmount ?? 0) + payload.remaining;
+          return {
+            ...it,
+            amount: base + newCarried,
+            carriedFromAmount: newCarried,
+            carriedFromLabel: sourceLabel,
+          };
+        }
+        return it;
+      }),
+    );
+    void payload.note;
+    toast.success(
+      payload.carryToId
+        ? `Partial payment recorded. $${payload.remaining.toLocaleString()} carried forward.`
+        : `Final installment recorded. $${payload.remaining.toLocaleString()} neglected balance.`,
+    );
+  };
+
+  const editGroupAmount = (
+    groupId: string,
+    payload: {
+      amountPaid: number;
+      remaining: number;
+      carryToId: string | null;
+      note: string;
+    },
+  ) => {
+    const group = groups.find((g) => g.id === groupId);
+    if (!group) return;
+    setGroups((g) =>
+      g.map((it) => (it.id === groupId ? { ...it, status: "Approved" } : it)),
+    );
+    setInstallments((prev) =>
+      prev.map((it) => {
+        if (group.installmentIds.includes(it.id)) {
+          return {
+            ...it,
+            paidAmount: it.amount,
+            status: "Combined Plan Approved" as InstallmentStatus,
+          };
+        }
+        if (payload.carryToId && it.id === payload.carryToId) {
+          const base = (it.carriedFromAmount ? it.amount - it.carriedFromAmount : it.amount);
+          const newCarried = (it.carriedFromAmount ?? 0) + payload.remaining;
+          return {
+            ...it,
+            amount: base + newCarried,
+            carriedFromAmount: newCarried,
+            carriedFromLabel: "Combined Installment",
+          };
+        }
+        return it;
+      }),
+    );
+    void payload.note;
+    void payload.amountPaid;
+    toast.success(
+      payload.carryToId
+        ? `Combined payment recorded. $${payload.remaining.toLocaleString()} carried forward.`
+        : `Combined payment recorded. $${payload.remaining.toLocaleString()} neglected balance.`,
+    );
+  };
+
   const postponeInstallments = (
     ids: string[],
     payload: { dueDate: string; reason: string; note: string },
