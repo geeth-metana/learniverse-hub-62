@@ -511,25 +511,18 @@ function CheckoutPage() {
                     Product Details
                   </h3>
                   <div className="bg-white rounded-2xl p-6 lg:p-8">
-                    <dl className="flex flex-col">
-                      {([
-                        ["Course", "Metana Prime"],
-                        ["Access Type", "Subscription Access"],
-                        ["Payment Type", "Subscription"],
-                        ["Billing Cycle", "Monthly"],
-                        ["Monthly Payment", `$${subscriptionMonthly.toLocaleString()} / month`],
-                        ["Certificate", "Not Applicable"],
-                      ] as const).map(([k, v], i, arr) => (
-                        <div
-                          key={k}
-                          className="flex items-center justify-between py-3"
-                          style={{ borderBottom: i < arr.length - 1 ? "1px solid #F0F0F0" : undefined }}
-                        >
-                          <dt style={{ color: TEXT_MUTED }}>{k}</dt>
-                          <dd className="font-semibold text-right" style={{ color: TEXT_DARK }}>{v}</dd>
-                        </div>
-                      ))}
-                    </dl>
+                    <ProductDetailsList
+                      rows={[
+                        { icon: BookOpen, label: "Course", value: "Metana Prime" },
+                        { icon: Shield, label: "Access Type", value: "Subscription Access" },
+                        { icon: CreditCard, label: "Payment Type", value: "Subscription" },
+                        { icon: Calendar, label: "Billing Cycle", value: "Monthly" },
+                        { icon: Banknote, label: "Monthly Payment", value: `$${subscriptionMonthly.toLocaleString()} / month` },
+                        { icon: Award, label: "Certificate", value: "Not Applicable" },
+                      ]}
+                      muted={TEXT_MUTED}
+                      dark={TEXT_DARK}
+                    />
                   </div>
                 </>
               )}
@@ -623,28 +616,21 @@ function CheckoutPage() {
                     Product Details
                   </h3>
                   <div className="bg-white rounded-2xl p-6 lg:p-8">
-                    <dl className="flex flex-col">
-                      {([
-                        ["Course", invitation?.course ?? course.title ?? "AI Builder Pack"],
-                        ["Access Type", invitation?.accessType ?? "Full Program Access"],
-                        ["Cohort Date", invitation?.cohortDate ?? "Jun 12, 2026"],
-                        ["Payment Type", invitation?.paymentType ?? (effectiveBilling === "installment" ? "Installment" : "Upfront")],
-                        ["Lessons", "70 Lessons"],
-                        ["Duration", "4 Months"],
-                        ["Weekly Commitment", "22H / Week"],
-                        ["Support", "Instructor-led guidance"],
-                        ["Certificate", invitation?.certificateIncluded === false ? "Not included" : "Included"],
-                      ] as const).map(([k, v], i, arr) => (
-                        <div
-                          key={k}
-                          className="flex items-center justify-between py-3"
-                          style={{ borderBottom: i < arr.length - 1 ? "1px solid #F0F0F0" : undefined }}
-                        >
-                          <dt style={{ color: TEXT_MUTED }}>{k}</dt>
-                          <dd className="font-semibold text-right" style={{ color: TEXT_DARK }}>{v}</dd>
-                        </div>
-                      ))}
-                    </dl>
+                    <ProductDetailsList
+                      rows={[
+                        { icon: BookOpen, label: "Course", value: invitation?.course ?? course.title ?? "AI Builder Pack" },
+                        { icon: Shield, label: "Access Type", value: invitation?.accessType ?? "Full Program Access" },
+                        { icon: Calendar, label: "Cohort Date", value: invitation?.cohortDate ?? "Jun 12, 2026" },
+                        { icon: CreditCard, label: "Payment Type", value: invitation?.paymentType ?? (effectiveBilling === "installment" ? "Installment" : "Upfront") },
+                        { icon: PlayCircle, label: "Lessons", value: "70 Lessons" },
+                        { icon: Clock, label: "Duration", value: "4 Months" },
+                        { icon: Timer, label: "Weekly Commitment", value: "22H / Week" },
+                        { icon: Users, label: "Support", value: "Instructor-led guidance" },
+                        { icon: Award, label: "Certificate", value: invitation?.certificateIncluded === false ? "Not included" : "Included" },
+                      ]}
+                      muted={TEXT_MUTED}
+                      dark={TEXT_DARK}
+                    />
                   </div>
                 </>
               )}
