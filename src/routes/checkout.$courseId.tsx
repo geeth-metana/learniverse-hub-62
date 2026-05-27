@@ -109,7 +109,10 @@ function CheckoutPage() {
       ? "installment"
       : "upfront"
     : billing;
-  const effectiveEmail = prefilled ? (invitation?.studentEmail ?? "student@example.com") : email;
+  const effectiveEmail = prefilled
+    ? (invitation?.studentEmail ?? "student@example.com")
+    : (search.email ?? email);
+  const emailLocked = prefilled || Boolean(search.email);
 
   const planAmount =
     effectiveBilling === "installment"
@@ -619,12 +622,12 @@ function CheckoutPage() {
                 value={effectiveEmail}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                disabled={prefilled}
-                readOnly={prefilled}
+                disabled={emailLocked}
+                readOnly={emailLocked}
                 className="w-full px-4 py-3 rounded-xl disabled:cursor-not-allowed"
                 style={{
-                  backgroundColor: prefilled ? "#F3F4F6" : PAGE_BG,
-                  color: prefilled ? TEXT_MUTED : TEXT_DARK,
+                  backgroundColor: emailLocked ? "#F3F4F6" : PAGE_BG,
+                  color: emailLocked ? TEXT_MUTED : TEXT_DARK,
                 }}
                 required
               />
@@ -723,7 +726,9 @@ function CheckoutPage() {
                 >
                   {submitting
                     ? "Processing..."
-                    : isBankInvite
+                    : isSubscriptionInvite
+                      ? `Start Subscription · $${subscriptionAmount.toLocaleString()}`
+                      : isBankInvite
                       ? "I Have Made the Transfer"
                       : isInstallmentInvite && invitation?.paymentDetails.paymentType === "Installment"
                         ? `Pay Initial Down Payment · $${invitation.paymentDetails.initialDownPayment.toLocaleString()}`
