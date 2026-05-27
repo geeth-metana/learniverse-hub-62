@@ -61,6 +61,8 @@ function CheckoutPage() {
   const [plan, setPlan] = useState<PlanId>(search.plan ?? "plan-01");
   const [method, setMethod] = useState<"card" | "crypto" | "bank">("card");
   const [cryptoNetwork, setCryptoNetwork] = useState("USDT TRC20");
+  const [txAddress, setTxAddress] = useState("");
+  const [txError, setTxError] = useState(false);
   const [receipt, setReceipt] = useState<{ name: string; uploadedAt: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [dragOver, setDragOver] = useState(false);
