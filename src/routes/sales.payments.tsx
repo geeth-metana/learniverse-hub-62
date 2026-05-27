@@ -2005,6 +2005,65 @@ const UPFRONT_PLANS: UpfrontPlanState[] = [
   { id: "plan-02", name: "Plan 02", planAmount: 14000, discountPercent: 0 },
 ];
 
+// ---------- Installment plan presets & shared setup calculator ----------
+type InstallmentPlanKey = "plan-01" | "plan-02" | "custom";
+const INSTALLMENT_PLAN_PRESETS: Record<
+  Exclude<InstallmentPlanKey, "custom">,
+  { name: "Plan 01" | "Plan 02"; fullAmount: number; downPayment: number; installments: number }
+> = {
+  "plan-01": { name: "Plan 01", fullAmount: 14000, downPayment: 2000, installments: 6 },
+  "plan-02": { name: "Plan 02", fullAmount: 18000, downPayment: 3000, installments: 8 },
+};
+
+type InstallmentSetup = {
+  planName: "Plan 01" | "Plan 02" | "Custom Plan";
+  fullAmount: number;
+  discountPercent: number;
+  discountAmount: number;
+  discountedFullAmount: number;
+  downPayment: number;
+  installments: number;
+  monthlyPayment: number;
+};
+
+function getInstallmentSetup(
+  planId: InstallmentPlanKey,
+  customValues: {
+    fullAmount: number;
+    downPayment: number;
+    installments: number;
+    discountPercent: number;
+  },
+): InstallmentSetup {
+  const isCustom = planId === "custom";
+  const base = isCustom
+    ? {
+        name: "Custom Plan" as const,
+        fullAmount: customValues.fullAmount,
+        downPayment: customValues.downPayment,
+        installments: customValues.installments,
+      }
+    : INSTALLMENT_PLAN_PRESETS[planId];
+  const fullAmount = Math.max(0, base.fullAmount || 0);
+  const discountPercent = Math.max(0, Math.min(100, customValues.discountPercent || 0));
+  const discountAmount = fullAmount * (discountPercent / 100);
+  const discountedFullAmount = Math.max(0, fullAmount - discountAmount);
+  const downPayment = Math.max(0, base.downPayment || 0);
+  const installments = Math.max(0, base.installments || 0);
+  const remaining = Math.max(0, discountedFullAmount - downPayment);
+  const monthlyPayment = installments > 0 ? remaining / installments : 0;
+  return {
+    planName: base.name,
+    fullAmount,
+    discountPercent,
+    discountAmount,
+    discountedFullAmount,
+    downPayment,
+    installments,
+    monthlyPayment,
+  };
+}
+
 function AddStudentModal({
   onClose,
   onConfirm,
@@ -2032,18 +2091,16 @@ function AddStudentModal({
 
   // Installment state
   const [installmentPlanId, setInstallmentPlanId] = useState<"plan-01" | "plan-02" | "custom">("plan-01");
-  const [fullAmount, setFullAmount] = useState(14000);
-  const [downPayment, setDownPayment] = useState(2000);
-  const [months, setMonths] = useState<3 | 6 | 9 | 12>(6);
-
-  // Bank state (preview only)
-  const bank = {
-    bankName: "Example Business Bank",
-    accountName: "Metana / Edmore LLC",
-    accountNumber: "000123456789",
-    routingNumber: "021000021",
-    swiftCode: "EXAMPLEUS",
-  };
+  // Discount % is editable for all three plans (default 0%).
+  const [installmentDiscount, setInstallmentDiscount] = useState<Record<"plan-01" | "plan-02" | "custom", number>>({
+    "plan-01": 0,
+    "plan-02": 0,
+    custom: 0,
+  });
+  // Custom Plan: full amount / down / installments are user-editable.
+  const [customFullAmount, setCustomFullAmount] = useState(14000);
+  const [customDownPayment, setCustomDownPayment] = useState(2000);
+  const [customInstallments, setCustomInstallments] = useState<number>(6);
 
   // Loan state
   const [loanProvider, setLoanProvider] = useState("Metana Financing Partner");
@@ -2080,7 +2137,17 @@ function AddStudentModal({
         if (subscriptionAmount <= 0) return toast.error("Enter a subscription amount.");
         if (monthlyPayment <= 0) return toast.error("Enter a monthly payment.");
       } else if (paymentMethod === "Installment") {
-        if (downPayment >= fullAmount) return toast.error("Down payment cannot exceed full amount.");
+        const setup = getInstallmentSetup(installmentPlanId, {
+          fullAmount: customFullAmount,
+          downPayment: customDownPayment,
+          installments: customInstallments,
+          discountPercent: installmentDiscount[installmentPlanId],
+        });
+        if (!setup.fullAmount || setup.fullAmount <= 0) return toast.error("Full amount is required.");
+        if (!setup.installments || setup.installments <= 0) return toast.error("Number of installments must be greater than 0.");
+        if (setup.downPayment >= setup.discountedFullAmount) {
+          return toast.error("Down payment cannot be greater than the discounted full amount.");
+        }
       }
     }
     setStep((s) => Math.min(s + 1, stepKeys.length) as Step);
@@ -2110,15 +2177,22 @@ function AddStudentModal({
       };
     }
     if (paymentMethod === "Installment") {
-      const remaining = Math.max(0, fullAmount - downPayment);
-      const monthly = months > 0 ? Math.round(remaining / months) : 0;
+      const setup = getInstallmentSetup(installmentPlanId, {
+        fullAmount: customFullAmount,
+        downPayment: customDownPayment,
+        installments: customInstallments,
+        discountPercent: installmentDiscount[installmentPlanId],
+      });
       return {
         paymentType: "Installment",
-        fullAmount,
-        initialDownPayment: downPayment,
-        timePeriodMonths: months,
-        monthlyPayment: monthly,
-        totalAmount: fullAmount,
+        fullAmount: setup.fullAmount,
+        initialDownPayment: setup.downPayment,
+        timePeriodMonths: setup.installments,
+        monthlyPayment: setup.monthlyPayment,
+        totalAmount: setup.discountedFullAmount,
+        selectedPlan: setup.planName,
+        discountPercent: setup.discountPercent,
+        discountedFullAmount: setup.discountedFullAmount,
       };
     }
     return {
@@ -2264,13 +2338,14 @@ function AddStudentModal({
                 setUpfrontDiscount={setUpfrontDiscount}
                 installmentPlanId={installmentPlanId}
                 setInstallmentPlanId={setInstallmentPlanId}
-                fullAmount={fullAmount}
-                setFullAmount={setFullAmount}
-                downPayment={downPayment}
-                setDownPayment={setDownPayment}
-                months={months}
-                setMonths={setMonths}
-                bank={bank}
+                installmentDiscount={installmentDiscount}
+                setInstallmentDiscount={setInstallmentDiscount}
+                customFullAmount={customFullAmount}
+                setCustomFullAmount={setCustomFullAmount}
+                customDownPayment={customDownPayment}
+                setCustomDownPayment={setCustomDownPayment}
+                customInstallments={customInstallments}
+                setCustomInstallments={setCustomInstallments}
                 loanProvider={loanProvider}
                 setLoanProvider={setLoanProvider}
                 loanLink={loanLink}
@@ -2662,27 +2737,34 @@ function Step3PaymentMethod({
               key={o.id}
               type="button"
               onClick={() => setMethod(o.id)}
-              className={`relative flex h-full flex-col items-start gap-3 rounded-xl bg-white p-4 text-left transition-colors ${active ? "" : "hover:bg-[#F3F4F6]"}`}
+              className={`flex h-full flex-col gap-3 rounded-xl bg-white p-4 text-left transition-colors ${active ? "" : "hover:bg-[#F3F4F6]"}`}
               style={{ border: `2px solid ${active ? TEXT_DARK : BORDER}` }}
             >
-              <span
-                className="grid h-10 w-10 shrink-0 place-items-center rounded-lg"
-                style={{ backgroundColor: SOFT, color: TEXT_DARK }}
-              >
-                <Icon className="h-5 w-5" />
-              </span>
+              <div className="flex items-start justify-between">
+                <span
+                  className="grid h-10 w-10 shrink-0 place-items-center rounded-lg"
+                  style={{ backgroundColor: SOFT, color: TEXT_DARK }}
+                >
+                  <Icon className="h-5 w-5" />
+                </span>
+                {active ? (
+                  <span
+                    className="grid h-6 w-6 place-items-center rounded-full"
+                    style={{ backgroundColor: TEXT_DARK, color: "#FFFFFF" }}
+                  >
+                    <Check className="h-3.5 w-3.5" />
+                  </span>
+                ) : (
+                  <span
+                    className="h-6 w-6 rounded-full"
+                    style={{ border: `1.5px solid ${BORDER}` }}
+                  />
+                )}
+              </div>
               <div className="flex-1">
                 <p className="font-semibold" style={{ color: TEXT_DARK }}>{o.id}</p>
                 <p className="mt-1 text-small" style={{ color: TEXT_MUTED }}>{o.desc}</p>
               </div>
-              {active && (
-                <span
-                  className="grid h-6 w-6 place-items-center rounded-full"
-                  style={{ backgroundColor: TEXT_DARK, color: "#FFFFFF" }}
-                >
-                  <Check className="h-4 w-4" />
-                </span>
-              )}
             </button>
           );
         })}
@@ -2701,19 +2783,14 @@ function Step4PlanSetup(props: {
   setUpfrontDiscount: (v: Record<"plan-01" | "plan-02", number>) => void;
   installmentPlanId: "plan-01" | "plan-02" | "custom";
   setInstallmentPlanId: (v: "plan-01" | "plan-02" | "custom") => void;
-  fullAmount: number;
-  setFullAmount: (v: number) => void;
-  downPayment: number;
-  setDownPayment: (v: number) => void;
-  months: 3 | 6 | 9 | 12;
-  setMonths: (v: 3 | 6 | 9 | 12) => void;
-  bank: {
-    bankName: string;
-    accountName: string;
-    accountNumber: string;
-    routingNumber: string;
-    swiftCode: string;
-  };
+  installmentDiscount: Record<"plan-01" | "plan-02" | "custom", number>;
+  setInstallmentDiscount: (v: Record<"plan-01" | "plan-02" | "custom", number>) => void;
+  customFullAmount: number;
+  setCustomFullAmount: (v: number) => void;
+  customDownPayment: number;
+  setCustomDownPayment: (v: number) => void;
+  customInstallments: number;
+  setCustomInstallments: (v: number) => void;
   loanProvider: string;
   setLoanProvider: (v: string) => void;
   loanLink: string;
@@ -2810,92 +2887,19 @@ function Step4PlanSetup(props: {
   }
 
   if (props.method === "Installment") {
-    const remaining = Math.max(0, props.fullAmount - props.downPayment);
-    const monthly = props.months > 0 ? Math.round(remaining / props.months) : 0;
-    const planChoices: { id: "plan-01" | "plan-02" | "custom"; name: string; defaults?: { full: number; down: number; months: 3 | 6 | 9 | 12 } }[] = [
-      { id: "plan-01", name: "Plan 01", defaults: { full: 14000, down: 2000, months: 6 } },
-      { id: "plan-02", name: "Plan 02", defaults: { full: 17500, down: 3000, months: 9 } },
-      { id: "custom", name: "Custom Plan" },
-    ];
     return (
-      <div className="flex flex-col gap-4">
-        <h4 className="text-second-header font-semibold" style={{ color: TEXT_DARK }}>
-          Setup Installment Plan
-        </h4>
-        <div className="grid gap-3 sm:grid-cols-3">
-          {planChoices.map((p) => {
-            const active = props.installmentPlanId === p.id;
-            return (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => {
-                  props.setInstallmentPlanId(p.id);
-                  if (p.defaults) {
-                    props.setFullAmount(p.defaults.full);
-                    props.setDownPayment(p.defaults.down);
-                    props.setMonths(p.defaults.months);
-                  }
-                }}
-                className={`relative rounded-xl bg-white p-4 text-left transition-colors ${active ? "" : "hover:bg-[#F3F4F6]"}`}
-                style={{ border: `2px solid ${active ? TEXT_DARK : BORDER}` }}
-              >
-                <p className="font-semibold" style={{ color: TEXT_DARK }}>{p.name}</p>
-                <p className="mt-1 text-smaller" style={{ color: TEXT_MUTED }}>
-                  {p.defaults
-                    ? `$${p.defaults.full.toLocaleString()} · ${p.defaults.months} mo`
-                    : "Set your own amounts"}
-                </p>
-                {active && (
-                  <span
-                    className="absolute right-3 top-3 grid h-5 w-5 place-items-center rounded-full"
-                    style={{ backgroundColor: TEXT_DARK, color: "#FFFFFF" }}
-                  >
-                    <Check className="h-3 w-3" />
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Full Amount" required>
-            <CurrencyInput value={props.fullAmount} onChange={props.setFullAmount} />
-          </Field>
-          <Field label="Initial Down Payment" required>
-            <CurrencyInput value={props.downPayment} onChange={props.setDownPayment} />
-          </Field>
-          <Field label="Number of Installments" required>
-            <select
-              value={props.months}
-              onChange={(e) => props.setMonths(Number(e.target.value) as 3 | 6 | 9 | 12)}
-              className="w-full rounded-xl bg-white px-4 py-3 text-body outline-none"
-              style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
-            >
-              {[3, 6, 9, 12].map((m) => (
-                <option key={m} value={m}>{m} installments</option>
-              ))}
-            </select>
-          </Field>
-        </div>
-        <div className="rounded-2xl bg-white p-5" style={{ border: `1px solid ${BORDER}` }}>
-          {[
-            ["Initial Down Payment", `$${props.downPayment.toLocaleString()}`],
-            ["Monthly Payment", `$${monthly.toLocaleString()} / month`],
-            ["Installments", `${props.months}`],
-            ["Full Amount", `$${props.fullAmount.toLocaleString()}`],
-          ].map(([k, v], i, arr) => (
-            <div
-              key={k}
-              className="flex items-center justify-between py-2.5"
-              style={{ borderBottom: i < arr.length - 1 ? `1px solid ${BORDER}` : undefined }}
-            >
-              <span style={{ color: TEXT_MUTED }}>{k}</span>
-              <span className="font-semibold" style={{ color: TEXT_DARK }}>{v}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+      <InstallmentPlanSetup
+        installmentPlanId={props.installmentPlanId}
+        setInstallmentPlanId={props.setInstallmentPlanId}
+        installmentDiscount={props.installmentDiscount}
+        setInstallmentDiscount={props.setInstallmentDiscount}
+        customFullAmount={props.customFullAmount}
+        setCustomFullAmount={props.setCustomFullAmount}
+        customDownPayment={props.customDownPayment}
+        setCustomDownPayment={props.setCustomDownPayment}
+        customInstallments={props.customInstallments}
+        setCustomInstallments={props.setCustomInstallments}
+      />
     );
   }
 
@@ -2943,6 +2947,181 @@ function CurrencyInput({ value, onChange }: { value: number; onChange: (v: numbe
         className="w-full bg-transparent px-3 py-3 text-body outline-none"
         style={{ color: TEXT_DARK }}
       />
+    </div>
+  );
+}
+
+// ---------- Installment Plan Setup (Plan 01 / Plan 02 / Custom) ----------
+function InstallmentPlanSetup(props: {
+  installmentPlanId: "plan-01" | "plan-02" | "custom";
+  setInstallmentPlanId: (v: "plan-01" | "plan-02" | "custom") => void;
+  installmentDiscount: Record<"plan-01" | "plan-02" | "custom", number>;
+  setInstallmentDiscount: (v: Record<"plan-01" | "plan-02" | "custom", number>) => void;
+  customFullAmount: number;
+  setCustomFullAmount: (v: number) => void;
+  customDownPayment: number;
+  setCustomDownPayment: (v: number) => void;
+  customInstallments: number;
+  setCustomInstallments: (v: number) => void;
+}) {
+  const plans: { id: "plan-01" | "plan-02" | "custom"; name: string; subtitle: string }[] = [
+    {
+      id: "plan-01",
+      name: "Plan 01",
+      subtitle: "$14,000 · 6 installments",
+    },
+    {
+      id: "plan-02",
+      name: "Plan 02",
+      subtitle: "$18,000 · 8 installments",
+    },
+    { id: "custom", name: "Custom Plan", subtitle: "Set your own amounts" },
+  ];
+  const setup = getInstallmentSetup(props.installmentPlanId, {
+    fullAmount: props.customFullAmount,
+    downPayment: props.customDownPayment,
+    installments: props.customInstallments,
+    discountPercent: props.installmentDiscount[props.installmentPlanId],
+  });
+  const setDiscount = (id: "plan-01" | "plan-02" | "custom", v: number) =>
+    props.setInstallmentDiscount({
+      ...props.installmentDiscount,
+      [id]: Math.max(0, Math.min(100, v || 0)),
+    });
+  const fmtMoney = (n: number) =>
+    n % 1 === 0
+      ? `$${n.toLocaleString()}`
+      : `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return (
+    <div className="flex flex-col gap-4">
+      <h4 className="text-second-header font-semibold" style={{ color: TEXT_DARK }}>
+        Setup Installment Plan
+      </h4>
+      <div className="grid gap-4 sm:grid-cols-3">
+        {plans.map((p) => {
+          const active = props.installmentPlanId === p.id;
+          return (
+            <div
+              key={p.id}
+              onClick={() => props.setInstallmentPlanId(p.id)}
+              className={`relative cursor-pointer rounded-2xl bg-white p-4 transition-colors ${active ? "" : "hover:bg-[#F3F4F6]"}`}
+              style={{ border: `2px solid ${active ? TEXT_DARK : BORDER}` }}
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="font-semibold" style={{ color: TEXT_DARK }}>{p.name}</p>
+                  <p className="mt-0.5 text-smaller" style={{ color: TEXT_MUTED }}>{p.subtitle}</p>
+                </div>
+                {active ? (
+                  <span
+                    className="grid h-5 w-5 place-items-center rounded-full"
+                    style={{ backgroundColor: TEXT_DARK, color: "#FFFFFF" }}
+                  >
+                    <Check className="h-3 w-3" />
+                  </span>
+                ) : (
+                  <span className="h-5 w-5 rounded-full" style={{ border: `1.5px solid ${BORDER}` }} />
+                )}
+              </div>
+              <p className="mt-1 text-smaller" style={{ color: TEXT_MUTED }}>{p.subtitle}</p>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Fields panel */}
+      <div className="rounded-2xl bg-white p-5" style={{ border: `1px solid ${BORDER}` }}>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Full Amount" required>
+            {props.installmentPlanId === "custom" ? (
+              <CurrencyInput value={props.customFullAmount} onChange={props.setCustomFullAmount} />
+            ) : (
+              <ReadOnlyField value={`$${setup.fullAmount.toLocaleString()}`} />
+            )}
+          </Field>
+          <Field label="Initial Down Payment" required>
+            {props.installmentPlanId === "custom" ? (
+              <CurrencyInput value={props.customDownPayment} onChange={props.setCustomDownPayment} />
+            ) : (
+              <ReadOnlyField value={`$${setup.downPayment.toLocaleString()}`} />
+            )}
+          </Field>
+          <Field label="Number of Installments" required>
+            {props.installmentPlanId === "custom" ? (
+              <input
+                type="number"
+                min={1}
+                value={props.customInstallments}
+                onChange={(e) =>
+                  props.setCustomInstallments(Math.max(0, Number(e.target.value) || 0))
+                }
+                className="w-full rounded-xl bg-white px-4 py-3 text-body outline-none"
+                style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
+              />
+            ) : (
+              <ReadOnlyField value={`${setup.installments}`} />
+            )}
+          </Field>
+          <Field label="Discount Percentage">
+            <div
+              className="flex items-center rounded-xl bg-white"
+              style={{ border: `1px solid ${BORDER}` }}
+            >
+              <input
+                type="number"
+                min={0}
+                max={100}
+                value={props.installmentDiscount[props.installmentPlanId]}
+                onChange={(e) =>
+                  setDiscount(props.installmentPlanId, Number(e.target.value))
+                }
+                placeholder="0"
+                className="w-full bg-transparent px-3 py-3 text-body outline-none"
+                style={{ color: TEXT_DARK }}
+              />
+              <span className="pr-4 text-small" style={{ color: TEXT_MUTED }}>%</span>
+            </div>
+          </Field>
+        </div>
+      </div>
+
+      {/* Installment Preview */}
+      <div className="rounded-2xl bg-white p-5" style={{ border: `1px solid ${BORDER}` }}>
+        <p className="mb-3 font-semibold" style={{ color: TEXT_DARK }}>Installment Preview</p>
+        {(
+          [
+            ["Plan", setup.planName],
+            ["Full Amount", `$${setup.fullAmount.toLocaleString()}`],
+            ["Discount", `${setup.discountPercent}%`],
+            ["Discounted Full Amount", fmtMoney(setup.discountedFullAmount)],
+            ["Initial Down Payment", `$${setup.downPayment.toLocaleString()}`],
+            ["Number of Installments", `${setup.installments}`],
+            ["Monthly Payment", `${fmtMoney(setup.monthlyPayment)} / month`],
+            ["Due Today", `$${setup.downPayment.toLocaleString()}`],
+          ] as [string, string][]
+        ).map(([k, v], i, arr) => (
+          <div
+            key={k}
+            className="flex items-center justify-between py-2.5"
+            style={{ borderBottom: i < arr.length - 1 ? `1px solid ${BORDER}` : undefined }}
+          >
+            <span style={{ color: TEXT_MUTED }}>{k}</span>
+            <span className="font-semibold" style={{ color: TEXT_DARK }}>{v}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ReadOnlyField({ value }: { value: string }) {
+  return (
+    <div
+      className="w-full rounded-xl px-4 py-3 text-body cursor-not-allowed select-none"
+      style={{ backgroundColor: "#F3F4F6", color: TEXT_MUTED, border: `1px solid ${BORDER}` }}
+      aria-readonly="true"
+    >
+      {value}
     </div>
   );
 }
@@ -3029,14 +3208,21 @@ function Step5Preview({
       ["Checkout Amount", `$${details.checkoutAmount.toLocaleString()}`],
     ];
   } else if (details.paymentType === "Installment") {
-    const purchaseDue = details.initialDownPayment;
+    const discountedFull = details.discountedFullAmount ?? details.fullAmount;
+    const monthly = details.monthlyPayment;
+    const fmtMoney = (n: number) =>
+      n % 1 === 0
+        ? `$${n.toLocaleString()}`
+        : `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     extra = [
-      ["Plan", "Installment Plan"],
+      ["Selected Plan", details.selectedPlan ?? "Installment Plan"],
       ["Full Amount", `$${details.fullAmount.toLocaleString()}`],
+      ["Discount", `${details.discountPercent ?? 0}%`],
+      ["Discounted Full Amount", fmtMoney(discountedFull)],
       ["Initial Down Payment", `$${details.initialDownPayment.toLocaleString()}`],
-      ["Number of Installments", `${details.timePeriodMonths}`],
-      ["Monthly Payment", `$${details.monthlyPayment.toLocaleString()} / month`],
-      ["Purchase Amount / Due Now", `$${purchaseDue.toLocaleString()}`],
+      ["Installments", `${details.timePeriodMonths}`],
+      ["Monthly Payment", `${fmtMoney(monthly)} / month`],
+      ["Due Today", `$${details.initialDownPayment.toLocaleString()}`],
     ];
   } else if (details.paymentType === "Loan") {
     extra = [
@@ -3094,6 +3280,22 @@ function Step6Send({ invitation, onDone }: { invitation: Invitation; onDone: () 
         subscriptionAmount: String(d.subscriptionAmount),
         monthlyPayment: String(d.monthlyPayment),
         billingCycle: "monthly",
+      });
+      return `${base}&${params.toString()}`;
+    }
+    if (invitation.paymentDetails.paymentType === "Installment") {
+      const d = invitation.paymentDetails;
+      const discountedFull = d.discountedFullAmount ?? d.fullAmount;
+      const params = new URLSearchParams({
+        paymentMethod: "installment",
+        selectedPlan: d.selectedPlan ?? "Installment Plan",
+        fullAmount: String(d.fullAmount),
+        discountPercent: String(d.discountPercent ?? 0),
+        discountedFullAmount: String(discountedFull),
+        initialDownPayment: String(d.initialDownPayment),
+        numberOfInstallments: String(d.timePeriodMonths),
+        monthlyPayment: String(d.monthlyPayment),
+        purchaseAmount: String(d.initialDownPayment),
       });
       return `${base}&${params.toString()}`;
     }

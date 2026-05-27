@@ -17,6 +17,13 @@ export const Route = createFileRoute("/checkout/$courseId")({
     subscriptionAmount: z.string().optional(),
     monthlyPayment: z.string().optional(),
     billingCycle: z.string().optional(),
+    selectedPlan: z.string().optional(),
+    fullAmount: z.string().optional(),
+    discountPercent: z.string().optional(),
+    discountedFullAmount: z.string().optional(),
+    initialDownPayment: z.string().optional(),
+    numberOfInstallments: z.string().optional(),
+    purchaseAmount: z.string().optional(),
   }),
   head: () => ({ meta: [{ title: "Checkout — Metana" }] }),
   component: CheckoutPage,
@@ -558,16 +565,26 @@ function CheckoutPage() {
                       <div className="bg-white rounded-2xl p-6 lg:p-8">
                         <dl className="flex flex-col">
                           {([
+                            ["Plan Type", "Installment"],
+                            ["Selected Plan", invitation.paymentDetails.selectedPlan ?? "Installment Plan"],
                             ["Full Amount", `$${invitation.paymentDetails.fullAmount.toLocaleString()}`],
-                            ["Initial Down Payment", `$${invitation.paymentDetails.initialDownPayment.toLocaleString()}`],
-                            ["Time Period", `${invitation.paymentDetails.timePeriodMonths} months`],
-                            ["Monthly Payment", `$${invitation.paymentDetails.monthlyPayment.toLocaleString()} / month`],
-                            ["Total Amount", `$${invitation.paymentDetails.totalAmount.toLocaleString()}`],
+                            ["Discount", `${invitation.paymentDetails.discountPercent ?? 0}%`],
+                            ["Discounted Full Amount", `$${(invitation.paymentDetails.discountedFullAmount ?? invitation.paymentDetails.fullAmount).toLocaleString()}`],
+                            ["Down Payment", `$${invitation.paymentDetails.initialDownPayment.toLocaleString()}`],
+                            ["Monthly Payment", `$${Math.round(invitation.paymentDetails.monthlyPayment).toLocaleString()} / month`],
+                            ["Installments", `${invitation.paymentDetails.timePeriodMonths}`],
+                            ["Due Today", `$${invitation.paymentDetails.initialDownPayment.toLocaleString()}`],
                           ] as const).map(([k, v], i, arr) => (
                             <div
                               key={k}
                               className="flex items-center justify-between py-3"
-                              style={{ borderBottom: i < arr.length - 1 ? "1px solid #F0F0F0" : undefined }}
+                              style={{
+                                borderBottom: i < arr.length - 1 ? "1px solid #F0F0F0" : undefined,
+                                backgroundColor: k === "Due Today" || k === "Down Payment" ? "rgba(204,246,33,0.18)" : undefined,
+                                paddingLeft: k === "Due Today" || k === "Down Payment" ? 12 : undefined,
+                                paddingRight: k === "Due Today" || k === "Down Payment" ? 12 : undefined,
+                                borderRadius: k === "Due Today" || k === "Down Payment" ? 8 : undefined,
+                              }}
                             >
                               <dt style={{ color: TEXT_MUTED }}>{k}</dt>
                               <dd className="font-semibold text-right" style={{ color: TEXT_DARK }}>{v}</dd>
@@ -731,7 +748,7 @@ function CheckoutPage() {
                       : isBankInvite
                       ? "I Have Made the Transfer"
                       : isInstallmentInvite && invitation?.paymentDetails.paymentType === "Installment"
-                        ? `Pay Initial Down Payment · $${invitation.paymentDetails.initialDownPayment.toLocaleString()}`
+                        ? `Pay Down Payment · $${invitation.paymentDetails.initialDownPayment.toLocaleString()}`
                         : `Purchase Now · ${fmt(total)}`}
                 </button>
               )}

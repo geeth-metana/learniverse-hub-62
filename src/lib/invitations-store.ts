@@ -30,6 +30,10 @@ export type InstallmentDetails = {
   timePeriodMonths: number;
   monthlyPayment: number;
   totalAmount: number;
+  // Optional discount details (added for the Plan 01 / 02 / Custom installment flow).
+  selectedPlan?: "Plan 01" | "Plan 02" | "Custom Plan";
+  discountPercent?: number;
+  discountedFullAmount?: number;
 };
 export type BankDetails = {
   paymentType: "Bank";
