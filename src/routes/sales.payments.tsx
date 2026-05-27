@@ -409,6 +409,9 @@ function InstallmentsPanel({
   onApproveGroup,
   onRejectGroup,
   onDetachGroup,
+  onChangeGroupDueDate,
+  onEditAmount,
+  onEditGroupAmount,
 }: {
   invitation: Invitation;
   isInstallment: boolean;
@@ -432,6 +435,9 @@ function InstallmentsPanel({
   onApproveGroup: (id: string) => void;
   onRejectGroup: (id: string) => void;
   onDetachGroup: (id: string) => void;
+  onChangeGroupDueDate: (id: string) => void;
+  onEditAmount: (id: string) => void;
+  onEditGroupAmount: (id: string) => void;
 }) {
   if (!isInstallment || invitation.paymentDetails.paymentType !== "Installment") {
     return (
