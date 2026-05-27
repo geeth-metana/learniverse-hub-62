@@ -623,8 +623,26 @@ function InstallmentsPanel({
                       {it.label}
                     </p>
                     <p className="text-smaller" style={{ color: TEXT_MUTED }}>
-                      Due {it.dueDate} · ${it.amount.toLocaleString()}
+                      Due {it.dueDate} ·{" "}
+                      {it.paidAmount !== undefined && it.paidAmount < it.amount
+                        ? `Paid $${it.paidAmount.toLocaleString()} / $${it.amount.toLocaleString()}`
+                        : `$${it.amount.toLocaleString()}`}
                     </p>
+                    {it.carriedFromAmount ? (
+                      <p className="text-smaller" style={{ color: TEXT_MUTED }}>
+                        Includes ${it.carriedFromAmount.toLocaleString()} carried forward
+                      </p>
+                    ) : null}
+                    {it.paidAmount !== undefined && it.paidAmount < it.amount && (
+                      <span
+                        className="mt-1 inline-flex items-center rounded-full px-2 py-0.5 text-smaller font-semibold"
+                        style={{ backgroundColor: "#FEF3C7", color: "#92400E" }}
+                      >
+                        {it.neglectedBalance !== undefined
+                          ? `Neglected Balance: $${it.neglectedBalance.toLocaleString()}`
+                          : "Partial Payment"}
+                      </span>
+                    )}
                   </div>
                   <InstallmentStatusPill status={it.status} />
                 </button>
