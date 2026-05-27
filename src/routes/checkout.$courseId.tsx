@@ -354,14 +354,14 @@ function CheckoutPage() {
                       type="button"
                       className="text-left rounded-2xl bg-white p-5 transition-all relative"
                       style={{
-                        outline: plan === p.id ? `2px solid ${BRAND}` : "2px solid transparent",
+                        outline: plan === p.id ? `2px solid ${TEXT_DARK}` : "2px solid transparent",
                         outlineOffset: "-2px",
                       }}
                     >
                       {plan === p.id && (
                         <span
                           className="absolute top-3 right-3 h-6 w-6 rounded-full grid place-items-center"
-                          style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+                          style={{ backgroundColor: TEXT_DARK, color: "#FFFFFF" }}
                         >
                           <svg viewBox="0 0 16 16" className="h-3.5 w-3.5"><path fill="none" stroke="currentColor" strokeWidth="3" d="M3 8l3.5 3.5L13 5" /></svg>
                         </span>
@@ -675,14 +675,15 @@ function CheckoutPage() {
                 ];
                 const idx = methods.findIndex((m) => m.id === method);
                 return (
-                  <div className="relative inline-flex w-full items-center rounded-full p-1" style={{ backgroundColor: "#1F2933" }}>
+                  <div className="relative inline-flex w-full items-center rounded-full p-1" style={{ backgroundColor: "#F1F3F5" }}>
                     <span
                       aria-hidden
                       className="absolute bottom-1 left-1 top-1 rounded-full transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
                       style={{
                         width: "calc((100% - 8px) / 3)",
                         transform: `translateX(${idx * 100}%)`,
-                        backgroundColor: "#1A1A1A",
+                        backgroundColor: "#FFFFFF",
+                        boxShadow: "0 1px 2px rgba(15,23,42,0.06), 0 4px 12px rgba(15,23,42,0.08)",
                       }}
                     />
                     {methods.map((m) => (
@@ -690,8 +691,8 @@ function CheckoutPage() {
                         type="button"
                         key={m.id}
                         onClick={() => setMethod(m.id)}
-                        className="group relative z-10 flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-full px-3 py-3 text-small font-semibold transition-all duration-200 ease-in-out hover:bg-white/10 hover:text-white"
-                        style={{ color: method === m.id ? "#FFFFFF" : "#D1D5DB" }}
+                        className="group relative z-10 flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-full px-3 py-3 text-small font-semibold transition-all duration-200 ease-in-out"
+                        style={{ color: method === m.id ? "#1A1A1A" : "#6B7280" }}
                       >
                         <m.icon className="h-4 w-4 shrink-0" /> {m.label}
                       </button>
