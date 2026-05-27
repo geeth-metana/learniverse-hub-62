@@ -681,6 +681,8 @@ function InstallmentsPanel({
               onUpload={(file) => onUploadGroupProof(selectedGroup.id, file)}
               onApprove={() => onApproveGroup(selectedGroup.id)}
               onDetach={() => onDetachGroup(selectedGroup.id)}
+              onChangeDueDate={() => onChangeGroupDueDate(selectedGroup.id)}
+              onEditAmount={() => onEditGroupAmount(selectedGroup.id)}
             />
           ) : selected ? (
             <InstallmentDetailPanel
@@ -691,6 +693,7 @@ function InstallmentsPanel({
               onReject={() => onReject(selected.id)}
               onOpenPostpone={onOpenPostpone}
               onOpenChangeDueDate={() => onChangeDueDate(selected.id)}
+              onOpenEditAmount={() => onEditAmount(selected.id)}
             />
           ) : (
             <div className="grid h-full place-items-center text-small" style={{ color: TEXT_MUTED }}>
