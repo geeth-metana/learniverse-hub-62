@@ -11,6 +11,12 @@ export const Route = createFileRoute("/checkout/$courseId")({
   validateSearch: z.object({
     plan: z.enum(["plan-01", "plan-02"]).optional(),
     invite: z.string().optional(),
+    email: z.string().optional(),
+    course: z.string().optional(),
+    paymentMethod: z.string().optional(),
+    subscriptionAmount: z.string().optional(),
+    monthlyPayment: z.string().optional(),
+    billingCycle: z.string().optional(),
   }),
   head: () => ({ meta: [{ title: "Checkout — Metana" }] }),
   component: CheckoutPage,
@@ -45,6 +51,17 @@ function CheckoutPage() {
   const isBankInvite = prefilled && inviteMethod === "Bank";
   const isLoanInvite = prefilled && inviteMethod === "Loan";
   const isInstallmentInvite = prefilled && inviteMethod === "Installment";
+  const isSubscriptionInvite =
+    (prefilled && (inviteMethod as string) === "Subscription") ||
+    search.paymentMethod === "subscription";
+  const subscriptionAmount =
+    invitation?.paymentDetails.paymentType === "Subscription"
+      ? invitation.paymentDetails.subscriptionAmount
+      : Number(search.subscriptionAmount ?? 499);
+  const subscriptionMonthly =
+    invitation?.paymentDetails.paymentType === "Subscription"
+      ? invitation.paymentDetails.monthlyPayment
+      : Number(search.monthlyPayment ?? 499);
 
   const TEXT_MAIN = "#24324A";
   const TEXT_DARK = "#1A1A1A";
