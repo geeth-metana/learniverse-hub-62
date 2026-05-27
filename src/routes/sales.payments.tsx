@@ -2956,16 +2956,24 @@ function Step5Preview({
 }: {
   email: string;
   course: SalesCourse;
-  cohort: SalesCourse["cohorts"][number];
+  cohort: SalesCourse["cohorts"][number] | null;
   paymentMethod: PaymentMethod;
   details: PaymentDetails;
 }) {
-  const baseTop: [string, string][] = [
-    ["Student Email", email],
-    ["Course", course.title],
-    ["Cohort Date", cohort.date],
-    ["Payment Method", paymentMethod],
-  ];
+  const isPrime = details.paymentType === "Subscription";
+  const baseTop: [string, string][] = isPrime
+    ? [
+        ["Student Email", email],
+        ["Course", course.title],
+        ["Access Type", "Subscription Access"],
+        ["Payment Type", "Subscription"],
+      ]
+    : [
+        ["Student Email", email],
+        ["Course", course.title],
+        ["Cohort Date", cohort?.date ?? "—"],
+        ["Payment Method", paymentMethod],
+      ];
 
   let extra: [string, string][] = [];
   if (details.paymentType === "Upfront") {
@@ -2990,9 +2998,17 @@ function Step5Preview({
       ["Loan Provider", details.loanProviderName],
       ["Loan Application Link", details.loanApplicationLink],
     ];
+  } else if (details.paymentType === "Subscription") {
+    extra = [
+      ["Subscription Amount", `$${details.subscriptionAmount.toLocaleString()}`],
+      ["Monthly Payment", `$${details.monthlyPayment.toLocaleString()} / month`],
+      ["Billing Cycle", details.billingCycle],
+    ];
   }
 
-  const rows = [...baseTop, ...extra, ["Certificate", "Included"] as [string, string]];
+  const rows = isPrime
+    ? [...baseTop, ...extra]
+    : [...baseTop, ...extra, ["Certificate", "Included"] as [string, string]];
 
   return (
     <div className="flex flex-col gap-4">
