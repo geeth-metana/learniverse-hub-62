@@ -4067,6 +4067,17 @@ function PaymentDetailsBlock({
       </>
     );
   }
+  if (d.paymentType === "Subscription") {
+    return (
+      <>
+        <Row label="Payment Method" value="Subscription" />
+        <Row label="Subscription Amount" value={`$${d.subscriptionAmount.toLocaleString()}`} />
+        <Row label="Monthly Payment" value={`$${d.monthlyPayment.toLocaleString()} / month`} />
+        <Row label="Billing Cycle" value={d.billingCycle} />
+        <Row label="Payment Status" value={statusPill(invitation.status)} last />
+      </>
+    );
+  }
   return (
     <>
       <Row label="Payment Method" value="Loan" />
