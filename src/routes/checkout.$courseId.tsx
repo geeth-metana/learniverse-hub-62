@@ -61,6 +61,8 @@ function CheckoutPage() {
   const [plan, setPlan] = useState<PlanId>(search.plan ?? "plan-01");
   const [method, setMethod] = useState<"card" | "crypto" | "bank">("card");
   const [cryptoNetwork, setCryptoNetwork] = useState("USDT TRC20");
+  const [txAddress, setTxAddress] = useState("");
+  const [txError, setTxError] = useState(false);
   const [receipt, setReceipt] = useState<{ name: string; uploadedAt: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -266,6 +268,10 @@ function CheckoutPage() {
       if (card.replace(/\s/g, "").length < 12) return "Enter a valid card number.";
       if (!/^\d{2}\s*\/\s*\d{2}$/.test(exp)) return "Expiry must be MM/YY.";
       if (cvc.length < 3) return "CVC must be at least 3 digits.";
+    }
+    if (method === "crypto" && !txAddress.trim()) {
+      setTxError(true);
+      return "Please paste your transaction address to continue.";
     }
     return null;
   };
@@ -669,14 +675,14 @@ function CheckoutPage() {
                 ];
                 const idx = methods.findIndex((m) => m.id === method);
                 return (
-                  <div className="relative inline-flex w-full items-center rounded-full p-1" style={{ backgroundColor: PAGE_BG }}>
+                  <div className="relative inline-flex w-full items-center rounded-full p-1" style={{ backgroundColor: "#1F2933" }}>
                     <span
                       aria-hidden
                       className="absolute bottom-1 left-1 top-1 rounded-full transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
                       style={{
                         width: "calc((100% - 8px) / 3)",
                         transform: `translateX(${idx * 100}%)`,
-                        backgroundColor: TEXT_DARK,
+                        backgroundColor: "#1A1A1A",
                       }}
                     />
                     {methods.map((m) => (
@@ -684,8 +690,8 @@ function CheckoutPage() {
                         type="button"
                         key={m.id}
                         onClick={() => setMethod(m.id)}
-                        className="relative z-10 flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-full px-3 py-3 text-small font-semibold transition-colors"
-                        style={{ color: method === m.id ? "#FFFFFF" : TEXT_MUTED }}
+                        className="group relative z-10 flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-full px-3 py-3 text-small font-semibold transition-all duration-200 ease-in-out hover:bg-white/10 hover:text-white"
+                        style={{ color: method === m.id ? "#FFFFFF" : "#D1D5DB" }}
                       >
                         <m.icon className="h-4 w-4 shrink-0" /> {m.label}
                       </button>
@@ -766,6 +772,21 @@ function CheckoutPage() {
                     <div className="flex items-center justify-between px-4 py-3 rounded-xl" style={{ backgroundColor: PAGE_BG }}>
                       <span style={{ color: TEXT_MUTED }}>Amount Due</span>
                       <span className="font-semibold" style={{ color: TEXT_DARK }}>${amountDue.toLocaleString()}</span>
+                    </div>
+                    <div>
+                      <label className="text-body block mb-2" style={{ color: TEXT_MAIN }}>Transaction Address</label>
+                      <input
+                        value={txAddress}
+                        onChange={(e) => { setTxAddress(e.target.value); if (txError) setTxError(false); }}
+                        placeholder="Paste your transaction address or hash"
+                        className="w-full px-4 py-3 rounded-xl"
+                        style={{ backgroundColor: "#F3F4F6", color: TEXT_DARK, border: "none" }}
+                      />
+                      <p className="text-smaller mt-1.5" style={{ color: txError ? "#DC2626" : TEXT_MUTED }}>
+                        {txError
+                          ? "Please paste your transaction address to continue."
+                          : "Paste the transaction address after completing the crypto payment."}
+                      </p>
                     </div>
                     <p className="text-smaller" style={{ color: TEXT_MUTED }}>
                       Your course access will be activated after payment confirmation.
@@ -906,7 +927,7 @@ function CheckoutPage() {
                 const amountLabel = `$${Math.round(amount).toLocaleString()}`;
                 const isBank = method === "bank";
                 const isCrypto = method === "crypto";
-                const disabled = submitting || (isBank && !receipt);
+                const disabled = submitting || (isBank && !receipt) || (isCrypto && !txAddress.trim());
                 let label: string;
                 if (submitting) label = "Processing...";
                 else if (isBank) {
