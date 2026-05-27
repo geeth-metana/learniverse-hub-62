@@ -4629,6 +4629,11 @@ type InstallmentRow = {
   paymentMethod: "Stripe" | "Offline";
   stripeTxnId?: string;
   dueDateChanged?: boolean;
+  // Partial payment / carry-forward bookkeeping
+  paidAmount?: number;
+  carriedFromLabel?: string;
+  carriedFromAmount?: number;
+  neglectedBalance?: number;
 };
 
 function addMonthsFormatted(start: Date, months: number): string {
