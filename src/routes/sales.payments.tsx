@@ -1311,10 +1311,14 @@ function PostponeModal({
 
 function ChangeDueDateModal({
   row,
+  title = "Change Due Date",
+  description,
   onClose,
   onConfirm,
 }: {
-  row: InstallmentRow;
+  row: { label: string; dueDate: string };
+  title?: string;
+  description?: string;
   onClose: () => void;
   onConfirm: (payload: { newDueDate: string; reason: string; note: string }) => void;
 }) {
@@ -1351,10 +1355,10 @@ function ChangeDueDateModal({
         <div className="flex items-start justify-between">
           <div>
             <h3 className="text-second-header font-bold" style={{ color: TEXT_DARK }}>
-              Change Due Date
+              {title}
             </h3>
             <p className="mt-1 text-smaller" style={{ color: TEXT_MUTED }}>
-              Update the due date for {row.label}. The installment stays Pending.
+              {description ?? `Update the due date for ${row.label}. The installment stays Pending.`}
             </p>
           </div>
           <button
