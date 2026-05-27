@@ -671,14 +671,14 @@ function CheckoutPage() {
                 ];
                 const idx = methods.findIndex((m) => m.id === method);
                 return (
-                  <div className="relative inline-flex w-full items-center rounded-full p-1" style={{ backgroundColor: PAGE_BG }}>
+                  <div className="relative inline-flex w-full items-center rounded-full p-1" style={{ backgroundColor: "#1F2933" }}>
                     <span
                       aria-hidden
                       className="absolute bottom-1 left-1 top-1 rounded-full transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
                       style={{
                         width: "calc((100% - 8px) / 3)",
                         transform: `translateX(${idx * 100}%)`,
-                        backgroundColor: TEXT_DARK,
+                        backgroundColor: "#1A1A1A",
                       }}
                     />
                     {methods.map((m) => (
@@ -686,8 +686,8 @@ function CheckoutPage() {
                         type="button"
                         key={m.id}
                         onClick={() => setMethod(m.id)}
-                        className="relative z-10 flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-full px-3 py-3 text-small font-semibold transition-colors"
-                        style={{ color: method === m.id ? "#FFFFFF" : TEXT_MUTED }}
+                        className="group relative z-10 flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-full px-3 py-3 text-small font-semibold transition-all duration-200 ease-in-out hover:bg-white/10 hover:text-white"
+                        style={{ color: method === m.id ? "#FFFFFF" : "#D1D5DB" }}
                       >
                         <m.icon className="h-4 w-4 shrink-0" /> {m.label}
                       </button>
