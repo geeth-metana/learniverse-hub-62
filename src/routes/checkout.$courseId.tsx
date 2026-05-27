@@ -951,3 +951,36 @@ function CheckoutPage() {
     </div>
   );
 }
+
+type IconType = React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
+
+function ProductDetailsList({
+  rows,
+  muted,
+  dark,
+}: {
+  rows: { icon: IconType; label: string; value: string }[];
+  muted: string;
+  dark: string;
+}) {
+  return (
+    <dl className="flex flex-col">
+      {rows.map((r, i) => {
+        const Icon = r.icon;
+        return (
+          <div
+            key={r.label}
+            className="flex items-center justify-between gap-4 py-3"
+            style={{ borderBottom: i < rows.length - 1 ? "1px solid #F0F0F0" : undefined }}
+          >
+            <dt className="flex items-center gap-3 min-w-0" style={{ color: muted }}>
+              <Icon className="h-4 w-4 shrink-0" style={{ color: muted }} />
+              <span className="truncate">{r.label}</span>
+            </dt>
+            <dd className="font-semibold text-right" style={{ color: dark }}>{r.value}</dd>
+          </div>
+        );
+      })}
+    </dl>
+  );
+}
