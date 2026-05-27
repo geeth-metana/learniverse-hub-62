@@ -908,6 +908,7 @@ function InstallmentDetailPanel({
   onReject,
   onOpenPostpone,
   onOpenChangeDueDate,
+  onOpenEditAmount,
 }: {
   row: InstallmentRow;
   onUpload: (file: File | undefined) => void;
@@ -916,6 +917,7 @@ function InstallmentDetailPanel({
   onReject: () => void;
   onOpenPostpone: () => void;
   onOpenChangeDueDate: () => void;
+  onOpenEditAmount: () => void;
 }) {
   const isApproved =
     row.status === "Approved" || row.status === "Combined Plan Approved";
@@ -930,6 +932,12 @@ function InstallmentDetailPanel({
   const showStripeRepay = isStripe && isDeclined;
   const showSecondaryActions =
     !isApproved && (row.status === "Pending" || isDeclined);
+  const canEditAmount =
+    !isStripe &&
+    (row.status === "Pending" ||
+      row.status === "Payment Failed" ||
+      row.status === "Overdue" ||
+      row.status === "Combined Plan Pending");
 
   return (
     <div>
@@ -1070,18 +1078,8 @@ function InstallmentDetailPanel({
       )}
 
       {/* Action buttons — appear AFTER the internal note */}
-      {(canApprove || showSecondaryActions) && (
+      {(canApprove || showSecondaryActions || canEditAmount) && (
         <div className="mt-4 flex flex-wrap gap-2">
-          {canApprove && (
-            <button
-              type="button"
-              onClick={onApprove}
-              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
-              style={{ backgroundColor: BRAND, color: TEXT_DARK }}
-            >
-              <CheckCircle2 className="h-4 w-4" /> Approve Payment
-            </button>
-          )}
           {showSecondaryActions && (
             <>
               <button
@@ -1092,6 +1090,16 @@ function InstallmentDetailPanel({
               >
                 <CalendarClock className="h-4 w-4" /> Change Due Date
               </button>
+              {canEditAmount && (
+                <button
+                  type="button"
+                  onClick={onOpenEditAmount}
+                  className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
+                  style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+                >
+                  Edit Amount
+                </button>
+              )}
               <button
                 type="button"
                 onClick={onOpenPostpone}
@@ -1101,6 +1109,16 @@ function InstallmentDetailPanel({
                 <Layers className="h-4 w-4" /> Combined Plans
               </button>
             </>
+          )}
+          {canApprove && (
+            <button
+              type="button"
+              onClick={onApprove}
+              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
+              style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+            >
+              <CheckCircle2 className="h-4 w-4" /> Approve Payment
+            </button>
           )}
         </div>
       )}
