@@ -3084,7 +3084,20 @@ function Step5Preview({
 function Step6Send({ invitation, onDone }: { invitation: Invitation; onDone: () => void }) {
   const link = useMemo(() => {
     if (typeof window === "undefined") return invitation.checkoutLink;
-    return `${window.location.origin}/checkout/${invitation.courseId}?invite=${invitation.id}`;
+    const base = `${window.location.origin}/checkout/${invitation.courseId}?invite=${invitation.id}`;
+    if (invitation.paymentDetails.paymentType === "Subscription") {
+      const d = invitation.paymentDetails;
+      const params = new URLSearchParams({
+        email: invitation.studentEmail,
+        course: "metana-prime",
+        paymentMethod: "subscription",
+        subscriptionAmount: String(d.subscriptionAmount),
+        monthlyPayment: String(d.monthlyPayment),
+        billingCycle: "monthly",
+      });
+      return `${base}&${params.toString()}`;
+    }
+    return base;
   }, [invitation]);
   const [sent, setSent] = useState(false);
 
