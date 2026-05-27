@@ -708,6 +708,8 @@ function CombinedPlanDetailPanel({
   onUpload,
   onApprove,
   onDetach,
+  onChangeDueDate,
+  onEditAmount,
 }: {
   group: GroupedPaymentLite;
   index: number;
@@ -717,6 +719,8 @@ function CombinedPlanDetailPanel({
   onUpload: (file: File | undefined) => void;
   onApprove: () => void;
   onDetach: () => void;
+  onChangeDueDate: () => void;
+  onEditAmount: () => void;
 }) {
   const isApproved = group.status === "Approved";
   const status: InstallmentStatus = isApproved
@@ -849,14 +853,19 @@ function CombinedPlanDetailPanel({
         <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={() => {
-              copyLink(`https://pay.example.com/combined/${group.id}`);
-              toast.success("Payment link sent");
-            }}
+            onClick={onChangeDueDate}
             className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
             style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
           >
-            Send Payment Link
+            <CalendarClock className="h-4 w-4" /> Change Due Date
+          </button>
+          <button
+            type="button"
+            onClick={onEditAmount}
+            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
+            style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+          >
+            Edit Amount
           </button>
           <button
             type="button"
