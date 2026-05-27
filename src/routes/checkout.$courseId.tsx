@@ -923,7 +923,7 @@ function CheckoutPage() {
                 const amountLabel = `$${Math.round(amount).toLocaleString()}`;
                 const isBank = method === "bank";
                 const isCrypto = method === "crypto";
-                const disabled = submitting || (isBank && !receipt);
+                const disabled = submitting || (isBank && !receipt) || (isCrypto && !txAddress.trim());
                 let label: string;
                 if (submitting) label = "Processing...";
                 else if (isBank) {
