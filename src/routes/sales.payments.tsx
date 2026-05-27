@@ -3878,6 +3878,9 @@ function PaymentOverviewDrawer({
   const [showUpcoming, setShowUpcoming] = useState(false);
   const [postponeOpen, setPostponeOpen] = useState(false);
   const [changeDueDateId, setChangeDueDateId] = useState<string | null>(null);
+  const [changeGroupDueDateId, setChangeGroupDueDateId] = useState<string | null>(null);
+  const [editAmountId, setEditAmountId] = useState<string | null>(null);
+  const [editGroupAmountId, setEditGroupAmountId] = useState<string | null>(null);
   const [selectedInstallmentId, setSelectedInstallmentId] = useState<string | null>(
     null,
   );
