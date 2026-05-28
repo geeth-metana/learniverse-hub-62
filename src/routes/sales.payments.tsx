@@ -375,69 +375,60 @@ function PaymentPage() {
 
 // ===================== Installments Panel (split layout) =====================
 
-type GroupedPaymentLite = {
+type ManualPaymentLite = {
   id: string;
-  label: string;
   installmentIds: string[];
-  dueDate: string;
-  reason: string;
-  note: string;
-  status: "Pending Payment" | "Pending" | "Approved" | "Rejected";
+  calculatedAmount: number;
+  paymentAmount: number;
+  paymentDueDate: string;
   proof: ProofFile | null;
+  note: string;
+  status: "Needs Approval" | "Approved" | "Needs New Proof";
 };
 
 function InstallmentsPanel({
   invitation,
   isInstallment,
   installments,
-  groups,
   approvedCount,
   totalCount,
   progressPct,
   accessStatus,
-  showUpcoming,
-  setShowUpcoming,
   selectedInstallmentId,
   setSelectedInstallmentId,
-  onUploadProof,
-  onRemoveProof,
-  onApprove,
-  onReject,
-  onOpenPostpone,
+  selectedForPayment,
+  setSelectedForPayment,
+  manualPayments,
+  onCreateManualPayment,
+  onApproveManualPayment,
+  onMarkNeedsNewProof,
+  onReuploadManualProof,
   onChangeDueDate,
-  onUploadGroupProof,
-  onApproveGroup,
-  onRejectGroup,
-  onDetachGroup,
-  onChangeGroupDueDate,
-  onEditAmount,
-  onEditGroupAmount,
 }: {
   invitation: Invitation;
   isInstallment: boolean;
   installments: InstallmentRow[];
-  groups: GroupedPaymentLite[];
   approvedCount: number;
   totalCount: number;
   progressPct: number;
   accessStatus: "Active" | "Suspended";
-  showUpcoming: boolean;
-  setShowUpcoming: (v: boolean) => void;
   selectedInstallmentId: string | null;
   setSelectedInstallmentId: (id: string | null) => void;
-  onUploadProof: (id: string, file: File | undefined) => void;
-  onRemoveProof: (id: string) => void;
-  onApprove: (id: string) => void;
-  onReject: (id: string) => void;
-  onOpenPostpone: () => void;
+  selectedForPayment: string[];
+  setSelectedForPayment: (ids: string[]) => void;
+  manualPayments: ManualPaymentLite[];
+  onCreateManualPayment: (payload: {
+    installmentIds: string[];
+    calculatedAmount: number;
+    paymentAmount: number;
+    paymentDueDate: string;
+    proof: ProofFile;
+    note: string;
+  }) => void;
+  onApproveManualPayment: (id: string) => void;
+  onMarkNeedsNewProof: (id: string) => void;
+  onReuploadManualProof: (id: string, file: File) => void;
   onChangeDueDate: (id: string) => void;
-  onUploadGroupProof: (id: string, file: File | undefined) => void;
-  onApproveGroup: (id: string) => void;
-  onRejectGroup: (id: string) => void;
-  onDetachGroup: (id: string) => void;
-  onChangeGroupDueDate: (id: string) => void;
-  onEditAmount: (id: string) => void;
-  onEditGroupAmount: (id: string) => void;
 }) {
   if (!isInstallment || invitation.paymentDetails.paymentType !== "Installment") {
     return (
@@ -455,36 +446,25 @@ function InstallmentsPanel({
   }
 
   const d = invitation.paymentDetails;
-  const activeStatuses: InstallmentStatus[] = [
-    "Pending",
-    "Payment Failed",
-    "Overdue",
-    "Needs New Proof",
-    "Combined Plan Pending",
-    "Combined Plan Approved",
-    "Approved",
-  ];
-  const activeRows = installments.filter((i) => activeStatuses.includes(i.status));
-  const upcomingRows = installments.filter((i) => i.status === "Upcoming");
-  const visibleRows = showUpcoming ? [...activeRows, ...upcomingRows] : activeRows;
+  const selected = installments.find((i) => i.id === selectedInstallmentId) ?? null;
+  const isSelectable = (s: InstallmentStatus) =>
+    s === "Pending" || s === "Payment Failed" || s === "Upcoming" || s === "Partially Paid";
 
-  const selected =
-    visibleRows.find((i) => i.id === selectedInstallmentId) ?? visibleRows[0] ?? null;
-  const groupedIds = new Set(groups.flatMap((g) => g.installmentIds));
-  const visibleIndividualRows = visibleRows.filter((i) => !groupedIds.has(i.id));
-  const monthly = (invitation.paymentDetails as InstallmentDetailsLite).monthlyPayment;
-  const groupTotal = (g: GroupedPaymentLite) =>
-    g.installmentIds
-      .map((id) => installments.find((i) => i.id === id)?.amount ?? monthly)
-      .reduce((s, a) => s + a, 0);
-  const groupIncluded = (g: GroupedPaymentLite) =>
-    g.installmentIds
-      .map((id) => installments.find((i) => i.id === id)?.label)
-      .filter(Boolean)
-      .join(" + ");
-  const groupStatusLabel = (g: GroupedPaymentLite): InstallmentStatus =>
-    g.status === "Approved" ? "Combined Plan Approved" : "Combined Plan Pending";
-  const selectedGroup = groups.find((g) => g.id === selectedInstallmentId) ?? null;
+  const toggleSelect = (id: string) => {
+    if (selectedForPayment.includes(id)) {
+      setSelectedForPayment(selectedForPayment.filter((x) => x !== id));
+    } else {
+      setSelectedForPayment([...selectedForPayment, id]);
+    }
+  };
+
+  const showForm = selectedForPayment.length > 0;
+  const selectedRows = installments.filter((i) => selectedForPayment.includes(i.id));
+  const calculatedAmount = selectedRows.reduce((s, i) => s + i.amount, 0);
+  const lastSelectedNumber = selectedRows.reduce((m, i) => Math.max(m, i.number), 0);
+  const hasNextUnpaid = installments.some(
+    (i) => i.number > lastSelectedNumber && i.status !== "Approved",
+  );
 
   return (
     <section>
@@ -534,7 +514,7 @@ function InstallmentsPanel({
       >
         {/* Left list */}
         <div
-          className="flex flex-col"
+          className="flex min-h-0 flex-col"
           style={{ borderRight: `1px solid ${BORDER}` }}
         >
           <div
@@ -542,39 +522,27 @@ function InstallmentsPanel({
             style={{ borderBottom: `1px solid ${BORDER}`, backgroundColor: "#FAFAFA" }}
           >
             <span className="text-small font-semibold" style={{ color: TEXT_DARK }}>
-              Installments
+              Installment Schedule
             </span>
-            <div className="flex items-center gap-2">
+            {selectedForPayment.length > 0 && (
               <button
                 type="button"
-                onClick={onOpenPostpone}
-                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-smaller font-semibold transition-colors hover:bg-[#E5E7EB]"
-                style={{ backgroundColor: "#F3F4F6", color: TEXT_DARK }}
+                onClick={() => setSelectedForPayment([])}
+                className="text-smaller font-medium hover:underline"
+                style={{ color: TEXT_MUTED }}
               >
-                <CalendarClock className="h-3.5 w-3.5" /> Combined Plans
+                Clear {selectedForPayment.length}
               </button>
-              <button
-                type="button"
-                aria-label={showUpcoming ? "Hide upcoming installments" : "Show upcoming installments"}
-                title={showUpcoming ? "Hide upcoming" : "Show upcoming"}
-                onClick={() => setShowUpcoming(!showUpcoming)}
-                className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors"
-                style={{ backgroundColor: showUpcoming ? TEXT_DARK : "#E5E7EB" }}
-              >
-                <span
-                  className="ml-0.5 inline-block h-4 w-4 transform rounded-full bg-white transition-transform"
-                  style={{ transform: `translateX(${showUpcoming ? 16 : 0}px)` }}
-                />
-              </button>
-            </div>
+            )}
           </div>
-          <div className="max-h-[440px] overflow-y-auto">
-            {/* Down payment (always first, static) */}
+          <div className="max-h-[480px] overflow-y-auto">
+            {/* Down payment row (always Approved) */}
             <div
-              className="flex items-center justify-between gap-3 px-4 py-3"
+              className="flex items-center gap-3 px-4 py-3"
               style={{ borderBottom: `1px solid ${BORDER}` }}
             >
-              <div className="min-w-0">
+              <span className="h-4 w-4 shrink-0" aria-hidden />
+              <div className="min-w-0 flex-1">
                 <p
                   className="truncate text-small font-semibold"
                   style={{ color: TEXT_DARK }}
@@ -582,140 +550,121 @@ function InstallmentsPanel({
                   Down Payment
                 </p>
                 <p className="text-smaller" style={{ color: TEXT_MUTED }}>
-                  Stripe · ${d.initialDownPayment.toLocaleString()}
+                  Due before orientation · ${d.initialDownPayment.toLocaleString()}
+                </p>
+                <p className="text-smaller" style={{ color: TEXT_MUTED }}>
+                  Approved · Stripe
                 </p>
               </div>
-              <span
-                className="inline-flex items-center rounded-full px-2.5 py-1 text-smaller font-semibold"
-                style={{
-                  backgroundColor: "rgba(204,246,33,0.45)",
-                  color: "#3F5C00",
-                }}
-              >
-                Approved
-              </span>
+              <InstallmentStatusPill status="Approved" />
             </div>
 
-            {visibleIndividualRows.map((it) => {
+            {installments.map((it) => {
               const isSelected = selected?.id === it.id;
-              const isUpcoming = it.status === "Upcoming";
+              const checkable = isSelectable(it.status);
+              const isChecked = selectedForPayment.includes(it.id);
               return (
-                <button
+                <div
                   key={it.id}
-                  type="button"
-                  onClick={() => !isUpcoming && setSelectedInstallmentId(it.id)}
-                  disabled={isUpcoming}
-                  className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors"
+                  className="flex items-start gap-3 px-4 py-3 transition-colors"
                   style={{
                     borderBottom: `1px solid ${BORDER}`,
                     backgroundColor: isSelected
-                      ? "rgba(204,246,33,0.12)"
-                      : "transparent",
-                    opacity: isUpcoming ? 0.55 : 1,
-                    cursor: isUpcoming ? "not-allowed" : "pointer",
+                      ? "rgba(26,26,26,0.04)"
+                      : isChecked
+                        ? "rgba(204,246,33,0.10)"
+                        : "transparent",
                   }}
                 >
-                  <div className="min-w-0">
-                    <p
-                      className="truncate text-small font-semibold"
-                      style={{ color: TEXT_DARK }}
-                    >
-                      {it.label}
-                    </p>
-                    <p className="text-smaller" style={{ color: TEXT_MUTED }}>
-                      Due {it.dueDate} ·{" "}
-                      {it.paidAmount !== undefined && it.paidAmount < it.amount
-                        ? `Paid $${it.paidAmount.toLocaleString()} / $${it.amount.toLocaleString()}`
-                        : `$${it.amount.toLocaleString()}`}
-                    </p>
-                    {it.carriedFromAmount ? (
-                      <p className="text-smaller" style={{ color: TEXT_MUTED }}>
-                        Includes ${it.carriedFromAmount.toLocaleString()} carried forward
-                      </p>
-                    ) : null}
-                    {it.paidAmount !== undefined && it.paidAmount < it.amount && (
-                      <span
-                        className="mt-1 inline-flex items-center rounded-full px-2 py-0.5 text-smaller font-semibold"
-                        style={{ backgroundColor: "#FEF3C7", color: "#92400E" }}
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    disabled={!checkable}
+                    onChange={() => toggleSelect(it.id)}
+                    aria-label={`Select ${it.label}`}
+                    className="mt-1 h-4 w-4 shrink-0 cursor-pointer accent-[#1A1A1A] disabled:cursor-not-allowed disabled:opacity-30"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedInstallmentId(it.id);
+                    }}
+                    className="flex flex-1 items-start justify-between gap-3 text-left"
+                  >
+                    <div className="min-w-0">
+                      <p
+                        className="truncate text-small font-semibold"
+                        style={{ color: TEXT_DARK }}
                       >
-                        {it.neglectedBalance !== undefined
-                          ? `Neglected Balance: $${it.neglectedBalance.toLocaleString()}`
-                          : "Partial Payment"}
-                      </span>
-                    )}
-                  </div>
-                  <InstallmentStatusPill status={it.status} />
-                </button>
-              );
-            })}
-
-            {/* Combined Installment rows — inline in the main list */}
-            {groups.map((g) => {
-              const isSelected = selectedInstallmentId === g.id;
-              const total = groupTotal(g);
-              return (
-                <button
-                  key={g.id}
-                  type="button"
-                  onClick={() => setSelectedInstallmentId(g.id)}
-                  className="flex w-full items-start justify-between gap-3 px-4 py-3 text-left transition-colors"
-                  style={{
-                    borderBottom: `1px solid ${BORDER}`,
-                    backgroundColor: isSelected
-                      ? "rgba(204,246,33,0.12)"
-                      : "transparent",
-                  }}
-                >
-                  <div className="min-w-0">
-                    <p
-                      className="truncate text-small font-semibold"
-                      style={{ color: TEXT_DARK }}
-                    >
-                      Combined Installment
-                    </p>
-                    <p className="text-smaller" style={{ color: TEXT_MUTED }}>
-                      Due {g.dueDate}
-                    </p>
-                    <p className="text-smaller" style={{ color: TEXT_MUTED }}>
-                      {groupIncluded(g)} · ${total.toLocaleString()}
-                    </p>
-                  </div>
-                  <InstallmentStatusPill status={groupStatusLabel(g)} />
-                </button>
+                        {it.label}
+                      </p>
+                      <p className="text-smaller" style={{ color: TEXT_MUTED }}>
+                        Due {it.dueDate} ·{" "}
+                        {it.paidAmount !== undefined && it.paidAmount < it.amount
+                          ? `Paid $${it.paidAmount.toLocaleString()} / $${it.amount.toLocaleString()}`
+                          : `$${it.amount.toLocaleString()}`}
+                      </p>
+                      {it.status === "Approved" && it.paymentMethod && (
+                        <p className="text-smaller" style={{ color: TEXT_MUTED }}>
+                          Approved · {it.paymentMethod === "Stripe" ? "Stripe" : "Bank / Offline"}
+                        </p>
+                      )}
+                      {it.carriedFromAmount ? (
+                        <p
+                          className="mt-0.5 text-smaller"
+                          style={{ color: TEXT_MUTED }}
+                        >
+                          Includes ${it.carriedFromAmount.toLocaleString()} carried forward
+                        </p>
+                      ) : null}
+                    </div>
+                    <InstallmentStatusPill status={it.status} />
+                  </button>
+                </div>
               );
             })}
           </div>
         </div>
 
         {/* Right detail */}
-        <div className="flex flex-col p-5">
-          {selectedGroup ? (
-            <CombinedPlanDetailPanel
-              group={selectedGroup}
-              index={groups.findIndex((g) => g.id === selectedGroup.id) + 1}
+        <div className="flex min-h-0 flex-col overflow-y-auto p-5">
+          {showForm ? (
+            <ManualPaymentForm
+              key={selectedForPayment.join("|")}
+              selectedRows={selectedRows}
               installments={installments}
-              total={groupTotal(selectedGroup)}
-              included={groupIncluded(selectedGroup)}
-              onUpload={(file) => onUploadGroupProof(selectedGroup.id, file)}
-              onApprove={() => onApproveGroup(selectedGroup.id)}
-              onDetach={() => onDetachGroup(selectedGroup.id)}
-              onChangeDueDate={() => onChangeGroupDueDate(selectedGroup.id)}
-              onEditAmount={() => onEditGroupAmount(selectedGroup.id)}
+              calculatedAmount={calculatedAmount}
+              hasNextUnpaid={hasNextUnpaid}
+              onCancel={() => setSelectedForPayment([])}
+              onSubmit={(payload) => {
+                onCreateManualPayment(payload);
+                setSelectedForPayment([]);
+              }}
             />
           ) : selected ? (
             <InstallmentDetailPanel
               row={selected}
-              onUpload={(file) => onUploadProof(selected.id, file)}
-              onRejectProof={() => onRemoveProof(selected.id)}
-              onApprove={() => onApprove(selected.id)}
-              onReject={() => onReject(selected.id)}
-              onOpenPostpone={onOpenPostpone}
+              manualPayment={
+                manualPayments.find((m) => m.installmentIds.includes(selected.id)) ?? null
+              }
+              onApproveManualPayment={onApproveManualPayment}
+              onMarkNeedsNewProof={onMarkNeedsNewProof}
+              onReuploadManualProof={onReuploadManualProof}
               onOpenChangeDueDate={() => onChangeDueDate(selected.id)}
-              onOpenEditAmount={() => onEditAmount(selected.id)}
+              onSelectForPayment={() => {
+                if (isSelectable(selected.status)) {
+                  if (!selectedForPayment.includes(selected.id)) {
+                    setSelectedForPayment([...selectedForPayment, selected.id]);
+                  }
+                }
+              }}
             />
           ) : (
-            <div className="grid h-full place-items-center text-small" style={{ color: TEXT_MUTED }}>
-              Select an installment to view details.
+            <div
+              className="grid h-full place-items-center text-small"
+              style={{ color: TEXT_MUTED }}
+            >
+              Select an installment to view details, or check installments to create a payment.
             </div>
           )}
         </div>
@@ -724,238 +673,361 @@ function InstallmentsPanel({
   );
 }
 
-type InstallmentDetailsLite = { monthlyPayment: number };
+// ---- Manual Payment Form (right panel when admin selects installments) ----
 
-function CombinedPlanDetailPanel({
-  group,
-  index,
+function ManualPaymentForm({
+  selectedRows,
   installments,
-  total,
-  included,
-  onUpload,
-  onApprove,
-  onDetach,
-  onChangeDueDate,
-  onEditAmount,
+  calculatedAmount,
+  hasNextUnpaid,
+  onCancel,
+  onSubmit,
 }: {
-  group: GroupedPaymentLite;
-  index: number;
+  selectedRows: InstallmentRow[];
   installments: InstallmentRow[];
-  total: number;
-  included: string;
-  onUpload: (file: File | undefined) => void;
-  onApprove: () => void;
-  onDetach: () => void;
-  onChangeDueDate: () => void;
-  onEditAmount: () => void;
+  calculatedAmount: number;
+  hasNextUnpaid: boolean;
+  onCancel: () => void;
+  onSubmit: (payload: {
+    installmentIds: string[];
+    calculatedAmount: number;
+    paymentAmount: number;
+    paymentDueDate: string;
+    proof: ProofFile;
+    note: string;
+  }) => void;
 }) {
-  const isApproved = group.status === "Approved";
-  const status: InstallmentStatus = isApproved
-    ? "Combined Plan Approved"
-    : "Combined Plan Pending";
-  const statusLabel = isApproved ? "Approved" : "Pending";
-  const planId = `CP-${String(index).padStart(3, "0")}`;
-  const includedItems = group.installmentIds
-    .map((id) => installments.find((i) => i.id === id))
-    .filter((i): i is InstallmentRow => Boolean(i));
-  const paymentMethod = includedItems[0]?.paymentMethod ?? "Offline";
-  const isStripe = paymentMethod === "Stripe";
+  const defaultDue = (() => {
+    const dates = selectedRows
+      .map((r) => new Date(r.dueDate))
+      .filter((d) => !isNaN(d.getTime()));
+    if (!dates.length) return new Date().toISOString().slice(0, 10);
+    const max = new Date(Math.max(...dates.map((d) => d.getTime())));
+    return max.toISOString().slice(0, 10);
+  })();
+
+  const [paymentAmount, setPaymentAmount] = useState<number>(calculatedAmount);
+  const [paymentDueDate, setPaymentDueDate] = useState<string>(defaultDue);
+  const [note, setNote] = useState("");
+  const [proof, setProof] = useState<ProofFile | null>(null);
+
+  const remaining = Math.max(0, calculatedAmount - (Number(paymentAmount) || 0));
+
+  // Build live allocation preview
+  const allocations: { row: InstallmentRow; paid: number }[] = [];
+  let rem = Number(paymentAmount) || 0;
+  for (const r of [...selectedRows].sort((a, b) => a.number - b.number)) {
+    const paid = Math.min(rem, r.amount);
+    allocations.push({ row: r, paid });
+    rem -= paid;
+  }
+
+  const lastSelectedNumber = selectedRows.reduce((m, i) => Math.max(m, i.number), 0);
+  const carryTarget = installments.find(
+    (i) => i.number > lastSelectedNumber && i.status !== "Approved",
+  );
+  const isLast = !hasNextUnpaid;
+
+  const onFile = (file: File | undefined) => {
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File must be 10MB or smaller");
+      return;
+    }
+    const today = new Date().toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    });
+    setProof({ name: file.name, uploadedAt: `Uploaded ${today}` });
+  };
+
+  const formattedDue = (() => {
+    const d = new Date(paymentDueDate);
+    return isNaN(d.getTime())
+      ? paymentDueDate
+      : d.toLocaleDateString("en-US", {
+          month: "short",
+          day: "2-digit",
+          year: "numeric",
+        });
+  })();
+
+  const disabled =
+    selectedRows.length === 0 ||
+    !paymentAmount ||
+    paymentAmount <= 0 ||
+    !paymentDueDate ||
+    !proof;
 
   return (
     <div>
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-second-header font-semibold" style={{ color: TEXT_DARK }}>
-            Combined Installment
+            Create Installment Payment
           </p>
-          <p className="mt-0.5 text-small" style={{ color: TEXT_MUTED }}>
-            {included} · ${total.toLocaleString()} · Due {group.dueDate}
+          <p className="mt-0.5 text-smaller" style={{ color: TEXT_MUTED }}>
+            Record a manual bank / offline payment for the selected installments.
           </p>
         </div>
-        <InstallmentStatusPill status={status} />
-      </div>
-
-      {/* Combined payment details */}
-      <div
-        className="mt-4 rounded-xl p-4"
-        style={{ backgroundColor: "#F9FAFB", border: `1px solid ${BORDER}` }}
-      >
-        <p className="mb-2 text-smaller font-semibold uppercase tracking-wide" style={{ color: TEXT_MUTED }}>
-          Combined Payment Details
-        </p>
-        <div className="space-y-1.5">
-          <Row label="Combined Plan ID" value={planId} />
-          <Row label="Includes" value={included} />
-          <Row label="Due Date" value={group.dueDate} />
-          <Row label="Total Amount" value={`$${total.toLocaleString()}`} />
-          <Row label="Payment Method" value={paymentMethod} />
-          <Row label="Status" value={statusLabel} last={!isStripe || !isApproved} />
-          {isStripe && isApproved && (
-            <Row
-              label="Stripe Transaction ID"
-              value={`txn_${group.id.slice(-6)}`}
-              last
-            />
-          )}
-        </div>
-      </div>
-
-      {/* Included installments */}
-      <div
-        className="mt-3 rounded-xl p-4"
-        style={{ backgroundColor: "#FFFFFF", border: `1px solid ${BORDER}` }}
-      >
-        <p className="mb-2 text-smaller font-semibold uppercase tracking-wide" style={{ color: TEXT_MUTED }}>
-          Included Installments
-        </p>
-        <ul className="space-y-1.5">
-          {includedItems.map((it) => (
-            <li
-              key={it.id}
-              className="flex items-center justify-between text-small"
-              style={{ color: TEXT_DARK }}
-            >
-              <span>{it.label} · ${it.amount.toLocaleString()}</span>
-              <span className="text-smaller" style={{ color: TEXT_MUTED }}>
-                Original Due {it.dueDate}
-              </span>
-            </li>
-          ))}
-        </ul>
-        <p className="mt-3 text-smaller" style={{ color: TEXT_MUTED }}>
-          This is one payment for the selected installments.
-        </p>
-      </div>
-
-      {/* Proof / upload */}
-      {group.proof ? (
-        <div
-          className="mt-3 rounded-xl p-4"
-          style={{ backgroundColor: "#F9FAFB", border: `1px solid ${BORDER}` }}
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-full px-3 py-1 text-smaller font-medium hover:bg-[#F3F4F6]"
+          style={{ color: TEXT_MUTED }}
         >
-          <div className="space-y-1.5">
-            <Row label="File" value={group.proof.name} />
-            <Row label="Uploaded" value={group.proof.uploadedAt} last />
+          Cancel
+        </button>
+      </div>
+
+      <div className="mt-4 space-y-3">
+        {/* Selected installments */}
+        <div>
+          <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+            Selected Installments
+          </p>
+          <ul className="space-y-1.5 rounded-xl p-3" style={{ backgroundColor: SOFT }}>
+            {selectedRows.map((r) => (
+              <li
+                key={r.id}
+                className="flex items-center justify-between text-small"
+                style={{ color: TEXT_DARK }}
+              >
+                <span>{r.label}</span>
+                <span className="text-smaller" style={{ color: TEXT_MUTED }}>
+                  ${r.amount.toLocaleString()}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Calculated amount (read-only) */}
+        <div>
+          <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+            Calculated Amount
+          </p>
+          <div
+            className="rounded-xl px-3 py-2 text-small font-semibold"
+            style={{ backgroundColor: SOFT, color: TEXT_DARK }}
+          >
+            ${calculatedAmount.toLocaleString()}
           </div>
         </div>
-      ) : !isStripe && !isApproved ? (
-        <label
-          className="mt-3 flex cursor-pointer flex-col items-center justify-center rounded-xl px-4 py-8 text-center"
-          style={{ border: `1.5px dashed ${BORDER}`, backgroundColor: "#FAFAFA" }}
-        >
-          <UploadCloud className="h-6 w-6" style={{ color: TEXT_MUTED }} />
-          <p className="mt-2 text-small font-medium" style={{ color: TEXT_DARK }}>
-            Upload combined payment proof
+
+        {/* Payment amount (editable) */}
+        <div>
+          <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+            Payment Amount
           </p>
           <input
-            type="file"
-            accept=".pdf,.png,.jpg,.jpeg"
-            className="hidden"
-            onChange={(e) => onUpload(e.target.files?.[0] ?? undefined)}
+            type="number"
+            min={0}
+            value={paymentAmount}
+            onChange={(e) => setPaymentAmount(Number(e.target.value) || 0)}
+            className="w-full rounded-xl bg-white px-3 py-2 text-small"
+            style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
           />
-        </label>
-      ) : null}
-
-      {/* Actions */}
-      {isApproved ? (
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => toast.success(isStripe ? "Opening receipt" : "Opening proof")}
-            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
-            style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
-          >
-            View {isStripe ? "Receipt" : "Proof"}
-          </button>
-          <button
-            type="button"
-            onClick={() => toast.success(isStripe ? "Receipt downloaded" : "Proof downloaded")}
-            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
-            style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
-          >
-            Download {isStripe ? "Receipt" : "Proof"}
-          </button>
         </div>
-      ) : (
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={onChangeDueDate}
-            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
-            style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+
+        {/* Payment due date */}
+        <div>
+          <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+            Payment Due Date
+          </p>
+          <input
+            type="date"
+            value={paymentDueDate}
+            onChange={(e) => setPaymentDueDate(e.target.value)}
+            className="w-full rounded-xl bg-white px-3 py-2 text-small"
+            style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
+          />
+        </div>
+
+        {/* Payment method (fixed) */}
+        <div>
+          <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+            Payment Method
+          </p>
+          <div
+            className="rounded-xl px-3 py-2 text-small"
+            style={{ backgroundColor: SOFT, color: TEXT_DARK }}
           >
-            <CalendarClock className="h-4 w-4" /> Change Due Date
-          </button>
-          <button
-            type="button"
-            onClick={onEditAmount}
-            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
-            style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+            Bank / Offline
+          </div>
+        </div>
+
+        {/* Allocation preview when payment is reduced */}
+        {remaining > 0 && (
+          <div
+            className="rounded-xl p-3"
+            style={{ backgroundColor: "#FFFBEB", border: `1px solid #FDE68A` }}
           >
-            Edit Amount
-          </button>
-          <button
-            type="button"
-            onClick={onDetach}
-            className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
-            style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
-          >
-            Detach Combined Plan
-          </button>
-          {!isStripe && group.proof && (
-            <button
-              type="button"
-              onClick={onApprove}
-              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
-              style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+            <p className="text-smaller font-semibold" style={{ color: "#92400E" }}>
+              Payment Allocation Preview
+            </p>
+            <div className="mt-2 space-y-1 text-smaller" style={{ color: TEXT_DARK }}>
+              <div className="flex justify-between">
+                <span>Calculated Amount</span>
+                <span>${calculatedAmount.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Payment Amount</span>
+                <span>${(Number(paymentAmount) || 0).toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between font-semibold">
+                <span>Remaining Balance</span>
+                <span>${remaining.toLocaleString()}</span>
+              </div>
+            </div>
+            <div className="mt-2 space-y-1 border-t pt-2 text-smaller" style={{ borderColor: "#FDE68A", color: TEXT_DARK }}>
+              {allocations.map((a) => (
+                <div key={a.row.id} className="flex justify-between">
+                  <span>{a.row.label}</span>
+                  <span>
+                    Paid ${a.paid.toLocaleString()} / ${a.row.amount.toLocaleString()}
+                  </span>
+                </div>
+              ))}
+              {isLast ? (
+                <p className="mt-1" style={{ color: "#991B1B" }}>
+                  This is the final installment. Remaining unpaid balance will be recorded as neglected balance.
+                </p>
+              ) : carryTarget ? (
+                <div className="flex justify-between">
+                  <span>Carried Forward</span>
+                  <span>
+                    ${remaining.toLocaleString()} to {carryTarget.label}
+                  </span>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        )}
+
+        {/* Upload proof */}
+        <div>
+          <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+            Upload Proof
+          </p>
+          {proof ? (
+            <div
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5"
+              style={{ border: `1px solid ${BORDER}`, backgroundColor: "#FAFAFA" }}
             >
-              <CheckCircle2 className="h-4 w-4" /> Approve Payment
-            </button>
+              <span
+                className="grid h-9 w-9 place-items-center rounded-lg"
+                style={{ backgroundColor: SOFT, color: TEXT_DARK }}
+              >
+                <FileText className="h-4 w-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-small font-medium" style={{ color: TEXT_DARK }}>
+                  {proof.name}
+                </p>
+                <p className="text-smaller" style={{ color: TEXT_MUTED }}>
+                  {proof.uploadedAt}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setProof(null)}
+                className="grid h-8 w-8 place-items-center rounded-full hover:bg-[#FEE2E2]"
+                style={{ color: "#B42318" }}
+                aria-label="Remove proof"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          ) : (
+            <label
+              className="flex cursor-pointer flex-col items-center justify-center rounded-xl px-4 py-6 text-center"
+              style={{ border: `1.5px dashed ${BORDER}`, backgroundColor: "#FAFAFA" }}
+            >
+              <UploadCloud className="h-5 w-5" style={{ color: TEXT_MUTED }} />
+              <p className="mt-1.5 text-small font-medium" style={{ color: TEXT_DARK }}>
+                Drag and drop or click to upload
+              </p>
+              <p className="text-smaller" style={{ color: TEXT_MUTED }}>
+                PDF, PNG, JPG up to 10MB
+              </p>
+              <input
+                type="file"
+                accept=".pdf,.png,.jpg,.jpeg"
+                className="hidden"
+                onChange={(e) => onFile(e.target.files?.[0])}
+              />
+            </label>
           )}
         </div>
-      )}
+
+        {/* Internal note */}
+        <div>
+          <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
+            Internal Note
+          </p>
+          <textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            rows={2}
+            placeholder="Add an internal note for this payment…"
+            className="w-full resize-none rounded-xl px-3 py-2 text-small"
+            style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
+          />
+        </div>
+      </div>
+
+      <div className="mt-5 flex justify-end">
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() =>
+            onSubmit({
+              installmentIds: selectedRows.map((r) => r.id),
+              calculatedAmount,
+              paymentAmount: Number(paymentAmount) || 0,
+              paymentDueDate: formattedDue,
+              proof: proof!,
+              note,
+            })
+          }
+          className="rounded-full px-5 py-2 text-small font-semibold disabled:opacity-50"
+          style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+        >
+          Create Payment for Approval
+        </button>
+      </div>
     </div>
   );
 }
 
+// ---- Installment Detail Panel (right panel when admin selects a row) ----
+
 function InstallmentDetailPanel({
   row,
-  onUpload,
-  onRejectProof,
-  onApprove,
-  onReject,
-  onOpenPostpone,
+  manualPayment,
+  onApproveManualPayment,
+  onMarkNeedsNewProof,
+  onReuploadManualProof,
   onOpenChangeDueDate,
-  onOpenEditAmount,
+  onSelectForPayment,
 }: {
   row: InstallmentRow;
-  onUpload: (file: File | undefined) => void;
-  onRejectProof: () => void;
-  onApprove: () => void;
-  onReject: () => void;
-  onOpenPostpone: () => void;
+  manualPayment: ManualPaymentLite | null;
+  onApproveManualPayment: (id: string) => void;
+  onMarkNeedsNewProof: (id: string) => void;
+  onReuploadManualProof: (id: string, file: File) => void;
   onOpenChangeDueDate: () => void;
-  onOpenEditAmount: () => void;
+  onSelectForPayment: () => void;
 }) {
-  const isApproved =
-    row.status === "Approved" || row.status === "Combined Plan Approved";
-  const isDeclined = row.status === "Payment Failed";
+  const isApproved = row.status === "Approved";
   const isStripe = row.paymentMethod === "Stripe";
-  // Offline pending payments need a proof upload before approval
-  const canUpload =
-    !isStripe && (row.status === "Pending" || isDeclined) && !row.proof;
-  // Approve only allowed when proof is uploaded for offline pending payments
-  const canApprove =
-    !isStripe && row.status === "Pending" && !!row.proof;
-  const showStripeRepay = isStripe && isDeclined;
-  const showSecondaryActions =
-    !isApproved && (row.status === "Pending" || isDeclined);
-  const canEditAmount =
-    !isStripe &&
-    (row.status === "Pending" ||
-      row.status === "Payment Failed" ||
-      row.status === "Overdue" ||
-      row.status === "Combined Plan Pending");
+  const canSelect =
+    row.status === "Pending" ||
+    row.status === "Payment Failed" ||
+    row.status === "Upcoming" ||
+    row.status === "Partially Paid";
 
   return (
     <div>
@@ -965,39 +1037,50 @@ function InstallmentDetailPanel({
             {row.label}
           </p>
           <p className="mt-0.5 text-small" style={{ color: TEXT_MUTED }}>
-            Due {row.dueDate} · ${row.amount.toLocaleString()} · {row.paymentMethod}
+            Due {row.dueDate} · ${row.amount.toLocaleString()}
           </p>
         </div>
         <InstallmentStatusPill status={row.status} />
       </div>
 
-      {/* Proof preview */}
-      {row.proof ? (
+      {/* APPROVED: Stripe or Manual receipt block */}
+      {isApproved && (
         <div
           className="mt-4 rounded-xl p-4"
           style={{ backgroundColor: "#F9FAFB", border: `1px solid ${BORDER}` }}
         >
-          <div
-            className="grid h-40 place-items-center rounded-lg"
-            style={{ backgroundColor: "#FFFFFF", border: `1px dashed ${BORDER}` }}
-          >
-            <div className="flex flex-col items-center gap-2">
-              <FileText className="h-7 w-7" style={{ color: TEXT_MUTED }} />
-              <span className="text-smaller" style={{ color: TEXT_MUTED }}>
-                {isStripe ? "Stripe receipt preview" : "Document preview"}
-              </span>
-            </div>
-          </div>
-          <div className="mt-3 space-y-1.5">
-            <Row label="File" value={row.proof.name} />
-            <Row label="Uploaded" value={row.proof.uploadedAt} />
-            {isApproved && <Row label="Approved by" value="John Miller" />}
-            {isApproved && <Row label="Approved on" value={row.dueDate} />}
-            {isStripe && row.stripeTxnId && (
-              <Row label="Stripe Txn" value={row.stripeTxnId} />
+          <p className="mb-2 text-smaller font-semibold uppercase tracking-wide" style={{ color: TEXT_MUTED }}>
+            Installment Details
+          </p>
+          <div className="space-y-1.5">
+            <Row label="Payment Method" value={isStripe ? "Stripe" : "Bank / Offline"} />
+            <Row label="Status" value="Approved" />
+            {isStripe ? (
+              <>
+                {row.stripeTxnId && (
+                  <Row label="Stripe Transaction ID" value={row.stripeTxnId} />
+                )}
+                <Row label="Paid Date" value={row.dueDate} />
+                <Row
+                  label="Amount Paid"
+                  value={`$${(row.paidAmount ?? row.amount).toLocaleString()}`}
+                />
+                <Row label="Receipt" value="Auto-saved" last />
+              </>
+            ) : (
+              <>
+                <Row label="Approved by" value="John Miller" />
+                <Row label="Approved on" value={row.dueDate} />
+                <Row
+                  label="Amount Paid"
+                  value={`$${(row.paidAmount ?? row.amount).toLocaleString()}`}
+                />
+                {row.proof && <Row label="Proof" value={row.proof.name} />}
+                {manualPayment?.note && (
+                  <Row label="Internal Note" value={manualPayment.note} last />
+                )}
+              </>
             )}
-            <Row label="Amount" value={`$${row.amount.toLocaleString()}`} />
-            <Row label="Installment" value={row.label} last />
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
             <button
@@ -1006,7 +1089,8 @@ function InstallmentDetailPanel({
               className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-small font-semibold"
               style={{ backgroundColor: SOFT, color: TEXT_DARK }}
             >
-              <Eye className="h-4 w-4" /> {isStripe ? "View Receipt" : "View Proof"}
+              <Eye className="h-4 w-4" />
+              {isStripe ? "View Receipt" : "View Proof"}
             </button>
             <button
               type="button"
@@ -1014,92 +1098,121 @@ function InstallmentDetailPanel({
               className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-small font-semibold"
               style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
             >
-              Download Proof
+              Download {isStripe ? "Receipt" : "Proof"}
             </button>
           </div>
         </div>
-      ) : canUpload ? (
-        <label
-          className="mt-4 flex cursor-pointer flex-col items-center justify-center rounded-xl px-4 py-10 text-center"
-          style={{ border: `1.5px dashed ${BORDER}`, backgroundColor: "#FAFAFA" }}
-        >
-          <UploadCloud className="h-6 w-6" style={{ color: TEXT_MUTED }} />
-          <p className="mt-2 text-small font-medium" style={{ color: TEXT_DARK }}>
-            Drag and drop or click to upload proof
-          </p>
-          <p className="mt-0.5 text-smaller" style={{ color: TEXT_MUTED }}>
-            PDF, PNG, JPG up to 10MB
-          </p>
-          <input
-            type="file"
-            accept=".pdf,.png,.jpg,.jpeg"
-            className="hidden"
-            onChange={(e) => onUpload(e.target.files?.[0] ?? undefined)}
-          />
-        </label>
-      ) : showStripeRepay ? (
+      )}
+
+      {/* NEEDS APPROVAL / NEEDS NEW PROOF: manual payment awaiting admin action */}
+      {!isApproved && manualPayment && (
         <div
           className="mt-4 rounded-xl p-4"
-          style={{ backgroundColor: "#FEF2F2", border: `1px solid #FECDCA` }}
+          style={{ backgroundColor: "#FFFBEB", border: `1px solid #FDE68A` }}
         >
-          <p className="text-small font-semibold" style={{ color: "#991B1B" }}>
-            Card payment was declined
-          </p>
-          <p className="mt-1 text-smaller" style={{ color: TEXT_MUTED }}>
-            Send the student a new attempt link or notify them to update their card.
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-smaller font-semibold uppercase tracking-wide" style={{ color: "#92400E" }}>
+              Manual Payment Approval
+            </p>
+            <InstallmentStatusPill status={manualPayment.status} />
+          </div>
+          <div className="mt-2 space-y-1.5">
+            <Row
+              label="Calculated Amount"
+              value={`$${manualPayment.calculatedAmount.toLocaleString()}`}
+            />
+            <Row
+              label="Payment Amount"
+              value={`$${manualPayment.paymentAmount.toLocaleString()}`}
+            />
+            {manualPayment.calculatedAmount > manualPayment.paymentAmount && (
+              <Row
+                label="Remaining Balance"
+                value={`$${(
+                  manualPayment.calculatedAmount - manualPayment.paymentAmount
+                ).toLocaleString()}`}
+              />
+            )}
+            <Row label="Payment Due Date" value={manualPayment.paymentDueDate} />
+            {manualPayment.proof && (
+              <Row label="Proof" value={manualPayment.proof.name} />
+            )}
+            {manualPayment.note && (
+              <Row label="Internal Note" value={manualPayment.note} last />
+            )}
+          </div>
           <div className="mt-3 flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => toast.success("Retry link sent")}
-              className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-small font-semibold"
-              style={{ backgroundColor: TEXT_DARK, color: "#FFFFFF" }}
-            >
-              Send Retry Link
-            </button>
-            <button
-              type="button"
-              onClick={() => copyLink(`https://pay.example.com/retry/${row.id}`)}
-              className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-small font-semibold"
-              style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
-            >
-              Copy Retry Link
-            </button>
+            {manualPayment.status === "Needs Approval" && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => onApproveManualPayment(manualPayment.id)}
+                  className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
+                  style={{ backgroundColor: BRAND, color: TEXT_DARK }}
+                >
+                  <CheckCircle2 className="h-4 w-4" /> Approve Payment
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onMarkNeedsNewProof(manualPayment.id)}
+                  className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
+                  style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+                >
+                  Needs New Proof
+                </button>
+              </>
+            )}
+            {manualPayment.status === "Needs New Proof" && (
+              <label
+                className="inline-flex cursor-pointer items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
+                style={{ backgroundColor: TEXT_DARK, color: "#FFFFFF" }}
+              >
+                <UploadCloud className="h-4 w-4" /> Upload New Proof
+                <input
+                  type="file"
+                  accept=".pdf,.png,.jpg,.jpeg"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) onReuploadManualProof(manualPayment.id, f);
+                  }}
+                />
+              </label>
+            )}
           </div>
         </div>
-      ) : (
-        <div
-          className="mt-4 rounded-xl px-4 py-8 text-center text-small"
-          style={{ backgroundColor: "#FAFAFA", border: `1px dashed ${BORDER}`, color: TEXT_MUTED }}
-        >
-          {isStripe
-            ? "Card payment — proof not required."
-            : row.status === "Upcoming"
-              ? "This installment is not due yet."
-              : "No action required."}
-        </div>
       )}
 
-      {/* Internal note */}
-      {!isApproved && (
-        <div className="mt-4">
-          <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
-            Internal note
-          </p>
-          <textarea
-            rows={2}
-            placeholder="Add an internal note for this installment…"
-            className="w-full resize-none rounded-xl px-3 py-2 text-small"
-            style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
-          />
-        </div>
-      )}
+      {/* Pending / Upcoming preview when no manual payment exists */}
+      {!isApproved && !manualPayment && (
+        <>
+          <div
+            className="mt-4 rounded-xl p-4"
+            style={{ backgroundColor: "#F9FAFB", border: `1px solid ${BORDER}` }}
+          >
+            <p className="mb-2 text-smaller font-semibold uppercase tracking-wide" style={{ color: TEXT_MUTED }}>
+              Installment Details
+            </p>
+            <div className="space-y-1.5">
+              <Row label="Installment" value={row.label} />
+              <Row label="Due Date" value={row.dueDate} />
+              <Row label="Original Amount" value={`$${row.amount.toLocaleString()}`} />
+              <Row
+                label="Current Amount Due"
+                value={`$${row.amount.toLocaleString()}`}
+              />
+              {row.carriedFromAmount ? (
+                <Row
+                  label="Carried Balance"
+                  value={`$${row.carriedFromAmount.toLocaleString()}`}
+                />
+              ) : null}
+              <Row label="Status" value={row.status} last />
+            </div>
+          </div>
 
-      {/* Action buttons — appear AFTER the internal note */}
-      {(canApprove || showSecondaryActions || canEditAmount) && (
-        <div className="mt-4 flex flex-wrap gap-2">
-          {showSecondaryActions && (
-            <>
+          {canSelect && (
+            <div className="mt-4 flex flex-wrap gap-2">
               <button
                 type="button"
                 onClick={onOpenChangeDueDate}
@@ -1108,255 +1221,18 @@ function InstallmentDetailPanel({
               >
                 <CalendarClock className="h-4 w-4" /> Change Due Date
               </button>
-              {canEditAmount && (
-                <button
-                  type="button"
-                  onClick={onOpenEditAmount}
-                  className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
-                  style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
-                >
-                  Edit Amount
-                </button>
-              )}
               <button
                 type="button"
-                onClick={onOpenPostpone}
+                onClick={onSelectForPayment}
                 className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
-                style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+                style={{ backgroundColor: TEXT_DARK, color: "#FFFFFF" }}
               >
-                <Layers className="h-4 w-4" /> Combined Plans
+                Select for Manual Payment
               </button>
-            </>
+            </div>
           )}
-          {canApprove && (
-            <button
-              type="button"
-              onClick={onApprove}
-              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
-              style={{ backgroundColor: BRAND, color: TEXT_DARK }}
-            >
-              <CheckCircle2 className="h-4 w-4" /> Approve Payment
-            </button>
-          )}
-        </div>
+        </>
       )}
-    </div>
-  );
-}
-
-// ===================== Postpone Modal =====================
-
-function PostponeModal({
-  installments,
-  onClose,
-  onConfirm,
-}: {
-  installments: InstallmentRow[];
-  onClose: () => void;
-  onConfirm: (
-    ids: string[],
-    payload: { dueDate: string; reason: string; note: string },
-  ) => void;
-}) {
-  const [selected, setSelected] = useState<string[]>([]);
-  const [months, setMonths] = useState(2);
-  const [reason, setReason] = useState("");
-  const [note, setNote] = useState("");
-  const calculatedTotal = installments
-    .filter((i) => selected.includes(i.id))
-    .reduce((sum, i) => sum + i.amount, 0);
-  const suggestedDue = (() => {
-    const d = new Date();
-    d.setMonth(d.getMonth() + months);
-    return d.toISOString().slice(0, 10);
-  })();
-  const [dueDate, setDueDate] = useState(suggestedDue);
-  useEffect(() => {
-    setDueDate(suggestedDue);
-  }, [months]);
-  const formattedDue = (() => {
-    const d = new Date(dueDate);
-    return isNaN(d.getTime())
-      ? dueDate
-      : d.toLocaleDateString("en-US", {
-          month: "short",
-          day: "2-digit",
-          year: "numeric",
-        });
-  })();
-
-  const toggle = (id: string) =>
-    setSelected((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    );
-
-  return (
-    <div
-      className="fixed inset-0 z-[60] flex items-center justify-center p-4"
-      style={{ backgroundColor: "rgba(0,0,0,0.35)" }}
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.96 }}
-        animate={{ opacity: 1, scale: 1 }}
-        onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-lg rounded-3xl bg-white p-6"
-        style={{ boxShadow: "0 30px 80px rgba(15,23,42,0.25)" }}
-      >
-        <div className="flex items-start justify-between">
-          <div>
-            <h3 className="text-second-header font-bold" style={{ color: TEXT_DARK }}>
-              Create Combined Plan
-            </h3>
-            <p className="mt-1 text-smaller" style={{ color: TEXT_MUTED }}>
-              Select multiple installments and combine them into one payment the student can complete later.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="grid h-8 w-8 place-items-center rounded-full hover:bg-[#F3F4F6]"
-            aria-label="Close"
-          >
-            <X className="h-4 w-4" style={{ color: TEXT_DARK }} />
-          </button>
-        </div>
-
-        <div className="mt-4 space-y-3">
-          <div>
-            <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
-              Select installments
-            </p>
-            <div
-              className="max-h-44 overflow-y-auto rounded-xl"
-              style={{ border: `1px solid ${BORDER}` }}
-            >
-              {installments.length === 0 && (
-                <p className="px-3 py-2 text-smaller" style={{ color: TEXT_MUTED }}>
-                  No installments eligible to combine.
-                </p>
-              )}
-              {installments.map((it) => (
-                <label
-                  key={it.id}
-                  className="flex cursor-pointer items-center gap-3 px-3 py-2"
-                  style={{ borderBottom: `1px solid ${BORDER}` }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={selected.includes(it.id)}
-                    onChange={() => toggle(it.id)}
-                  />
-                  <span className="text-small" style={{ color: TEXT_DARK }}>
-                    {it.label}
-                  </span>
-                  <span className="ml-auto text-smaller" style={{ color: TEXT_MUTED }}>
-                    ${it.amount.toLocaleString()} · {it.status}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Calculated total (locked) */}
-          <div className="rounded-xl p-3" style={{ backgroundColor: SOFT }}>
-            <div className="flex items-center justify-between">
-              <span className="text-smaller" style={{ color: TEXT_MUTED }}>
-                Combined Plan Total
-              </span>
-              <span className="text-small font-semibold" style={{ color: TEXT_DARK }}>
-                ${calculatedTotal.toLocaleString()}
-              </span>
-            </div>
-            <p className="mt-1 text-smaller" style={{ color: TEXT_MUTED }}>
-              Locked — sum of selected installments.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
-                Combined Payment Due Date
-              </p>
-              <input
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="w-full rounded-xl bg-white px-3 py-2 text-small"
-                style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
-              />
-            </div>
-            <div>
-              <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
-                Extend by (months)
-              </p>
-              <input
-                type="number"
-                min={1}
-                max={12}
-                value={months}
-                onChange={(e) => setMonths(Math.max(1, Number(e.target.value) || 1))}
-                className="w-full rounded-xl px-3 py-2 text-small"
-                style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
-              />
-            </div>
-          </div>
-
-          <div>
-            <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
-              Reason
-            </p>
-            <select
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              className="w-full rounded-xl bg-white px-3 py-2 text-small"
-              style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
-            >
-              <option value="">Select a reason…</option>
-              <option>Student requested more time</option>
-              <option>Financial delay</option>
-              <option>Bank transfer delay</option>
-              <option>Internal approval</option>
-              <option>Other</option>
-            </select>
-          </div>
-
-          <div>
-            <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
-              Internal note
-            </p>
-            <textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              rows={2}
-              className="w-full resize-none rounded-xl px-3 py-2 text-small"
-              style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
-            />
-          </div>
-        </div>
-
-        <div className="mt-5 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-full px-4 py-2 text-small font-semibold"
-            style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              onConfirm(selected, { dueDate: formattedDue, reason, note })
-            }
-            disabled={selected.length === 0}
-            className="rounded-full px-4 py-2 text-small font-semibold disabled:opacity-50"
-            style={{ backgroundColor: TEXT_DARK, color: "#FFFFFF" }}
-          >
-            Create Combined Plan
-          </button>
-        </div>
-      </motion.div>
     </div>
   );
 }
@@ -1510,184 +1386,6 @@ function copyLink(link: string) {
   navigator.clipboard?.writeText(link).then(
     () => toast.success("Link copied"),
     () => toast.error("Could not copy link"),
-  );
-}
-
-// ===================== Edit Amount Modal =====================
-
-function EditAmountModal({
-  title = "Edit Installment Amount",
-  originalAmount,
-  originalLabel,
-  carryOptions,
-  isLast,
-  onClose,
-  onConfirm,
-}: {
-  title?: string;
-  originalAmount: number;
-  originalLabel: string;
-  carryOptions: { id: string; label: string }[];
-  isLast: boolean;
-  onClose: () => void;
-  onConfirm: (payload: {
-    amountPaid: number;
-    remaining: number;
-    carryToId: string | null;
-    note: string;
-  }) => void;
-}) {
-  const [amountPaid, setAmountPaid] = useState<number>(originalAmount);
-  const [carryToId, setCarryToId] = useState<string>(
-    carryOptions[0]?.id ?? "",
-  );
-  const [note, setNote] = useState("");
-  const remaining = Math.max(0, originalAmount - (Number(amountPaid) || 0));
-  const showCarry = !isLast && remaining > 0;
-  const showNeglected = isLast && remaining > 0;
-
-  return (
-    <div
-      className="fixed inset-0 z-[60] flex items-center justify-center p-4"
-      style={{ backgroundColor: "rgba(0,0,0,0.35)" }}
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.96 }}
-        animate={{ opacity: 1, scale: 1 }}
-        onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md rounded-3xl bg-white p-6"
-        style={{ boxShadow: "0 30px 80px rgba(15,23,42,0.25)" }}
-      >
-        <div className="flex items-start justify-between">
-          <div>
-            <h3 className="text-second-header font-bold" style={{ color: TEXT_DARK }}>
-              {title}
-            </h3>
-            <p className="mt-1 text-smaller" style={{ color: TEXT_MUTED }}>
-              Record a partial payment for {originalLabel}.
-              {isLast
-                ? " This is the final installment — any unpaid balance will be recorded as neglected balance."
-                : " The remaining amount will be carried forward to a future installment."}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="grid h-8 w-8 place-items-center rounded-full hover:bg-[#F3F4F6]"
-            aria-label="Close"
-          >
-            <X className="h-4 w-4" style={{ color: TEXT_DARK }} />
-          </button>
-        </div>
-
-        <div className="mt-4 space-y-3">
-          <div>
-            <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
-              Original Installment Amount
-            </p>
-            <div
-              className="rounded-xl px-3 py-2 text-small"
-              style={{ backgroundColor: SOFT, color: TEXT_DARK }}
-            >
-              ${originalAmount.toLocaleString()}
-            </div>
-          </div>
-          <div>
-            <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
-              Amount Paid
-            </p>
-            <input
-              type="number"
-              min={0}
-              max={originalAmount}
-              value={amountPaid}
-              onChange={(e) => setAmountPaid(Number(e.target.value) || 0)}
-              className="w-full rounded-xl bg-white px-3 py-2 text-small"
-              style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
-            />
-          </div>
-          <div>
-            <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
-              {showNeglected ? "Neglected Balance" : "Remaining Amount"}
-            </p>
-            <div
-              className="rounded-xl px-3 py-2 text-small font-semibold"
-              style={{
-                backgroundColor: showNeglected ? "#FEF2F2" : SOFT,
-                color: showNeglected ? "#991B1B" : TEXT_DARK,
-              }}
-            >
-              ${remaining.toLocaleString()}
-            </div>
-            {showNeglected && (
-              <p className="mt-1 text-smaller" style={{ color: TEXT_MUTED }}>
-                This is the final installment. Any unpaid balance will be recorded as neglected balance.
-              </p>
-            )}
-          </div>
-          {showCarry && (
-            <div>
-              <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
-                Carry Forward To
-              </p>
-              <select
-                value={carryToId}
-                onChange={(e) => setCarryToId(e.target.value)}
-                className="w-full rounded-xl bg-white px-3 py-2 text-small"
-                style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
-              >
-                {carryOptions.map((opt) => (
-                  <option key={opt.id} value={opt.id}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-          <div>
-            <p className="mb-1.5 text-smaller font-medium" style={{ color: TEXT_MUTED }}>
-              Internal Note
-            </p>
-            <textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              rows={2}
-              placeholder="Student paid partial amount and will pay the balance with next installment…"
-              className="w-full resize-none rounded-xl px-3 py-2 text-small"
-              style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
-            />
-          </div>
-        </div>
-
-        <div className="mt-5 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-full px-4 py-2 text-small font-semibold"
-            style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            disabled={amountPaid <= 0 || amountPaid > originalAmount}
-            onClick={() =>
-              onConfirm({
-                amountPaid,
-                remaining,
-                carryToId: showCarry ? carryToId : null,
-                note,
-              })
-            }
-            className="rounded-full px-4 py-2 text-small font-semibold disabled:opacity-50"
-            style={{ backgroundColor: TEXT_DARK, color: "#FFFFFF" }}
-          >
-            Save Amount
-          </button>
-        </div>
-      </motion.div>
-    </div>
   );
 }
 
