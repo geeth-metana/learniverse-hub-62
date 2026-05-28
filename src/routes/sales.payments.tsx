@@ -58,6 +58,7 @@ import {
   ListChecks,
   Layers,
   UploadCloud,
+  Info,
 } from "lucide-react";
 import {
   BarChart,
