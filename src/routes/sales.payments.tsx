@@ -3561,7 +3561,7 @@ function PaymentOverviewDrawer({
   );
 
   const approvedCount = installments.filter(
-    (i) => i.status === "Approved" || i.status === "Combined Plan Approved",
+    (i) => i.status === "Approved",
   ).length;
   const totalCount = installments.length;
   const progressPct = totalCount ? Math.round((approvedCount / totalCount) * 100) : 0;
@@ -3575,91 +3575,25 @@ function PaymentOverviewDrawer({
   })();
 
   const nextDue =
-    installments.find(
-      (i) => i.status !== "Approved" && i.status !== "Combined Plan Approved",
-    )?.dueDate ?? "—";
+    installments.find((i) => i.status !== "Approved")?.dueDate ?? "—";
 
-  // Grouped (catch-up) payments — created when student postpones installments
-  type GroupedPayment = {
+  // Manual payments awaiting approval (admin-created bank/offline payments)
+  type ManualPayment = {
     id: string;
-    label: string;
     installmentIds: string[];
-    dueDate: string;
-    reason: string;
-    note: string;
-    status: "Pending Payment" | "Pending" | "Approved" | "Rejected";
+    calculatedAmount: number;
+    paymentAmount: number;
+    paymentDueDate: string;
     proof: ProofFile | null;
+    note: string;
+    status: "Needs Approval" | "Approved" | "Needs New Proof";
   };
-  const [groups, setGroups] = useState<GroupedPayment[]>([]);
-  const [showUpcoming, setShowUpcoming] = useState(false);
-  const [postponeOpen, setPostponeOpen] = useState(false);
+  const [manualPayments, setManualPayments] = useState<ManualPayment[]>([]);
+  const [selectedForPayment, setSelectedForPayment] = useState<string[]>([]);
   const [changeDueDateId, setChangeDueDateId] = useState<string | null>(null);
-  const [changeGroupDueDateId, setChangeGroupDueDateId] = useState<string | null>(null);
-  const [editAmountId, setEditAmountId] = useState<string | null>(null);
-  const [editGroupAmountId, setEditGroupAmountId] = useState<string | null>(null);
   const [selectedInstallmentId, setSelectedInstallmentId] = useState<string | null>(
     null,
   );
-
-  const approveInstallment = (id: string) => {
-    setInstallments((prev) => {
-      const next = prev.map((it) =>
-        it.id === id ? { ...it, status: "Approved" as InstallmentStatus } : it,
-      );
-      const allApproved = next.every(
-        (i) => i.status === "Approved" || i.status === "Combined Plan Approved",
-      );
-      if (allApproved) updateInvitation(inv.id, { status: "Installment Approved" });
-      else updateInvitation(inv.id, { status: "Installment Pending Approval" });
-      return next;
-    });
-    setApproval("Approved");
-    toast.success("Installment approved");
-  };
-
-  const rejectInstallment = (id: string) => {
-    setInstallments((prev) =>
-      prev.map((it) =>
-        it.id === id
-          ? { ...it, status: "Rejected" as InstallmentStatus, proof: null }
-          : it,
-      ),
-    );
-    toast.success("Installment rejected");
-  };
-
-  const uploadInstallmentProof = (id: string, file: File | undefined) => {
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("File must be 10MB or smaller");
-      return;
-    }
-    const today = new Date().toLocaleDateString("en-US", {
-      month: "short",
-      day: "2-digit",
-      year: "numeric",
-    });
-    setInstallments((prev) =>
-      prev.map((it) =>
-        it.id === id
-          ? {
-              ...it,
-              proof: { name: file.name, uploadedAt: `Uploaded ${today}` },
-              status: it.status === "Upcoming" ? "Pending" : "Pending",
-            }
-          : it,
-      ),
-    );
-    toast.success("Proof uploaded");
-  };
-
-  const removeInstallmentProof = (id: string) => {
-    setInstallments((prev) =>
-      prev.map((it) =>
-        it.id === id ? { ...it, proof: null, status: "Pending" } : it,
-      ),
-    );
-  };
 
   const changeInstallmentDueDate = (
     id: string,
@@ -3682,144 +3616,40 @@ function PaymentOverviewDrawer({
     toast.success(`Due date updated to ${payload.newDueDate}`);
   };
 
-  const changeGroupDueDate = (
-    groupId: string,
-    payload: { newDueDate: string; reason: string; note: string },
-  ) => {
-    setGroups((g) =>
-      g.map((it) =>
-        it.id === groupId ? { ...it, dueDate: payload.newDueDate } : it,
-      ),
-    );
-    void payload.reason;
-    void payload.note;
-    toast.success(`Combined plan due date updated to ${payload.newDueDate}`);
-  };
-
-  const editInstallmentAmount = (
-    id: string,
-    payload: {
-      amountPaid: number;
-      remaining: number;
-      carryToId: string | null;
-      note: string;
-    },
-  ) => {
-    const source = installments.find((i) => i.id === id);
-    if (!source) return;
-    const sourceLabel = source.label;
-    setInstallments((prev) =>
-      prev.map((it) => {
-        if (it.id === id) {
-          return {
-            ...it,
-            paidAmount: payload.amountPaid,
-            neglectedBalance: !payload.carryToId ? payload.remaining : undefined,
-            status: "Approved" as InstallmentStatus,
-          };
-        }
-        if (payload.carryToId && it.id === payload.carryToId) {
-          const base = (it.carriedFromAmount ? it.amount - it.carriedFromAmount : it.amount);
-          const newCarried = (it.carriedFromAmount ?? 0) + payload.remaining;
-          return {
-            ...it,
-            amount: base + newCarried,
-            carriedFromAmount: newCarried,
-            carriedFromLabel: sourceLabel,
-          };
-        }
-        return it;
-      }),
-    );
-    void payload.note;
-    toast.success(
-      payload.carryToId
-        ? `Partial payment recorded. $${payload.remaining.toLocaleString()} carried forward.`
-        : `Final installment recorded. $${payload.remaining.toLocaleString()} neglected balance.`,
-    );
-  };
-
-  const editGroupAmount = (
-    groupId: string,
-    payload: {
-      amountPaid: number;
-      remaining: number;
-      carryToId: string | null;
-      note: string;
-    },
-  ) => {
-    const group = groups.find((g) => g.id === groupId);
-    if (!group) return;
-    setGroups((g) =>
-      g.map((it) => (it.id === groupId ? { ...it, status: "Approved" } : it)),
-    );
-    setInstallments((prev) =>
-      prev.map((it) => {
-        if (group.installmentIds.includes(it.id)) {
-          return {
-            ...it,
-            paidAmount: it.amount,
-            status: "Combined Plan Approved" as InstallmentStatus,
-          };
-        }
-        if (payload.carryToId && it.id === payload.carryToId) {
-          const base = (it.carriedFromAmount ? it.amount - it.carriedFromAmount : it.amount);
-          const newCarried = (it.carriedFromAmount ?? 0) + payload.remaining;
-          return {
-            ...it,
-            amount: base + newCarried,
-            carriedFromAmount: newCarried,
-            carriedFromLabel: "Combined Installment",
-          };
-        }
-        return it;
-      }),
-    );
-    void payload.note;
-    void payload.amountPaid;
-    toast.success(
-      payload.carryToId
-        ? `Combined payment recorded. $${payload.remaining.toLocaleString()} carried forward.`
-        : `Combined payment recorded. $${payload.remaining.toLocaleString()} neglected balance.`,
-    );
-  };
-
-  const postponeInstallments = (
-    ids: string[],
-    payload: { dueDate: string; reason: string; note: string },
-  ) => {
-    if (!ids.length) return;
-    const groupId = `grp-${Date.now()}`;
-    const groupNumber = groups.length + 1;
-    const labels = ids
-      .map((id) => installments.find((i) => i.id === id)?.label)
-      .filter(Boolean)
-      .join(" + ");
+  const createManualPayment = (payload: {
+    installmentIds: string[];
+    calculatedAmount: number;
+    paymentAmount: number;
+    paymentDueDate: string;
+    proof: ProofFile;
+    note: string;
+  }) => {
+    const id = `mp-${Date.now()}`;
+    setManualPayments((prev) => [
+      ...prev,
+      { id, status: "Needs Approval", ...payload },
+    ]);
     setInstallments((prev) =>
       prev.map((it) =>
-        ids.includes(it.id)
-          ? { ...it, status: "Combined Plan Pending" as InstallmentStatus }
+        payload.installmentIds.includes(it.id)
+          ? { ...it, status: "Needs Approval" as InstallmentStatus }
           : it,
       ),
     );
-    setGroups((g) => [
-      ...g,
-      {
-        id: groupId,
-        label: `Combined Plan ${String(groupNumber).padStart(2, "0")}`,
-        installmentIds: ids,
-        dueDate: payload.dueDate,
-        reason: payload.reason,
-        note: payload.note,
-        status: "Pending Payment",
-        proof: null,
-      },
-    ]);
-    toast.success(`Postponed ${labels || "installments"}`);
+    updateInvitation(inv.id, { status: "Installment Pending Approval" });
+    toast.success("Manual payment sent for approval");
   };
 
-  const uploadGroupProof = (groupId: string, file: File | undefined) => {
-    if (!file) return;
+  const markManualNeedsNewProof = (id: string) => {
+    setManualPayments((prev) =>
+      prev.map((m) =>
+        m.id === id ? { ...m, status: "Needs New Proof", proof: null } : m,
+      ),
+    );
+    toast.success("Marked as needs new proof");
+  };
+
+  const reuploadManualProof = (id: string, file: File) => {
     if (file.size > 10 * 1024 * 1024) {
       toast.error("File must be 10MB or smaller");
       return;
@@ -3829,61 +3659,87 @@ function PaymentOverviewDrawer({
       day: "2-digit",
       year: "numeric",
     });
-    setGroups((g) =>
-      g.map((it) =>
-        it.id === groupId
+    setManualPayments((prev) =>
+      prev.map((m) =>
+        m.id === id
           ? {
-              ...it,
+              ...m,
               proof: { name: file.name, uploadedAt: `Uploaded ${today}` },
-              status: "Pending",
+              status: "Needs Approval",
             }
-          : it,
+          : m,
       ),
     );
-    toast.success("Group proof uploaded");
+    toast.success("New proof uploaded");
   };
 
-  const approveGroup = (groupId: string) => {
-    const group = groups.find((g) => g.id === groupId);
-    if (!group) return;
-    setGroups((g) =>
-      g.map((it) => (it.id === groupId ? { ...it, status: "Approved" } : it)),
-    );
-    setInstallments((prev) =>
-      prev.map((it) =>
-        group.installmentIds.includes(it.id)
-          ? { ...it, status: "Combined Plan Approved" as InstallmentStatus }
-          : it,
-      ),
-    );
-    toast.success(`${group.label} approved`);
-  };
-
-  const rejectGroup = (groupId: string) => {
-    setGroups((g) =>
-      g.map((it) => (it.id === groupId ? { ...it, status: "Rejected" } : it)),
-    );
-    toast.success("Group payment rejected");
-  };
-
-  const [detachGroupId, setDetachGroupId] = useState<string | null>(null);
-  const detachGroup = (groupId: string) => {
-    const group = groups.find((g) => g.id === groupId);
-    if (!group) return;
-    if (group.status === "Approved") {
-      toast.error("Approved combined plans cannot be detached");
-      return;
+  const approveManualPayment = (id: string) => {
+    const mp = manualPayments.find((m) => m.id === id);
+    if (!mp) return;
+    const ordered = installments
+      .filter((i) => mp.installmentIds.includes(i.id))
+      .sort((a, b) => a.number - b.number);
+    let rem = mp.paymentAmount;
+    const allocations = new Map<string, number>();
+    for (const r of ordered) {
+      const paid = Math.min(rem, r.amount);
+      allocations.set(r.id, paid);
+      rem -= paid;
     }
-    setInstallments((prev) =>
-      prev.map((it) =>
-        group.installmentIds.includes(it.id)
-          ? { ...it, status: "Pending" as InstallmentStatus }
-          : it,
-      ),
+    const shortfall = mp.calculatedAmount - mp.paymentAmount;
+    const lastNumber = ordered.length
+      ? ordered[ordered.length - 1].number
+      : 0;
+    const carryTarget = installments.find(
+      (i) => i.number > lastNumber && i.status !== "Approved",
     );
-    setGroups((g) => g.filter((it) => it.id !== groupId));
-    if (selectedInstallmentId === groupId) setSelectedInstallmentId(null);
-    toast.success("Combined plan detached");
+    const isLast = !carryTarget;
+    const lastShortfallId = ordered
+      .slice()
+      .reverse()
+      .find((r) => (allocations.get(r.id) ?? 0) < r.amount)?.id;
+
+    setInstallments((prev) =>
+      prev.map((it) => {
+        if (allocations.has(it.id)) {
+          const paid = allocations.get(it.id) ?? 0;
+          const fullyPaid = paid >= it.amount;
+          return {
+            ...it,
+            paidAmount: paid,
+            paymentMethod: "Offline" as const,
+            proof: mp.proof,
+            status: fullyPaid
+              ? ("Approved" as InstallmentStatus)
+              : ("Partially Paid" as InstallmentStatus),
+            neglectedBalance:
+              isLast && it.id === lastShortfallId && shortfall > 0
+                ? shortfall
+                : undefined,
+          };
+        }
+        if (carryTarget && it.id === carryTarget.id && shortfall > 0) {
+          const newCarried = (it.carriedFromAmount ?? 0) + shortfall;
+          const base = it.carriedFromAmount
+            ? it.amount - it.carriedFromAmount
+            : it.amount;
+          return {
+            ...it,
+            amount: base + newCarried,
+            carriedFromAmount: newCarried,
+            carriedFromLabel: ordered[ordered.length - 1]?.label,
+          };
+        }
+        return it;
+      }),
+    );
+
+    setManualPayments((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, status: "Approved" } : m)),
+    );
+
+    setApproval("Approved");
+    toast.success("Manual payment approved");
   };
 
   const onFile = (file: File | undefined) => {
@@ -4100,7 +3956,6 @@ function PaymentOverviewDrawer({
                       invitation={inv}
                       approval={approval}
                       installments={installments}
-                      groups={groups}
                     />
                   </PanelSection>
                 )}
@@ -4110,28 +3965,20 @@ function PaymentOverviewDrawer({
                     invitation={inv}
                     isInstallment={isInstallment}
                     installments={installments}
-                    groups={groups}
                     approvedCount={approvedCount}
                     totalCount={totalCount}
                     progressPct={progressPct}
                     accessStatus={accessStatus}
-                    showUpcoming={showUpcoming}
-                    setShowUpcoming={setShowUpcoming}
                     selectedInstallmentId={selectedInstallmentId}
                     setSelectedInstallmentId={setSelectedInstallmentId}
-                    onUploadProof={uploadInstallmentProof}
-                    onRemoveProof={removeInstallmentProof}
-                    onApprove={approveInstallment}
-                    onReject={rejectInstallment}
-                    onOpenPostpone={() => setPostponeOpen(true)}
+                    selectedForPayment={selectedForPayment}
+                    setSelectedForPayment={setSelectedForPayment}
+                    manualPayments={manualPayments}
+                    onCreateManualPayment={createManualPayment}
+                    onApproveManualPayment={approveManualPayment}
+                    onMarkNeedsNewProof={markManualNeedsNewProof}
+                    onReuploadManualProof={reuploadManualProof}
                     onChangeDueDate={(id) => setChangeDueDateId(id)}
-                    onUploadGroupProof={uploadGroupProof}
-                    onApproveGroup={approveGroup}
-                    onRejectGroup={rejectGroup}
-                    onDetachGroup={(id) => setDetachGroupId(id)}
-                    onChangeGroupDueDate={(id) => setChangeGroupDueDateId(id)}
-                    onEditAmount={(id) => setEditAmountId(id)}
-                    onEditGroupAmount={(id) => setEditGroupAmountId(id)}
                   />
                 )}
 
@@ -4140,72 +3987,6 @@ function PaymentOverviewDrawer({
           </div>
         </div>
       </motion.div>
-      {postponeOpen && (
-        <PostponeModal
-          installments={installments.filter(
-            (i) =>
-              i.status === "Pending" ||
-              i.status === "Upcoming" ||
-              i.status === "Payment Failed",
-          )}
-          onClose={() => setPostponeOpen(false)}
-          onConfirm={(ids, payload) => {
-            postponeInstallments(ids, payload);
-            setPostponeOpen(false);
-          }}
-        />
-      )}
-      {detachGroupId && (() => {
-        const g = groups.find((x) => x.id === detachGroupId);
-        if (!g) return null;
-        const includedLabels = g.installmentIds
-          .map((id) => installments.find((i) => i.id === id)?.label)
-          .filter(Boolean) as string[];
-        return (
-          <div
-            className="fixed inset-0 z-[110] grid place-items-center bg-black/40 p-4"
-            onClick={() => setDetachGroupId(null)}
-          >
-            <div
-              className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <p className="text-second-header font-semibold" style={{ color: TEXT_DARK }}>
-                Detach Combined Plan
-              </p>
-              <p className="mt-2 text-small" style={{ color: TEXT_MUTED }}>
-                This will separate the combined installment back into individual installment payments. The student will no longer be able to pay these installments as one grouped payment.
-              </p>
-              <ul className="mt-3 space-y-1 rounded-xl bg-[#F9FAFB] p-3 text-small" style={{ color: TEXT_DARK }}>
-                {includedLabels.map((l) => (
-                  <li key={l}>• {l}</li>
-                ))}
-              </ul>
-              <div className="mt-5 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setDetachGroupId(null)}
-                  className="rounded-full px-4 py-2 text-small font-semibold"
-                  style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    detachGroup(detachGroupId);
-                    setDetachGroupId(null);
-                  }}
-                  className="rounded-full px-4 py-2 text-small font-semibold"
-                  style={{ backgroundColor: BRAND, color: TEXT_DARK }}
-                >
-                  Detach Combined Plan
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
       {changeDueDateId && (() => {
         const target = installments.find((i) => i.id === changeDueDateId);
         if (!target) return null;
@@ -4216,85 +3997,6 @@ function PaymentOverviewDrawer({
             onConfirm={(payload) => {
               changeInstallmentDueDate(target.id, payload);
               setChangeDueDateId(null);
-            }}
-          />
-        );
-      })()}
-      {changeGroupDueDateId && (() => {
-        const target = groups.find((g) => g.id === changeGroupDueDateId);
-        if (!target) return null;
-        return (
-          <ChangeDueDateModal
-            row={{ label: "Combined Installment", dueDate: target.dueDate }}
-            title="Change Combined Installment Due Date"
-            description="Update the due date for this combined installment. Status stays Pending."
-            onClose={() => setChangeGroupDueDateId(null)}
-            onConfirm={(payload) => {
-              changeGroupDueDate(target.id, payload);
-              setChangeGroupDueDateId(null);
-            }}
-          />
-        );
-      })()}
-      {editAmountId && (() => {
-        const target = installments.find((i) => i.id === editAmountId);
-        if (!target) return null;
-        const futureOptions = installments
-          .filter(
-            (i) =>
-              i.number > target.number &&
-              (i.status === "Upcoming" ||
-                i.status === "Pending" ||
-                i.status === "Combined Plan Pending"),
-          )
-          .map((i) => ({ id: i.id, label: i.label }));
-        const isLast = futureOptions.length === 0;
-        return (
-          <EditAmountModal
-            originalAmount={target.amount}
-            originalLabel={target.label}
-            carryOptions={futureOptions}
-            isLast={isLast}
-            onClose={() => setEditAmountId(null)}
-            onConfirm={(payload) => {
-              editInstallmentAmount(target.id, payload);
-              setEditAmountId(null);
-            }}
-          />
-        );
-      })()}
-      {editGroupAmountId && (() => {
-        const target = groups.find((g) => g.id === editGroupAmountId);
-        if (!target) return null;
-        const total = target.installmentIds
-          .map((id) => installments.find((i) => i.id === id)?.amount ?? 0)
-          .reduce((s, a) => s + a, 0);
-        const maxNumber = Math.max(
-          ...target.installmentIds
-            .map((id) => installments.find((i) => i.id === id)?.number ?? 0),
-        );
-        const futureOptions = installments
-          .filter(
-            (i) =>
-              i.number > maxNumber &&
-              !target.installmentIds.includes(i.id) &&
-              (i.status === "Upcoming" ||
-                i.status === "Pending" ||
-                i.status === "Combined Plan Pending"),
-          )
-          .map((i) => ({ id: i.id, label: i.label }));
-        const isLast = futureOptions.length === 0;
-        return (
-          <EditAmountModal
-            title="Edit Combined Installment Amount"
-            originalAmount={total}
-            originalLabel="Combined Installment"
-            carryOptions={futureOptions}
-            isLast={isLast}
-            onClose={() => setEditGroupAmountId(null)}
-            onConfirm={(payload) => {
-              editGroupAmount(target.id, payload);
-              setEditGroupAmountId(null);
             }}
           />
         );
@@ -4541,16 +4243,10 @@ function Timeline({
   invitation,
   approval,
   installments = [],
-  groups = [],
 }: {
   invitation: Invitation;
   approval: ApprovalState;
   installments?: InstallmentRow[];
-  groups?: {
-    id: string;
-    label: string;
-    status: "Pending Payment" | "Pending" | "Approved" | "Rejected";
-  }[];
 }) {
   const status = invitation.status;
   const isInstallment = invitation.paymentDetails.paymentType === "Installment";
@@ -4580,51 +4276,37 @@ function Timeline({
     });
     for (const inst of installments) {
       const state: TimelineState =
-        inst.status === "Approved" ||
-        inst.status === "Combined Plan Approved"
+        inst.status === "Approved"
           ? "done"
           : inst.status === "Pending" ||
-              inst.status === "Combined Plan Pending" ||
               inst.status === "Payment Failed" ||
-              inst.status === "Overdue" ||
+              inst.status === "Partially Paid" ||
+              inst.status === "Needs Approval" ||
               inst.status === "Needs New Proof"
             ? "current"
             : "pending";
       const suffix =
-        inst.status === "Approved" || inst.status === "Combined Plan Approved"
-          ? "approved"
+        inst.status === "Approved"
+          ? inst.paymentMethod === "Stripe"
+            ? "Approved · Paid via Stripe"
+            : "Approved · Bank proof uploaded and approved"
           : inst.status === "Payment Failed"
             ? "payment failed"
             : inst.status === "Pending"
               ? inst.dueDateChanged
                 ? `Pending · Due date changed to ${inst.dueDate}`
                 : "pending"
-              : inst.status === "Combined Plan Pending"
-                ? "in combined plan"
-                : inst.status === "Overdue"
-                  ? "overdue"
+              : inst.status === "Partially Paid"
+                ? `Partially Paid · $${(inst.paidAmount ?? 0).toLocaleString()} paid, balance carried forward`
+                : inst.status === "Needs Approval"
+                  ? "needs approval"
                   : inst.status === "Needs New Proof"
                     ? "needs new proof"
                     : "upcoming";
       items.push({
         label: `${inst.label} ${suffix}`,
         icon:
-          inst.status === "Approved" || inst.status === "Combined Plan Approved"
-            ? ShieldCheck
-            : CreditCard,
-        state,
-      });
-    }
-    for (const g of groups) {
-      const state: TimelineState =
-        g.status === "Approved"
-          ? "done"
-          : g.status === "Rejected"
-            ? "current"
-            : "current";
-      items.push({
-        label: `${g.label} ${g.status.toLowerCase()}`,
-        icon: Layers,
+          inst.status === "Approved" ? ShieldCheck : CreditCard,
         state,
       });
     }
@@ -4733,11 +4415,11 @@ type InstallmentStatus =
   | "Approved"
   | "Pending"
   | "Payment Failed"
-  | "Overdue"
-  | "Needs New Proof"
   | "Upcoming"
-  | "Combined Plan Pending"
-  | "Combined Plan Approved";
+  | "Partially Paid"
+  | "Needs Approval"
+  | "Needs New Proof"
+  | "Neglected Balance";
 
 type InstallmentRow = {
   id: string;
@@ -4816,25 +4498,19 @@ function InstallmentStatusPill({ status }: { status: InstallmentStatus }) {
     Approved: { bg: "rgba(204,246,33,0.45)", color: "#3F5C00" },
     Pending: { bg: "#FEF3C7", color: "#92400E" },
     "Payment Failed": { bg: "#FEE2E2", color: "#991B1B" },
-    Overdue: { bg: "#FEE2E2", color: "#991B1B" },
-    "Needs New Proof": { bg: "#FEF3C7", color: "#92400E" },
     Upcoming: { bg: "#F3F4F6", color: "#6B7280" },
-    "Combined Plan Pending": { bg: "#FEF9C3", color: "#854D0E" },
-    "Combined Plan Approved": { bg: "rgba(204,246,33,0.45)", color: "#3F5C00" },
+    "Partially Paid": { bg: "#FFEDD5", color: "#9A3412" },
+    "Needs Approval": { bg: "#FEF9C3", color: "#854D0E" },
+    "Needs New Proof": { bg: "#FEE2E2", color: "#991B1B" },
+    "Neglected Balance": { bg: "#FEE2E2", color: "#991B1B" },
   };
   const s = map[status];
-  const label =
-    status === "Combined Plan Pending"
-      ? "Pending"
-      : status === "Combined Plan Approved"
-        ? "Approved"
-        : status;
   return (
     <span
       className="inline-flex items-center rounded-full px-2.5 py-1 text-smaller font-semibold"
       style={{ backgroundColor: s.bg, color: s.color }}
     >
-      {label}
+      {status}
     </span>
   );
 }
