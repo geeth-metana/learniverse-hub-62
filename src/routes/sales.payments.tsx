@@ -254,7 +254,6 @@ function PaymentPage() {
                         "Course",
                         "Payment Method",
                         "Status",
-                        "Payment Link",
                         "Actions",
                       ].map((h) => (
                         <th
@@ -271,7 +270,7 @@ function PaymentPage() {
                     {filtered.length === 0 ? (
                       <tr>
                         <td
-                          colSpan={7}
+                          colSpan={6}
                           className="px-6 py-14 text-center text-body"
                           style={{ color: TEXT_MUTED }}
                         >
@@ -296,17 +295,15 @@ function PaymentPage() {
                           <td className="px-6 py-4" style={{ color: TEXT_DARK }}>{row.paymentMethod}</td>
                           <td className="px-6 py-4">{statusPill(row.status)}</td>
                           <td className="px-6 py-4">
-                            <button
-                              type="button"
-                              onClick={() => copyLink(row.checkoutLink)}
-                              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-smaller font-semibold transition-colors hover:bg-[#E5E7EB]"
-                              style={{ backgroundColor: SOFT, color: TEXT_DARK }}
-                            >
-                              <Link2 className="h-3.5 w-3.5" /> Copy Payment Link
-                            </button>
-                          </td>
-                          <td className="px-6 py-4">
                             <div className="flex items-center gap-1">
+                              <IconAction
+                                label="Send Payment Link"
+                                onClick={() => {
+                                  toast.info(`Payment link sent to ${row.studentEmail}`);
+                                }}
+                              >
+                                <Send className="h-4 w-4" />
+                              </IconAction>
                               <IconAction
                                 label="Copy Payment Link"
                                 onClick={() => copyLink(row.checkoutLink)}
@@ -320,10 +317,10 @@ function PaymentPage() {
                                 <Eye className="h-4 w-4" />
                               </IconAction>
                               <IconAction
-                                label="Remove"
+                                label="Delete"
                                 onClick={() => setRemoveTarget(row)}
                               >
-                                <Trash2 className="h-4 w-4" style={{ color: "#B42318" }} />
+                                <Trash2 className="h-4 w-4" />
                               </IconAction>
                             </div>
                           </td>
