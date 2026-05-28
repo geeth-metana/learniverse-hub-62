@@ -254,7 +254,6 @@ function PaymentPage() {
                         "Course",
                         "Payment Method",
                         "Status",
-                        "Payment Link",
                         "Actions",
                       ].map((h) => (
                         <th
@@ -271,7 +270,7 @@ function PaymentPage() {
                     {filtered.length === 0 ? (
                       <tr>
                         <td
-                          colSpan={7}
+                          colSpan={6}
                           className="px-6 py-14 text-center text-body"
                           style={{ color: TEXT_MUTED }}
                         >
@@ -296,17 +295,15 @@ function PaymentPage() {
                           <td className="px-6 py-4" style={{ color: TEXT_DARK }}>{row.paymentMethod}</td>
                           <td className="px-6 py-4">{statusPill(row.status)}</td>
                           <td className="px-6 py-4">
-                            <button
-                              type="button"
-                              onClick={() => copyLink(row.checkoutLink)}
-                              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-smaller font-semibold transition-colors hover:bg-[#E5E7EB]"
-                              style={{ backgroundColor: SOFT, color: TEXT_DARK }}
-                            >
-                              <Link2 className="h-3.5 w-3.5" /> Copy Payment Link
-                            </button>
-                          </td>
-                          <td className="px-6 py-4">
                             <div className="flex items-center gap-1">
+                              <IconAction
+                                label="Send Payment Link"
+                                onClick={() => {
+                                  toast.info(`Payment link sent to ${row.studentEmail}`);
+                                }}
+                              >
+                                <Send className="h-4 w-4" />
+                              </IconAction>
                               <IconAction
                                 label="Copy Payment Link"
                                 onClick={() => copyLink(row.checkoutLink)}
@@ -320,10 +317,11 @@ function PaymentPage() {
                                 <Eye className="h-4 w-4" />
                               </IconAction>
                               <IconAction
-                                label="Remove"
+                                label="Delete"
                                 onClick={() => setRemoveTarget(row)}
+                                danger
                               >
-                                <Trash2 className="h-4 w-4" style={{ color: "#B42318" }} />
+                                <Trash2 className="h-4 w-4" />
                               </IconAction>
                             </div>
                           </td>
@@ -1422,10 +1420,12 @@ function IconAction({
   label,
   onClick,
   children,
+  danger,
 }: {
   label: string;
   onClick: () => void;
   children: React.ReactNode;
+  danger?: boolean;
 }) {
   return (
     <button
@@ -1433,8 +1433,11 @@ function IconAction({
       onClick={onClick}
       title={label}
       aria-label={label}
-      className="grid h-9 w-9 place-items-center rounded-full transition-colors hover:bg-[#F3F4F6]"
-      style={{ color: TEXT_MUTED }}
+      className={
+        "grid h-9 w-9 place-items-center rounded-full transition-colors hover:bg-[#F3F4F6] " +
+        (danger ? "text-[#6B7280] hover:text-[#B42318]" : "")
+      }
+      style={{ color: danger ? undefined : TEXT_MUTED }}
     >
       {children}
     </button>
@@ -1756,8 +1759,8 @@ function PeriodSelector({
   const options: IncomingPeriod[] = ["Week", "Month", "Year"];
   return (
     <div
-      className="inline-flex items-center gap-1 rounded-full bg-white/70 p-1 backdrop-blur"
-      style={{ border: `1px solid ${BORDER}` }}
+      className="inline-flex items-center gap-0.5 rounded-full p-1"
+      style={{ backgroundColor: "#E5E7EB" }}
     >
       {options.map((opt) => {
         const active = opt === value;
@@ -1766,13 +1769,22 @@ function PeriodSelector({
             key={opt}
             type="button"
             onClick={() => onChange(opt)}
-            className="rounded-full px-3 py-1 text-xs font-medium transition-colors"
+            className="relative rounded-full px-3 py-1 text-xs font-medium transition-colors duration-200 ease-in-out"
             style={{
-              background: active ? "#1A1A1A" : "transparent",
-              color: active ? "#FFFFFF" : TEXT_MUTED,
+              background: active ? "#FFFFFF" : "transparent",
+              color: active ? "#1A1A1A" : TEXT_MUTED,
+              boxShadow: active ? "0 4px 12px rgba(15, 23, 42, 0.10)" : "none",
             }}
           >
-            {opt}
+            {active && (
+              <motion.span
+                layoutId="period-selector-pill"
+                className="absolute inset-0 rounded-full bg-white"
+                style={{ boxShadow: "0 4px 12px rgba(15, 23, 42, 0.10)" }}
+                transition={{ type: "spring", stiffness: 380, damping: 30 }}
+              />
+            )}
+            <span className="relative z-10">{opt}</span>
           </button>
         );
       })}
