@@ -319,6 +319,7 @@ function PaymentPage() {
                               <IconAction
                                 label="Delete"
                                 onClick={() => setRemoveTarget(row)}
+                                danger
                               >
                                 <Trash2 className="h-4 w-4" />
                               </IconAction>
