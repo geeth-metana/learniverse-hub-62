@@ -354,8 +354,7 @@ function CheckoutPage() {
                       type="button"
                       className="text-left rounded-2xl bg-white p-5 transition-all relative"
                       style={{
-                        outline: plan === p.id ? `2px solid ${TEXT_DARK}` : "2px solid transparent",
-                        outlineOffset: "-2px",
+                        border: `2px solid ${plan === p.id ? TEXT_DARK : "transparent"}`,
                       }}
                     >
                       {plan === p.id && (
@@ -460,9 +459,9 @@ function CheckoutPage() {
                             <span style={{ color: TEXT_MAIN }}>{opt.label}</span>
                             <span
                               className="h-5 w-5 rounded-full border-2 grid place-items-center"
-                              style={{ borderColor: billing === opt.id ? BRAND : "#E5E7EB" }}
+                              style={{ borderColor: billing === opt.id ? TEXT_DARK : "#E5E7EB" }}
                             >
-                              {billing === opt.id && <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: BRAND }} />}
+                              {billing === opt.id && <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: TEXT_DARK }} />}
                             </span>
                           </button>
                         ))}
