@@ -354,8 +354,7 @@ function CheckoutPage() {
                       type="button"
                       className="text-left rounded-2xl bg-white p-5 transition-all relative"
                       style={{
-                        outline: plan === p.id ? `2px solid ${TEXT_DARK}` : "2px solid transparent",
-                        outlineOffset: "-2px",
+                        border: `2px solid ${plan === p.id ? TEXT_DARK : "transparent"}`,
                       }}
                     >
                       {plan === p.id && (
