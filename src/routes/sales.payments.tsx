@@ -1419,10 +1419,12 @@ function IconAction({
   label,
   onClick,
   children,
+  danger,
 }: {
   label: string;
   onClick: () => void;
   children: React.ReactNode;
+  danger?: boolean;
 }) {
   return (
     <button
@@ -1430,8 +1432,11 @@ function IconAction({
       onClick={onClick}
       title={label}
       aria-label={label}
-      className="grid h-9 w-9 place-items-center rounded-full transition-colors hover:bg-[#F3F4F6]"
-      style={{ color: TEXT_MUTED }}
+      className={
+        "grid h-9 w-9 place-items-center rounded-full transition-colors hover:bg-[#F3F4F6] " +
+        (danger ? "text-[#6B7280] hover:text-[#B42318]" : "")
+      }
+      style={{ color: danger ? undefined : TEXT_MUTED }}
     >
       {children}
     </button>
