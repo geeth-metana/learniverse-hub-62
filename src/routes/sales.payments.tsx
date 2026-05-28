@@ -4466,6 +4466,7 @@ type InstallmentRow = {
   carriedFromLabel?: string;
   carriedFromAmount?: number;
   neglectedBalance?: number;
+  remainingBalance?: number;
 };
 
 function addMonthsFormatted(start: Date, months: number): string {
