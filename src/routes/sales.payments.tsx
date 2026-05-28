@@ -1758,8 +1758,8 @@ function PeriodSelector({
   const options: IncomingPeriod[] = ["Week", "Month", "Year"];
   return (
     <div
-      className="inline-flex items-center gap-1 rounded-full bg-white/70 p-1 backdrop-blur"
-      style={{ border: `1px solid ${BORDER}` }}
+      className="inline-flex items-center gap-0.5 rounded-full p-1"
+      style={{ backgroundColor: "#E5E7EB" }}
     >
       {options.map((opt) => {
         const active = opt === value;
@@ -1768,13 +1768,22 @@ function PeriodSelector({
             key={opt}
             type="button"
             onClick={() => onChange(opt)}
-            className="rounded-full px-3 py-1 text-xs font-medium transition-colors"
+            className="relative rounded-full px-3 py-1 text-xs font-medium transition-colors duration-200 ease-in-out"
             style={{
-              background: active ? "#1A1A1A" : "transparent",
-              color: active ? "#FFFFFF" : TEXT_MUTED,
+              background: active ? "#FFFFFF" : "transparent",
+              color: active ? "#1A1A1A" : TEXT_MUTED,
+              boxShadow: active ? "0 4px 12px rgba(15, 23, 42, 0.10)" : "none",
             }}
           >
-            {opt}
+            {active && (
+              <motion.span
+                layoutId="period-selector-pill"
+                className="absolute inset-0 rounded-full bg-white"
+                style={{ boxShadow: "0 4px 12px rgba(15, 23, 42, 0.10)" }}
+                transition={{ type: "spring", stiffness: 380, damping: 30 }}
+              />
+            )}
+            <span className="relative z-10">{opt}</span>
           </button>
         );
       })}
