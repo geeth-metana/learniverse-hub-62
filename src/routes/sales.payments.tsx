@@ -509,7 +509,7 @@ function InstallmentsPanel({
 
       {/* Split view */}
       <div
-        className="mt-4 grid grid-cols-1 overflow-hidden rounded-2xl lg:grid-cols-[42%_58%]"
+        className="mt-4 grid h-[600px] grid-cols-1 overflow-hidden rounded-2xl lg:grid-cols-[42%_58%]"
         style={{ border: `1px solid ${BORDER}` }}
       >
         {/* Left list */}
@@ -535,7 +535,7 @@ function InstallmentsPanel({
               </button>
             )}
           </div>
-          <div className="max-h-[480px] overflow-y-auto">
+          <div className="min-h-0 flex-1 overflow-y-auto">
             {/* Down payment row (always Approved) */}
             <div
               className="flex items-center gap-3 px-4 py-3"
@@ -614,7 +614,7 @@ function InstallmentsPanel({
                           className="mt-0.5 text-smaller"
                           style={{ color: TEXT_MUTED }}
                         >
-                          Includes ${it.carriedFromAmount.toLocaleString()} carried forward
+                          Includes ${it.carriedFromAmount.toLocaleString()} carried balance
                         </p>
                       ) : null}
                     </div>
