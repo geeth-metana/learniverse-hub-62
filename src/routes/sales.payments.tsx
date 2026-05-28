@@ -3738,9 +3738,8 @@ function PaymentOverviewDrawer({
             paidAmount: paid,
             paymentMethod: "Offline" as const,
             proof: mp.proof,
-            status: fullyPaid
-              ? ("Approved" as InstallmentStatus)
-              : ("Partially Paid" as InstallmentStatus),
+            status: "Approved" as InstallmentStatus,
+            remainingBalance: fullyPaid ? undefined : it.amount - paid,
             neglectedBalance:
               isLast && it.id === lastShortfallId && shortfall > 0
                 ? shortfall
