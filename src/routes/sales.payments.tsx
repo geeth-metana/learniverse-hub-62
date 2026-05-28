@@ -58,6 +58,7 @@ import {
   ListChecks,
   Layers,
   UploadCloud,
+  Info,
 } from "lucide-react";
 import {
   BarChart,
@@ -610,12 +611,27 @@ function InstallmentsPanel({
                         </p>
                       )}
                       {it.carriedFromAmount ? (
-                        <p
-                          className="mt-0.5 text-smaller"
-                          style={{ color: TEXT_MUTED }}
-                        >
-                          Includes ${it.carriedFromAmount.toLocaleString()} carried balance
-                        </p>
+                        <>
+                          <div className="mt-1 flex items-center gap-1.5">
+                            <span
+                              className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                              style={{ backgroundColor: "#FFF7D6", color: TEXT_DARK }}
+                            >
+                              Carried Balance
+                            </span>
+                            <span className="text-smaller" style={{ color: TEXT_MUTED }}>
+                              Includes ${it.carriedFromAmount.toLocaleString()} carried balance
+                            </span>
+                          </div>
+                          {it.carriedFromLabel && (
+                            <p
+                              className="mt-1 text-smaller italic"
+                              style={{ color: TEXT_MUTED }}
+                            >
+                              Note: includes unpaid balance carried from {it.carriedFromLabel}.
+                            </p>
+                          )}
+                        </>
                       ) : null}
                     </div>
                     <InstallmentStatusPill status={it.status} />
@@ -1220,6 +1236,20 @@ function InstallmentDetailPanel({
               <Row label="Status" value={row.status} last />
             </div>
           </div>
+
+          {row.carriedFromAmount ? (
+            <div
+              className="mt-3 flex items-start gap-2 rounded-xl p-3"
+              style={{ backgroundColor: "#FBFBE0", border: `1px solid #E8E89B` }}
+            >
+              <Info className="mt-0.5 h-4 w-4 shrink-0" style={{ color: TEXT_DARK }} />
+              <p className="text-smaller" style={{ color: TEXT_DARK }}>
+                This installment includes ${row.carriedFromAmount.toLocaleString()} carried forward
+                {row.carriedFromLabel ? ` from ${row.carriedFromLabel}` : ""}. This carried balance
+                should be collected with this installment payment.
+              </p>
+            </div>
+          ) : null}
 
           {canSelect && (
             <div className="mt-4 flex flex-wrap gap-2">
