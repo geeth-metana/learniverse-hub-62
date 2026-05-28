@@ -606,32 +606,21 @@ function InstallmentsPanel({
                           : `$${it.amount.toLocaleString()}`}
                       </p>
                       {it.status === "Approved" && it.paymentMethod && (
-                        <p className="text-smaller" style={{ color: TEXT_MUTED }}>
-                          Approved · {it.paymentMethod === "Stripe" ? "Stripe" : "Bank / Offline"}
-                        </p>
+                        it.remainingBalance ? null : (
+                          <p className="text-smaller" style={{ color: TEXT_MUTED }}>
+                            Approved · {it.paymentMethod === "Stripe" ? "Stripe" : "Bank / Offline"}
+                          </p>
+                        )
                       )}
+                      {it.remainingBalance ? (
+                        <p className="mt-1 text-smaller whitespace-nowrap" style={{ color: TEXT_MUTED }}>
+                          Remaining Balance: ${it.remainingBalance.toLocaleString()}
+                        </p>
+                      ) : null}
                       {it.carriedFromAmount ? (
-                        <>
-                          <div className="mt-1 flex items-center gap-1.5">
-                            <span
-                              className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold"
-                              style={{ backgroundColor: "#FFF7D6", color: TEXT_DARK }}
-                            >
-                              Carried Balance
-                            </span>
-                            <span className="text-smaller" style={{ color: TEXT_MUTED }}>
-                              Includes ${it.carriedFromAmount.toLocaleString()} carried balance
-                            </span>
-                          </div>
-                          {it.carriedFromLabel && (
-                            <p
-                              className="mt-1 text-smaller italic"
-                              style={{ color: TEXT_MUTED }}
-                            >
-                              Note: includes unpaid balance carried from {it.carriedFromLabel}.
-                            </p>
-                          )}
-                        </>
+                        <p className="mt-1 text-smaller whitespace-nowrap" style={{ color: TEXT_MUTED }}>
+                          Includes ${it.carriedFromAmount.toLocaleString()} carried balance
+                        </p>
                       ) : null}
                     </div>
                     <InstallmentStatusPill status={it.status} />
