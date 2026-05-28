@@ -1237,6 +1237,20 @@ function InstallmentDetailPanel({
             </div>
           </div>
 
+          {row.carriedFromAmount ? (
+            <div
+              className="mt-3 flex items-start gap-2 rounded-xl p-3"
+              style={{ backgroundColor: "#FBFBE0", border: `1px solid #E8E89B` }}
+            >
+              <Info className="mt-0.5 h-4 w-4 shrink-0" style={{ color: TEXT_DARK }} />
+              <p className="text-smaller" style={{ color: TEXT_DARK }}>
+                This installment includes ${row.carriedFromAmount.toLocaleString()} carried forward
+                {row.carriedFromLabel ? ` from ${row.carriedFromLabel}` : ""}. This carried balance
+                should be collected with this installment payment.
+              </p>
+            </div>
+          ) : null}
+
           {canSelect && (
             <div className="mt-4 flex flex-wrap gap-2">
               <button
