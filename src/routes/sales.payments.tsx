@@ -1196,17 +1196,27 @@ function InstallmentDetailPanel({
             <div className="space-y-1.5">
               <Row label="Installment" value={row.label} />
               <Row label="Due Date" value={row.dueDate} />
-              <Row label="Original Amount" value={`$${row.amount.toLocaleString()}`} />
-              <Row
-                label="Current Amount Due"
-                value={`$${row.amount.toLocaleString()}`}
-              />
               {row.carriedFromAmount ? (
+                <>
+                  <Row
+                    label="Base Amount"
+                    value={`$${(row.amount - row.carriedFromAmount).toLocaleString()}`}
+                  />
+                  <Row
+                    label="Carried Balance"
+                    value={`+ $${row.carriedFromAmount.toLocaleString()}${row.carriedFromLabel ? ` (from ${row.carriedFromLabel})` : ""}`}
+                  />
+                  <Row
+                    label="Current Amount Due"
+                    value={`$${row.amount.toLocaleString()}`}
+                  />
+                </>
+              ) : (
                 <Row
-                  label="Carried Balance"
-                  value={`$${row.carriedFromAmount.toLocaleString()}`}
+                  label="Current Amount Due"
+                  value={`$${row.amount.toLocaleString()}`}
                 />
-              ) : null}
+              )}
               <Row label="Status" value={row.status} last />
             </div>
           </div>
