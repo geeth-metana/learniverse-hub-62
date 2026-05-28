@@ -509,7 +509,7 @@ function InstallmentsPanel({
 
       {/* Split view */}
       <div
-        className="mt-4 grid grid-cols-1 overflow-hidden rounded-2xl lg:grid-cols-[42%_58%]"
+        className="mt-4 grid h-[600px] grid-cols-1 overflow-hidden rounded-2xl lg:grid-cols-[42%_58%]"
         style={{ border: `1px solid ${BORDER}` }}
       >
         {/* Left list */}
@@ -535,7 +535,7 @@ function InstallmentsPanel({
               </button>
             )}
           </div>
-          <div className="max-h-[480px] overflow-y-auto">
+          <div className="min-h-0 flex-1 overflow-y-auto">
             {/* Down payment row (always Approved) */}
             <div
               className="flex items-center gap-3 px-4 py-3"
@@ -614,7 +614,7 @@ function InstallmentsPanel({
                           className="mt-0.5 text-smaller"
                           style={{ color: TEXT_MUTED }}
                         >
-                          Includes ${it.carriedFromAmount.toLocaleString()} carried forward
+                          Includes ${it.carriedFromAmount.toLocaleString()} carried balance
                         </p>
                       ) : null}
                     </div>
@@ -1196,17 +1196,27 @@ function InstallmentDetailPanel({
             <div className="space-y-1.5">
               <Row label="Installment" value={row.label} />
               <Row label="Due Date" value={row.dueDate} />
-              <Row label="Original Amount" value={`$${row.amount.toLocaleString()}`} />
-              <Row
-                label="Current Amount Due"
-                value={`$${row.amount.toLocaleString()}`}
-              />
               {row.carriedFromAmount ? (
+                <>
+                  <Row
+                    label="Base Amount"
+                    value={`$${(row.amount - row.carriedFromAmount).toLocaleString()}`}
+                  />
+                  <Row
+                    label="Carried Balance"
+                    value={`+ $${row.carriedFromAmount.toLocaleString()}${row.carriedFromLabel ? ` (from ${row.carriedFromLabel})` : ""}`}
+                  />
+                  <Row
+                    label="Current Amount Due"
+                    value={`$${row.amount.toLocaleString()}`}
+                  />
+                </>
+              ) : (
                 <Row
-                  label="Carried Balance"
-                  value={`$${row.carriedFromAmount.toLocaleString()}`}
+                  label="Current Amount Due"
+                  value={`$${row.amount.toLocaleString()}`}
                 />
-              ) : null}
+              )}
               <Row label="Status" value={row.status} last />
             </div>
           </div>
