@@ -434,11 +434,11 @@ function UserProfileModal({
 }
 
 function ProfileInfo({ user }: { user: User; onUpdate: (u: User) => void }) {
-  const description = "Lifelong learner exploring product, design, and code.";
+  const tagline = "Lifelong learner exploring product, design, and code.";
   const rows: { label: string; value: string; icon: any }[] = [
     { label: "Full name", value: user.name, icon: UserIcon },
     { label: "Email", value: user.email, icon: Mail },
-    { label: "Description", value: description, icon: FileText },
+    { label: "Description", value: tagline, icon: FileText },
     { label: "Role", value: user.role, icon: Briefcase },
     {
       label: "Joined Date",
@@ -453,43 +453,44 @@ function ProfileInfo({ user }: { user: User; onUpdate: (u: User) => void }) {
     >
       {/* Cover image */}
       <div
-        className="h-28 w-full"
+        className="h-32 w-full relative"
         style={{
           background: `linear-gradient(135deg, ${TEXT_DARK} 0%, #2a2a2a 60%, ${BRAND} 140%)`,
         }}
-      />
-      {/* Header: avatar + name on left, role/status on right */}
-      <div className="px-5 pt-0 pb-5 flex items-end gap-4 -mt-10">
+      >
+        {/* Avatar overlapping cover */}
         <img
           src={user.avatar}
           alt={user.name}
-          className="h-20 w-20 rounded-full object-cover ring-4 ring-white shadow"
+          className="h-24 w-24 rounded-full object-cover ring-4 ring-white shadow absolute left-6 -bottom-10"
         />
-        <div className="flex-1 min-w-0 pb-1">
-          <p className="text-lg font-semibold truncate">{user.name}</p>
-          <p className="text-sm truncate" style={{ color: TEXT_MUTED }}>{user.email}</p>
+      </div>
+
+      {/* Header row: name + tagline + role + status — placed BELOW the cover (no overlap) */}
+      <div className="pt-14 pb-5 px-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-3 flex-wrap">
+            <p className="text-lg font-semibold truncate">{user.name}</p>
+            <span className="text-sm truncate" style={{ color: TEXT_MUTED }}>· {tagline}</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0 pb-1">
+        <div className="flex items-center gap-2 shrink-0">
           <RolePill role={user.role} />
           <StatusBadge status={user.status} />
         </div>
       </div>
-      {/* Details — single column, icons per row, subtle dividers */}
+
+      {/* Details — single column, flat inline icons, subtle dividers */}
       <div>
-        {rows.map((r, i) => {
+        {rows.map((r) => {
           const Icon = r.icon;
           return (
             <div
               key={r.label}
-              className="flex items-start gap-4 px-5 py-4"
+              className="flex items-start gap-4 px-6 py-4"
               style={{ borderTop: `1px solid ${BORDER}` }}
             >
-              <div
-                className="h-9 w-9 rounded-full grid place-items-center shrink-0"
-                style={{ backgroundColor: SOFT, color: TEXT_DARK }}
-              >
-                <Icon className="h-4 w-4" />
-              </div>
+              <Icon className="h-4 w-4 mt-1 shrink-0" style={{ color: TEXT_MUTED }} />
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium uppercase tracking-wider" style={{ color: TEXT_MUTED }}>
                   {r.label}
