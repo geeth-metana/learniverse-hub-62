@@ -167,24 +167,23 @@ function UsersPage() {
       <div className="flex-1 flex flex-col min-w-0">
         <Topbar />
         <main className="flex-1 px-8 py-6">
-          <div className="mb-6 text-center max-w-3xl mx-auto">
-            <h1 className="text-3xl font-semibold tracking-tight">User Management</h1>
-            <p className="text-sm mt-2" style={{ color: TEXT_MUTED }}>
-              Manage your team and platform users — roles, permissions, progress and payments.
-            </p>
-          </div>
-
-          <div className="max-w-6xl mx-auto space-y-4">
-            {/* Centered search + add user */}
-            <div className="flex justify-center">
-              <div className="w-full max-w-2xl flex items-center gap-3">
-                <div className="relative flex-1 min-w-0">
+          <div className="max-w-6xl mx-auto space-y-5">
+            {/* Header: title left, actions right */}
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div className="min-w-0">
+                <h1 className="text-3xl font-semibold tracking-tight">User Management</h1>
+                <p className="text-sm mt-2 max-w-2xl" style={{ color: TEXT_MUTED }}>
+                  Manage your team and platform users — roles, permissions, progress and payments.
+                </p>
+              </div>
+              <div className="flex items-center gap-3 shrink-0">
+                <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: TEXT_MUTED }} />
                   <input
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Search by name, email, or role"
-                    className="w-full h-11 pl-9 pr-3 rounded-xl border bg-white text-sm focus:outline-none focus:ring-2"
+                    className="h-11 w-72 pl-9 pr-3 rounded-xl border bg-white text-sm focus:outline-none focus:ring-2"
                     style={{ borderColor: BORDER, boxShadow: "0 1px 2px rgba(15,23,42,0.04)" }}
                   />
                 </div>
