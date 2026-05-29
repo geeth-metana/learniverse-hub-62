@@ -167,24 +167,23 @@ function UsersPage() {
       <div className="flex-1 flex flex-col min-w-0">
         <Topbar />
         <main className="flex-1 px-8 py-6">
-          <div className="mb-6 text-center max-w-3xl mx-auto">
-            <h1 className="text-3xl font-semibold tracking-tight">User Management</h1>
-            <p className="text-sm mt-2" style={{ color: TEXT_MUTED }}>
-              Manage your team and platform users — roles, permissions, progress and payments.
-            </p>
-          </div>
-
-          <div className="max-w-6xl mx-auto space-y-4">
-            {/* Centered search + add user */}
-            <div className="flex justify-center">
-              <div className="w-full max-w-2xl flex items-center gap-3">
-                <div className="relative flex-1 min-w-0">
+          <div className="max-w-6xl mx-auto space-y-5">
+            {/* Header: title left, actions right */}
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div className="min-w-0">
+                <h1 className="text-3xl font-semibold tracking-tight">User Management</h1>
+                <p className="text-sm mt-2 max-w-2xl" style={{ color: TEXT_MUTED }}>
+                  Manage your team and platform users — roles, permissions, progress and payments.
+                </p>
+              </div>
+              <div className="flex items-center gap-3 shrink-0">
+                <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: TEXT_MUTED }} />
                   <input
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Search by name, email, or role"
-                    className="w-full h-11 pl-9 pr-3 rounded-xl border bg-white text-sm focus:outline-none focus:ring-2"
+                    className="h-11 w-72 pl-9 pr-3 rounded-xl border bg-white text-sm focus:outline-none focus:ring-2"
                     style={{ borderColor: BORDER, boxShadow: "0 1px 2px rgba(15,23,42,0.04)" }}
                   />
                 </div>
@@ -365,13 +364,13 @@ function UserProfileModal({
     <ModalShell onClose={onClose}>
       <div className="flex h-[680px]">
         {/* Left selector */}
-        <aside className="w-[260px] shrink-0 flex flex-col" style={{ backgroundColor: "#0B0B0B", color: "#fff" }}>
-          <div className="p-4 border-b" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
+        <aside className="w-[260px] shrink-0 flex flex-col sticky top-0 self-start h-full" style={{ backgroundColor: "#fff", borderRight: `1px solid ${BORDER}` }}>
+          <div className="p-4 border-b" style={{ borderColor: BORDER }}>
             <div className="flex items-center gap-3">
-              <img src={user.avatar} alt={user.name} className="h-10 w-10 rounded-full object-cover ring-2 ring-white/10" />
+              <img src={user.avatar} alt={user.name} className="h-10 w-10 rounded-full object-cover ring-2" style={{ ["--tw-ring-color" as any]: BORDER }} />
               <div className="min-w-0">
-                <p className="font-semibold truncate text-white">{user.name}</p>
-                <p className="text-xs truncate" style={{ color: "rgba(255,255,255,0.55)" }}>{user.email}</p>
+                <p className="font-semibold truncate" style={{ color: TEXT_DARK }}>{user.name}</p>
+                <p className="text-xs truncate" style={{ color: TEXT_MUTED }}>{user.email}</p>
               </div>
             </div>
           </div>
@@ -386,19 +385,19 @@ function UserProfileModal({
                   onClick={() => setSection(s.key)}
                   className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-sm transition-colors relative"
                   style={{
-                    backgroundColor: active ? "rgba(255,255,255,0.06)" : "transparent",
-                    color: "#fff",
+                    backgroundColor: active ? TEXT_DARK : "transparent",
+                    color: active ? "#fff" : TEXT_DARK,
                   }}
                   onMouseEnter={(e) => {
-                    if (!active) (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(255,255,255,0.04)";
+                    if (!active) (e.currentTarget as HTMLButtonElement).style.backgroundColor = SOFT;
                   }}
                   onMouseLeave={(e) => {
                     if (!active) (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent";
                   }}
                 >
                   <span className="flex items-center gap-3">
-                    <Icon className="h-4 w-4" style={{ color: active ? BRAND : "rgba(255,255,255,0.7)" }} />
-                    <span className="font-medium" style={{ color: "#fff" }}>{s.label}</span>
+                    <Icon className="h-4 w-4" style={{ color: active ? BRAND : TEXT_MUTED }} />
+                    <span className="font-medium">{s.label}</span>
                   </span>
                   {active && <ChevronRight className="h-4 w-4" style={{ color: BRAND }} />}
                 </motion.button>
@@ -429,57 +428,51 @@ function UserProfileModal({
   );
 }
 
-function ProfileInfo({ user, onUpdate }: { user: User; onUpdate: (u: User) => void }) {
+function ProfileInfo({ user }: { user: User; onUpdate: (u: User) => void }) {
+  const description = "Lifelong learner exploring product, design, and code.";
+  const rows: { label: string; value: string }[] = [
+    { label: "Full name", value: user.name },
+    { label: "Email", value: user.email },
+    { label: "Description", value: description },
+    { label: "Role", value: user.role },
+    { label: "Joined Date", value: new Date(user.createdAt).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" }) },
+  ];
   return (
     <div className="space-y-5">
+      {/* Header: picture + name on left, role/status on right */}
       <div
-        className="rounded-2xl overflow-hidden border"
+        className="rounded-2xl border bg-white p-5 flex items-center gap-4"
         style={{ borderColor: BORDER, boxShadow: "0 1px 2px rgba(15,23,42,0.04)" }}
       >
-        <div className="h-32" style={{ background: `linear-gradient(135deg, ${BRAND} 0%, #E8FF80 100%)` }} />
-        <div className="px-5 pb-5 -mt-10">
-          <img src={user.avatar} alt={user.name} className="h-20 w-20 rounded-full object-cover ring-4 ring-white" />
-          <div className="mt-3">
-            <p className="text-lg font-semibold">{user.name}</p>
-            <p className="text-sm" style={{ color: TEXT_MUTED }}>{user.email}</p>
-            <div className="mt-2 flex items-center gap-2">
-              <RolePill role={user.role} />
-              <StatusBadge status={user.status} />
-            </div>
-          </div>
+        <img src={user.avatar} alt={user.name} className="h-16 w-16 rounded-full object-cover ring-2 ring-white shadow" />
+        <div className="flex-1 min-w-0">
+          <p className="text-lg font-semibold truncate">{user.name}</p>
+          <p className="text-sm truncate" style={{ color: TEXT_MUTED }}>{user.email}</p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <RolePill role={user.role} />
+          <StatusBadge status={user.status} />
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Full name" value={user.name} />
-        <Field label="Email" value={user.email} />
-        <Field label="Role" value={user.role} />
-        <Field label="Joined" value={new Date(user.createdAt).toLocaleDateString()} />
+      {/* Details list — single column with horizontal dividers */}
+      <div
+        className="rounded-2xl border bg-white overflow-hidden"
+        style={{ borderColor: BORDER, boxShadow: "0 1px 2px rgba(15,23,42,0.04)" }}
+      >
+        {rows.map((r, i) => (
+          <div
+            key={r.label}
+            className="flex items-start gap-6 px-5 py-4"
+            style={{ borderTop: i === 0 ? "none" : `1px solid ${BORDER}` }}
+          >
+            <p className="text-xs font-medium uppercase tracking-wider w-40 shrink-0 pt-0.5" style={{ color: TEXT_MUTED }}>
+              {r.label}
+            </p>
+            <p className="text-sm font-medium flex-1 min-w-0" style={{ color: TEXT_DARK }}>{r.value}</p>
+          </div>
+        ))}
       </div>
-
-      <div>
-        <p className="text-sm font-semibold mb-2">Manage User Type</p>
-        <select
-          value={user.role}
-          onChange={(e) => onUpdate({ ...user, role: e.target.value as Role })}
-          className="h-10 px-3 rounded-xl border bg-white text-sm w-full max-w-xs"
-          style={{ borderColor: BORDER }}
-        >
-          <option value="Student">Student</option>
-          <option value="Instructor">Instructor</option>
-          <option value="Admin">Admin</option>
-          <option value="Sales">Sales</option>
-        </select>
-      </div>
-    </div>
-  );
-}
-
-function Field({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border p-3" style={{ borderColor: BORDER, backgroundColor: "#FAFAFA" }}>
-      <p className="text-xs" style={{ color: TEXT_MUTED }}>{label}</p>
-      <p className="text-sm font-medium mt-0.5">{value}</p>
     </div>
   );
 }
