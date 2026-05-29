@@ -385,9 +385,8 @@ function UserProfileModal({
               const active = section === s.key;
               const Icon = s.icon;
               return (
-                <motion.button
+                <button
                   key={s.key}
-                  whileHover={{ x: active ? 0 : 2 }}
                   onClick={() => setSection(s.key)}
                   className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-sm transition-colors relative"
                   style={{
@@ -406,7 +405,7 @@ function UserProfileModal({
                     <span className="font-medium">{s.label}</span>
                   </span>
                   {active && <ChevronRight className="h-4 w-4" style={{ color: BRAND }} />}
-                </motion.button>
+                </button>
               );
             })}
           </nav>
