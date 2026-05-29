@@ -419,7 +419,7 @@ function UserProfileModal({
               <X className="h-4 w-4" />
             </button>
           </div>
-          <div className="flex-1 overflow-auto p-6">
+          <div className="flex-1 overflow-auto p-8">
             {section === "profile" && <ProfileInfo user={user} onUpdate={onUpdate} />}
             {section === "settings" && <UserSettings user={user} onUpdate={onUpdate} />}
             {section === "permissions" && <PermissionsManager />}
