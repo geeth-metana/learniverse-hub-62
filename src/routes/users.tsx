@@ -942,34 +942,166 @@ function CourseProgress() {
   );
 }
 
+type LogCategory = "Course" | "Announcement" | "Platform";
+
+type LogEvent = {
+  title: string;
+  subtitle: string;
+  category: LogCategory;
+  time: string;
+  details?: string;
+};
+
+type LogDay = {
+  date: string;
+  label: string;
+  events: LogEvent[];
+};
+
+const LOG_DATA: LogDay[] = [
+  {
+    date: "2025-08-28",
+    label: "August 28, 2025 (Today)",
+    events: [
+      { title: "Lesson completed", subtitle: "React Basics · Components · JSX", category: "Course", time: "10:53 PM", details: "Completed the JSX lesson with 100% quiz score. Time spent: 45 minutes." },
+      { title: "New announcement published", subtitle: "System maintenance scheduled for tonight at 2 AM UTC", category: "Announcement", time: "09:15 PM" },
+      { title: "Password changed", subtitle: "Account security update initiated by user", category: "Platform", time: "02:40 PM", details: "User updated their password from the account settings page." },
+    ],
+  },
+  {
+    date: "2025-08-27",
+    label: "August 27, 2025",
+    events: [
+      { title: "Module started", subtitle: "React Basics", category: "Course", time: "11:30 AM", details: "Enrolled in the React Basics module. Estimated completion: 3 weeks." },
+      { title: "Signed in", subtitle: "Chrome on macOS · IP 192.168.1.42", category: "Platform", time: "09:05 AM" },
+      { title: "Payment processed", subtitle: "Installment #2 — Full-Stack Web Development", category: "Course", time: "08:00 AM", details: "$1,200 received via Stripe. Receipt sent to email." },
+    ],
+  },
+  {
+    date: "2025-08-25",
+    label: "August 25, 2025",
+    events: [
+      { title: "Assignment submitted", subtitle: "JavaScript Foundations · Promises", category: "Course", time: "03:20 PM", details: "Submitted async/await coding challenge. Pending instructor review." },
+      { title: "Profile updated", subtitle: "Changed display name and avatar", category: "Platform", time: "10:00 AM" },
+    ],
+  },
+  {
+    date: "2025-08-22",
+    label: "August 22, 2025",
+    events: [
+      { title: "Course enrolled", subtitle: "Full-Stack Web Development", category: "Course", time: "08:45 AM", details: "Enrolled via sales team referral. Full installment plan activated." },
+      { title: "Welcome email sent", subtitle: "Onboarding sequence initiated", category: "Platform", time: "08:47 AM" },
+    ],
+  },
+  {
+    date: "2025-08-20",
+    label: "August 20, 2025",
+    events: [
+      { title: "Account created", subtitle: "Registered via invite link", category: "Platform", time: "02:15 PM", details: "Account created by admin. Temporary password sent to email." },
+    ],
+  },
+];
+
 function ActivityLog() {
-  const days = [
-    { date: "May 28, 2026", events: [
-      { time: "10:14", text: "Lesson completed — React Basics · Components" },
-      { time: "09:02", text: "Module started — React Basics" },
-    ]},
-    { date: "May 27, 2026", events: [
-      { time: "16:40", text: "Lesson completed — JS Foundations · Promises" },
-      { time: "11:21", text: "Signed in" },
-    ]},
-    { date: "May 25, 2026", events: [
-      { time: "13:08", text: "Payment received — Installment #2" },
-    ]},
-  ];
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+
+  const toggle = (id: string) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const tagStyle = (cat: LogCategory) => {
+    switch (cat) {
+      case "Course": return { bg: "#EDE7FF", color: TEXT_DARK };
+      case "Announcement": return { bg: "#FFF7E5", color: TEXT_DARK };
+      case "Platform": return { bg: "#ECFDF5", color: TEXT_DARK };
+    }
+  };
+
   return (
-    <div className="space-y-5">
-      {days.map((d) => (
-        <div key={d.date}>
-          <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: TEXT_MUTED }}>{d.date}</p>
-          <div className="rounded-2xl border bg-white divide-y" style={{ borderColor: BORDER }}>
-            {d.events.map((e, i) => (
-              <div key={i} className="px-4 py-3 flex items-center gap-3 text-sm">
-                <span className="tabular-nums text-xs w-12" style={{ color: TEXT_MUTED }}>{e.time}</span>
-                <Circle className="h-2 w-2 fill-current" style={{ color: BRAND_HOVER }} />
-                <span>{e.text}</span>
-              </div>
-            ))}
+    <div className="space-y-6">
+      {LOG_DATA.map((day, dayIdx) => (
+        <div key={day.date}>
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <Calendar className="h-4 w-4" style={{ color: TEXT_MUTED }} />
+            <span className="text-sm font-medium" style={{ color: TEXT_MUTED }}>{day.label}</span>
           </div>
+          <div className="space-y-2">
+            {day.events.map((e, idx) => {
+              const id = `${day.date}-${idx}`;
+              const isOpen = expanded.has(id);
+              const tag = tagStyle(e.category);
+              return (
+                <div
+                  key={id}
+                  onClick={() => e.details && toggle(id)}
+                  className="rounded-xl border bg-white transition-all"
+                  style={{
+                    borderColor: "#E5E7EB",
+                    cursor: e.details ? "pointer" : "default",
+                    transitionDuration: "0.2s",
+                  }}
+                  onMouseEnter={(ev) => {
+                    if (!e.details) return;
+                    ev.currentTarget.style.backgroundColor = "#F9FAFB";
+                    ev.currentTarget.style.boxShadow = "0 2px 8px rgba(15,23,42,0.04)";
+                  }}
+                  onMouseLeave={(ev) => {
+                    ev.currentTarget.style.backgroundColor = "#FFFFFF";
+                    ev.currentTarget.style.boxShadow = "none";
+                  }}
+                >
+                  <div className="p-3 px-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-sm font-semibold" style={{ color: TEXT_DARK }}>{e.title}</p>
+                          <span
+                            className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                            style={{ backgroundColor: tag.bg, color: tag.color }}
+                          >
+                            {e.category}
+                          </span>
+                        </div>
+                        <p className="text-xs mt-1" style={{ color: "#4B5563" }}>{e.subtitle}</p>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {e.details && (
+                          <ChevronDown
+                            className="h-3.5 w-3.5 transition-transform"
+                            style={{ color: TEXT_MUTED, transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", transitionDuration: "0.2s" }}
+                          />
+                        )}
+                        <span className="text-xs tabular-nums" style={{ color: TEXT_MUTED }}>{e.time}</span>
+                      </div>
+                    </div>
+                  </div>
+                  {e.details && (
+                    <div
+                      className="grid transition-all ease-in-out overflow-hidden"
+                      style={{
+                        gridTemplateRows: isOpen ? "1fr" : "0fr",
+                        transitionDuration: "0.2s",
+                      }}
+                    >
+                      <div className="min-w-0">
+                        <div className="mx-4 pb-3 pt-0 border-t text-xs" style={{ borderColor: "#E5E7EB", color: "#4B5563" }}>
+                          <p className="pt-3">{e.details}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          {dayIdx < LOG_DATA.length - 1 && (
+            <div className="mt-6 border-t" style={{ borderColor: "#E5E7EB" }} />
+          )}
         </div>
       ))}
     </div>
