@@ -156,24 +156,13 @@ function IconAction({
 
 function UsersPage() {
   const [users, setUsers] = useState<User[]>(MOCK_USERS);
-  const [topic, setTopic] = useState<Role | "All">("All");
   const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<Status | "All">("All");
-  const [dateFilter, setDateFilter] = useState<"All" | "30d" | "90d">("All");
   const [viewUser, setViewUser] = useState<User | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<User | null>(null);
   const [addOpen, setAddOpen] = useState(false);
 
   const filtered = useMemo(() => {
-    const now = Date.now();
     return users.filter((u) => {
-      if (topic !== "All" && u.role !== topic) return false;
-      if (statusFilter !== "All" && u.status !== statusFilter) return false;
-      if (dateFilter !== "All") {
-        const days = dateFilter === "30d" ? 30 : 90;
-        const cutoff = now - days * 24 * 60 * 60 * 1000;
-        if (new Date(u.createdAt).getTime() < cutoff) return false;
-      }
       if (query) {
         const q = query.toLowerCase();
         if (
@@ -185,13 +174,7 @@ function UsersPage() {
       }
       return true;
     });
-  }, [users, topic, query, statusFilter, dateFilter]);
-
-  const counts = useMemo(() => {
-    const c: Record<string, number> = { All: users.length };
-    for (const t of TOPICS.slice(1)) c[t.key] = users.filter((u) => u.role === t.key).length;
-    return c;
-  }, [users]);
+  }, [users, query]);
 
   return (
     <div className="min-h-screen flex" style={{ backgroundColor: "#FAFAFA", color: TEXT_DARK }}>
@@ -199,114 +182,43 @@ function UsersPage() {
       <div className="flex-1 flex flex-col min-w-0">
         <Topbar />
         <main className="flex-1 px-8 py-6">
-          <div className="mb-6">
-            <h1 className="text-2xl font-semibold tracking-tight">User Management</h1>
-            <p className="text-sm mt-1" style={{ color: TEXT_MUTED }}>
+          <div className="mb-6 text-center max-w-3xl mx-auto">
+            <h1 className="text-3xl font-semibold tracking-tight">User Management</h1>
+            <p className="text-sm mt-2" style={{ color: TEXT_MUTED }}>
               Manage your team and platform users — roles, permissions, progress and payments.
             </p>
           </div>
 
-          <div className="grid grid-cols-12 gap-6">
-            {/* Left topic panel */}
-            <aside className="col-span-12 lg:col-span-3">
-              <div
-                className="rounded-2xl bg-white border sticky top-6"
-                style={{ borderColor: BORDER, boxShadow: "0 1px 2px rgba(15,23,42,0.04)" }}
-              >
-                <div className="px-4 py-3 border-b" style={{ borderColor: BORDER }}>
-                  <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: TEXT_MUTED }}>
-                    Topics
-                  </p>
-                </div>
-                <nav className="p-2">
-                  {TOPICS.map((t) => {
-                    const active = topic === t.key;
-                    const Icon = t.icon;
-                    return (
-                      <button
-                        key={t.key}
-                        onClick={() => setTopic(t.key)}
-                        className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-sm transition-all"
-                        style={{
-                          backgroundColor: active ? TEXT_DARK : "transparent",
-                          color: active ? "#fff" : TEXT_DARK,
-                        }}
-                      >
-                        <span className="flex items-center gap-3">
-                          <Icon className="h-4 w-4" />
-                          <span className="font-medium">{t.label}</span>
-                        </span>
-                        <span
-                          className="text-xs px-2 py-0.5 rounded-full"
-                          style={{
-                            backgroundColor: active ? "rgba(255,255,255,0.15)" : SOFT,
-                            color: active ? "#fff" : TEXT_MUTED,
-                          }}
-                        >
-                          {counts[t.key] ?? 0}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </nav>
-              </div>
-            </aside>
-
-            {/* Right content */}
-            <section className="col-span-12 lg:col-span-9 space-y-4">
-              <div
-                className="rounded-2xl bg-white border p-4 flex flex-col md:flex-row md:items-center gap-3"
-                style={{ borderColor: BORDER, boxShadow: "0 1px 2px rgba(15,23,42,0.04)" }}
-              >
+          <div className="max-w-6xl mx-auto space-y-4">
+            {/* Centered search + add user */}
+            <div className="flex justify-center">
+              <div className="w-full max-w-2xl flex items-center gap-3">
                 <div className="relative flex-1 min-w-0">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: TEXT_MUTED }} />
                   <input
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Search by name, email, or role"
-                    className="w-full h-10 pl-9 pr-3 rounded-xl border bg-white text-sm focus:outline-none"
-                    style={{ borderColor: BORDER }}
+                    className="w-full h-11 pl-9 pr-3 rounded-xl border bg-white text-sm focus:outline-none focus:ring-2"
+                    style={{ borderColor: BORDER, boxShadow: "0 1px 2px rgba(15,23,42,0.04)" }}
                   />
                 </div>
-                <div className="flex items-center gap-2">
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value as any)}
-                    className="h-10 px-3 rounded-xl border bg-white text-sm"
-                    style={{ borderColor: BORDER }}
-                  >
-                    <option value="All">All status</option>
-                    <option value="Active">Active</option>
-                    <option value="Suspended">Suspended</option>
-                    <option value="Disabled">Disabled</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
-                  <select
-                    value={dateFilter}
-                    onChange={(e) => setDateFilter(e.target.value as any)}
-                    className="h-10 px-3 rounded-xl border bg-white text-sm"
-                    style={{ borderColor: BORDER }}
-                  >
-                    <option value="All">Any date</option>
-                    <option value="30d">Last 30 days</option>
-                    <option value="90d">Last 90 days</option>
-                  </select>
-                  <button
-                    onClick={() => setAddOpen(true)}
-                    className="h-10 px-4 rounded-xl text-sm font-semibold inline-flex items-center gap-2 transition-transform hover:scale-[1.02]"
-                    style={{ backgroundColor: BRAND_HOVER, color: TEXT_DARK }}
-                  >
-                    <Plus className="h-4 w-4" />
-                    Add User
-                  </button>
-                </div>
+                <button
+                  onClick={() => setAddOpen(true)}
+                  className="h-11 px-5 rounded-xl text-sm font-semibold inline-flex items-center gap-2 transition-transform hover:scale-[1.02] shrink-0"
+                  style={{ backgroundColor: BRAND_HOVER, color: TEXT_DARK, boxShadow: "0 2px 8px rgba(208, 252, 3, 0.35)" }}
+                >
+                  <Plus className="h-4 w-4" />
+                  Add User
+                </button>
               </div>
+            </div>
 
-              {/* Table */}
-              <div
-                className="rounded-2xl bg-white border overflow-hidden"
-                style={{ borderColor: BORDER, boxShadow: "0 1px 2px rgba(15,23,42,0.04)" }}
-              >
+            {/* Table */}
+            <div
+              className="rounded-2xl bg-white border overflow-hidden"
+              style={{ borderColor: BORDER, boxShadow: "0 1px 2px rgba(15,23,42,0.04)" }}
+            >
                 <div className="max-h-[640px] overflow-auto">
                   <table className="w-full text-sm">
                     <thead
@@ -314,12 +226,12 @@ function UsersPage() {
                       style={{ backgroundColor: "#FAFAFA", borderBottom: `1px solid ${BORDER}` }}
                     >
                       <tr className="text-left" style={{ color: TEXT_MUTED }}>
-                        <th className="px-4 py-3 font-medium">User</th>
-                        <th className="px-4 py-3 font-medium">Email</th>
-                        <th className="px-4 py-3 font-medium">Role</th>
-                        <th className="px-4 py-3 font-medium">Status</th>
-                        <th className="px-4 py-3 font-medium">Created</th>
-                        <th className="px-4 py-3 font-medium text-right">Actions</th>
+                        <th className="px-5 py-4 font-medium">User</th>
+                        <th className="px-5 py-4 font-medium">Email</th>
+                        <th className="px-5 py-4 font-medium">Role</th>
+                        <th className="px-5 py-4 font-medium">Status</th>
+                        <th className="px-5 py-4 font-medium">Created</th>
+                        <th className="px-5 py-4 font-medium text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -333,19 +245,28 @@ function UsersPage() {
                       {filtered.map((u) => (
                         <tr
                           key={u.id}
-                          className="border-t transition-colors hover:bg-[color:var(--row-hover)]"
-                          style={{ borderColor: BORDER, ["--row-hover" as any]: SOFT }}
+                          className="transition-colors hover:bg-[color:var(--row-hover)]"
+                          style={{
+                            borderBottom: `1px solid ${BORDER}`,
+                            ["--row-hover" as any]: "rgba(204, 246, 33, 0.10)",
+                          }}
+                          onMouseEnter={(e) => {
+                            (e.currentTarget as HTMLTableRowElement).style.borderBottom = `1px solid ${BRAND}`;
+                          }}
+                          onMouseLeave={(e) => {
+                            (e.currentTarget as HTMLTableRowElement).style.borderBottom = `1px solid ${BORDER}`;
+                          }}
                         >
-                          <td className="px-4 py-3">
+                          <td className="px-5 py-4">
                             <div className="flex items-center gap-3">
-                              <img src={u.avatar} alt={u.name} className="h-9 w-9 rounded-full object-cover" />
+                              <img src={u.avatar} alt={u.name} className="h-10 w-10 rounded-full object-cover" />
                               <span className="font-medium">{u.name}</span>
                             </div>
                           </td>
-                          <td className="px-4 py-3" style={{ color: TEXT_MUTED }}>{u.email}</td>
-                          <td className="px-4 py-3"><RolePill role={u.role} /></td>
-                          <td className="px-4 py-3"><StatusBadge status={u.status} /></td>
-                          <td className="px-4 py-3">
+                          <td className="px-5 py-4" style={{ color: TEXT_MUTED }}>{u.email}</td>
+                          <td className="px-5 py-4"><RolePill role={u.role} /></td>
+                          <td className="px-5 py-4"><StatusBadge status={u.status} /></td>
+                          <td className="px-5 py-4">
                             <div className="flex flex-col">
                               <span className="font-medium">{u.name.split(" ")[0]}</span>
                               <span className="text-xs" style={{ color: TEXT_MUTED }}>
@@ -353,7 +274,7 @@ function UsersPage() {
                               </span>
                             </div>
                           </td>
-                          <td className="px-4 py-3">
+                          <td className="px-5 py-4">
                             <div className="flex items-center justify-end gap-1">
                               <IconAction label="View" onClick={() => setViewUser(u)}>
                                 <Eye className="h-4 w-4" />
@@ -368,8 +289,7 @@ function UsersPage() {
                     </tbody>
                   </table>
                 </div>
-              </div>
-            </section>
+            </div>
           </div>
         </main>
       </div>
