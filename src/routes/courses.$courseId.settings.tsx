@@ -6,46 +6,55 @@ import { getCourse } from "@/lib/courses-data";
 import {
   ArrowLeft,
   Settings as SettingsIcon,
-  Lock,
-  Unlock,
-  Eye,
-  EyeOff,
-  Save,
-  Trash2,
-  Tag,
-  Users,
-  GitBranch,
+  MoreVertical,
+  Pencil,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 
 export const Route = createFileRoute("/courses/$courseId/settings")({
   head: () => ({ meta: [{ title: "Course Settings — Metana" }] }),
   component: CourseSettingsPage,
 });
 
-function Row({
-  icon: Icon,
+function RadioCard({
+  checked,
+  onChange,
   title,
   description,
-  action,
 }: {
-  icon: React.ComponentType<{ className?: string }>;
+  checked: boolean;
+  onChange: () => void;
   title: string;
-  description: string;
-  action: React.ReactNode;
+  description?: string;
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border py-5 last:border-b-0">
-      <div className="flex items-start gap-3">
-        <div className="grid h-10 w-10 place-items-center rounded-full bg-muted text-foreground">
-          <Icon className="h-4 w-4" />
-        </div>
-        <div>
-          <p className="text-body font-semibold text-foreground">{title}</p>
-          <p className="text-small text-muted-foreground">{description}</p>
-        </div>
+    <label
+      className={`group relative flex cursor-pointer items-start gap-4 rounded-2xl border p-4 transition-all duration-200 ${
+        checked
+          ? "border-primary bg-primary/10"
+          : "border-border bg-background hover:bg-primary/5 hover:border-primary/30"
+      }`}
+    >
+      <input type="radio" checked={checked} onChange={onChange} className="peer sr-only" />
+      <div
+        className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border transition-colors ${
+          checked
+            ? "border-primary bg-primary"
+            : "border-muted-foreground/30 bg-transparent group-hover:border-primary/50"
+        }`}
+      >
+        {checked && <div className="h-2 w-2 rounded-full bg-background" />}
       </div>
-      <div className="shrink-0">{action}</div>
-    </div>
+      <div>
+        <p className="text-body font-semibold text-[#1A1A1A]">{title}</p>
+        {description && <p className="mt-1 text-small text-muted-foreground">{description}</p>}
+      </div>
+    </label>
   );
 }
 
@@ -54,11 +63,10 @@ function CourseSettingsPage() {
   const navigate = useNavigate();
   const course = getCourse(courseId);
 
-  const [title, setTitle] = useState(course?.title ?? "");
-  const [description, setDescription] = useState(course?.description ?? "");
-  const [published, setPublished] = useState(true);
-  const [locked, setLocked] = useState(false);
-  const [accessibility, setAccessibility] = useState<"linear" | "free">("linear");
+  const [accessSetting, setAccessSetting] = useState<"open" | "free" | "buy" | "recurring">("free");
+  const [visibility, setVisibility] = useState<"always" | "enrollees">("always");
+  const [progression, setProgression] = useState<"linear" | "free">("linear");
+  const [certificate, setCertificate] = useState("Certificate of Completion");
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
@@ -74,151 +82,118 @@ function CourseSettingsPage() {
               <ArrowLeft className="h-4 w-4" /> Back to Learning Journey
             </button>
 
-            <div className="mb-6 flex items-end justify-between gap-4">
-              <div>
-                <h1 className="text-primary-header font-bold text-foreground">Course Settings</h1>
-                <p className="mt-1 text-body text-muted-foreground">
-                  {course ? `Manage settings for "${course.title}".` : "Manage course settings."}
-                </p>
-              </div>
-              <Link
-                to="/courses/$courseId"
-                params={{ courseId }}
-                className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-small font-semibold text-foreground transition-colors hover:bg-muted"
-              >
-                <SettingsIcon className="h-4 w-4" /> View course
-              </Link>
+            <div className="mb-6">
+              <h1 className="text-primary-header font-bold text-foreground">Course Settings</h1>
+              <p className="mt-1 text-body text-muted-foreground">
+                Manage your course settings, access controls, and display options.
+              </p>
             </div>
 
-            {/* General */}
-            <section className="mb-6 rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
-              <h2 className="mb-2 text-second-header font-bold text-foreground">General</h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="flex flex-col gap-1.5 text-small font-semibold text-foreground">
-                  Title
-                  <input
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="rounded-xl border border-border bg-background px-3 py-2 text-body font-normal text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                  />
-                </label>
-                <label className="flex flex-col gap-1.5 text-small font-semibold text-foreground">
-                  Slug
-                  <input
-                    defaultValue={courseId}
-                    className="rounded-xl border border-border bg-background px-3 py-2 text-body font-normal text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                  />
-                </label>
-                <label className="sm:col-span-2 flex flex-col gap-1.5 text-small font-semibold text-foreground">
-                  Description
-                  <textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    rows={3}
-                    className="rounded-xl border border-border bg-background px-3 py-2 text-body font-normal text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                  />
-                </label>
+            {/* Course Image & Menu */}
+            <div className="relative mb-6 h-48 w-full overflow-hidden rounded-3xl bg-muted sm:h-64 shadow-[var(--shadow-soft)]">
+              {course?.cover ? (
+                <img src={course.cover} alt={course?.title} className="h-full w-full object-cover" />
+              ) : (
+                <div className="h-full w-full bg-gradient-to-r from-primary/20 to-primary/5" />
+              )}
+              <div className="absolute right-4 top-4">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="grid h-10 w-10 place-items-center rounded-full bg-background/90 text-foreground transition-all duration-200 hover:bg-[#1A1A1A] hover:text-white shadow-sm">
+                      <MoreVertical className="h-5 w-5" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48 rounded-2xl p-2 shadow-[var(--shadow-soft)]">
+                    <DropdownMenuItem
+                      onClick={() => navigate({ to: "/courses/$courseId", params: { courseId } })}
+                      className="cursor-pointer gap-2 rounded-xl py-2.5 text-body font-medium"
+                    >
+                      <Pencil className="h-4 w-4" /> Edit Course
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="cursor-pointer gap-2 rounded-xl py-2.5 text-body font-medium bg-muted">
+                      <SettingsIcon className="h-4 w-4" /> Edit Settings
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-            </section>
+            </div>
 
-            {/* Access */}
-            <section className="mb-6 rounded-3xl border border-border bg-card p-2 sm:p-6 shadow-[var(--shadow-soft)]">
-              <h2 className="mb-1 px-4 pt-4 sm:px-0 sm:pt-0 text-second-header font-bold text-foreground">
-                Access & Visibility
-              </h2>
-              <div className="px-4 sm:px-0">
-                <Row
-                  icon={published ? Eye : EyeOff}
-                  title="Published"
-                  description="Make this course visible to enrolled students."
-                  action={
-                    <button
-                      onClick={() => setPublished((v) => !v)}
-                      className={`h-7 w-12 rounded-full p-1 transition-colors ${published ? "bg-primary" : "bg-muted"}`}
-                      aria-pressed={published}
-                    >
-                      <span
-                        className={`block h-5 w-5 rounded-full bg-background shadow transition-transform ${published ? "translate-x-5" : "translate-x-0"}`}
-                      />
-                    </button>
-                  }
-                />
-                <Row
-                  icon={locked ? Lock : Unlock}
-                  title="Locked"
-                  description="Prevent new enrollments while keeping content available."
-                  action={
-                    <button
-                      onClick={() => setLocked((v) => !v)}
-                      className={`h-7 w-12 rounded-full p-1 transition-colors ${locked ? "bg-primary" : "bg-muted"}`}
-                      aria-pressed={locked}
-                    >
-                      <span
-                        className={`block h-5 w-5 rounded-full bg-background shadow transition-transform ${locked ? "translate-x-5" : "translate-x-0"}`}
-                      />
-                    </button>
-                  }
-                />
-                <Row
-                  icon={GitBranch}
-                  title="Progression"
-                  description="Choose between linear progression or free-form access."
-                  action={
-                    <select
-                      value={accessibility}
-                      onChange={(e) => setAccessibility(e.target.value as "linear" | "free")}
-                      className="h-9 rounded-lg border border-border bg-background px-3 text-small font-semibold text-foreground"
-                    >
-                      <option value="linear">Linear</option>
-                      <option value="free">Free-form</option>
-                    </select>
-                  }
-                />
-                <Row
-                  icon={Tag}
-                  title="Category"
-                  description="Used for filtering and discovery."
-                  action={
-                    <select className="h-9 rounded-lg border border-border bg-background px-3 text-small font-semibold text-foreground">
-                      <option>Bootcamp</option>
-                      <option>Workshop</option>
-                      <option>Self-paced</option>
-                    </select>
-                  }
-                />
-                <Row
-                  icon={Users}
-                  title="Instructors"
-                  description="Manage who can edit content and review submissions."
-                  action={
-                    <button className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-small font-semibold text-foreground transition-colors hover:bg-muted">
-                      Manage
-                    </button>
-                  }
-                />
-              </div>
-            </section>
+            <div className="rounded-3xl border border-border bg-card shadow-[var(--shadow-soft)]">
+              {/* Course Access Setting */}
+              <section className="border-b border-border p-6">
+              <div>
+                  <h2 className="text-second-header font-bold text-[#1A1A1A]">Course Access Setting</h2>
+                  <p className="mt-1 text-small text-muted-foreground">Controls how users will gain access to the course.</p>
+                </div>
+                <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  <RadioCard checked={accessSetting === "open"} onChange={() => setAccessSetting("open")} title="Open" description="course not protected." />
+                  <RadioCard checked={accessSetting === "free"} onChange={() => setAccessSetting("free")} title="Free" description="course protected; registration required." />
+                  <RadioCard checked={accessSetting === "buy"} onChange={() => setAccessSetting("buy")} title="Buy Now" description="one-time payment required." />
+                  <RadioCard checked={accessSetting === "recurring"} onChange={() => setAccessSetting("recurring")} title="Recurring" description="recurring payment required." />
+                </div>
+              </section>
 
-            {/* Danger zone */}
-            <section className="mb-10 rounded-3xl border border-destructive/30 bg-card p-6 shadow-[var(--shadow-soft)]">
-              <h2 className="mb-1 text-second-header font-bold text-destructive">Danger zone</h2>
-              <p className="mb-4 text-small text-muted-foreground">
-                Deleting this course removes all modules, lessons, and student progress.
-              </p>
-              <button className="inline-flex items-center gap-2 rounded-full bg-destructive px-4 py-2 text-small font-semibold text-destructive-foreground transition-colors hover:bg-destructive/90">
-                <Trash2 className="h-4 w-4" /> Delete course
-              </button>
-            </section>
+              {/* Display and Content Options */}
+              <section className="border-b border-border p-6">
+                <div>
+                  <h2 className="text-second-header font-bold text-[#1A1A1A]">Display and Content Options</h2>
+                  <p className="mt-1 text-small text-muted-foreground">Controls the look and feed of the course and optional content settings.</p>
+                </div>
+                <div className="mt-6 grid gap-8 lg:grid-cols-2">
+                  <div className="flex flex-col gap-3">
+                    <label className="text-small font-semibold text-[#1A1A1A]">Course Certificate</label>
+                    <div className="flex w-full flex-wrap items-center gap-4 sm:flex-nowrap">
+                      <select
+                        value={certificate}
+                        onChange={(e) => setCertificate(e.target.value)}
+                        className="h-12 w-full max-w-[280px] rounded-2xl border border-border bg-background px-4 text-body text-[#1A1A1A] outline-none transition-colors focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
+                      >
+                        <option>Certificate of Completion</option>
+                        <option>Certificate of Excellence</option>
+                        <option>No Certificate</option>
+                      </select>
+                      <button className="h-12 rounded-full border border-border bg-background px-6 text-button-primary font-semibold text-[#1A1A1A] shadow-sm transition-all duration-200 hover:bg-muted hover:shadow">
+                        Change
+                      </button>
+                    </div>
+                  </div>
 
-            <div className="flex items-center justify-end gap-3">
+                  <div className="flex flex-col gap-3">
+                    <label className="text-small font-semibold text-[#1A1A1A]">Access Mode</label>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <RadioCard checked={visibility === "always"} onChange={() => setVisibility("always")} title="Always Visible" />
+                      <RadioCard checked={visibility === "enrollees"} onChange={() => setVisibility("enrollees")} title="Only visible to enrollees" />
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Course Navigation Setting */}
+              <section className="p-6">
+                <div>
+                  <h2 className="text-second-header font-bold text-[#1A1A1A]">Course Navigation Setting</h2>
+                  <p className="mt-1 text-small text-muted-foreground">Controls how users interact with the content and their navigational experience.</p>
+                </div>
+                <div className="mt-6 flex flex-col gap-3">
+                  <label className="text-small font-semibold text-[#1A1A1A]">Progression Mode</label>
+                  <div className="grid gap-4 sm:grid-cols-2 lg:max-w-2xl">
+                    <RadioCard checked={progression === "linear"} onChange={() => setProgression("linear")} title="Linear" description="Students must complete lessons in order." />
+                    <RadioCard checked={progression === "free"} onChange={() => setProgression("free")} title="Free Form" description="Students can access any lesson at any time." />
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            {/* Actions */}
+            <div className="mt-8 flex flex-wrap items-center justify-end gap-4">
               <button
                 onClick={() => navigate({ to: "/courses" })}
-                className="rounded-full border border-border bg-background px-5 py-2.5 text-button-primary font-semibold text-foreground transition-colors hover:bg-muted"
+                className="rounded-full border border-border bg-background px-6 py-3 text-button-primary font-semibold text-[#1A1A1A] transition-all hover:bg-muted"
               >
                 Cancel
               </button>
-              <button className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-button-primary font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
-                <Save className="h-4 w-4" /> Save changes
+              <button className="rounded-full bg-primary px-6 py-3 text-button-primary font-semibold text-primary-foreground shadow-sm transition-all duration-200 hover:bg-primary/90 hover:shadow">
+                Save Settings
               </button>
             </div>
           </div>
