@@ -437,6 +437,8 @@ function CourseCard({
 }) {
   const isMine = course.category === "my";
   const progress = courseProgress[course.id] ?? 0;
+  const viewMode = useViewMode();
+  const navigate = useNavigate();
 
   return (
     <article
@@ -451,6 +453,13 @@ function CourseCard({
       <div className="flex flex-1 flex-col p-5">
         <div className="mb-3 flex items-start justify-between gap-3">
           <h3 className="text-second-header font-bold leading-snug text-foreground">{course.title}</h3>
+          {viewMode === "admin" && (
+            <CardActionsMenu
+              onEdit={() => navigate({ to: "/courses/$courseId", params: { courseId: course.id } })}
+              onSettings={() => navigate({ to: "/courses/$courseId/settings", params: { courseId: course.id } })}
+              editLabel="Edit Course"
+            />
+          )}
         </div>
         {isMine && (
           <div className="mb-3 flex items-center gap-3">
