@@ -1,7 +1,13 @@
 import { createFileRoute, Outlet, useMatch, useNavigate } from "@tanstack/react-router";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Topbar } from "@/components/dashboard/Topbar";
-import { Plus, Package, BookOpen, Clock, Lock, Unlock } from "lucide-react";
+import { Plus, Package, BookOpen, Clock, Lock, Unlock, MoreVertical, Pencil, Settings as SettingsIcon } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import { useProducts } from "@/lib/products-store";
 import { getCourse } from "@/lib/courses-data";
 
@@ -117,14 +123,47 @@ function ProductsListPage() {
                           <h3 className="text-second-header font-bold leading-snug text-foreground line-clamp-2">
                             {p.title}
                           </h3>
-                          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-xs font-semibold text-foreground">
-                            {isLinear ? (
-                              <Lock className="h-3.5 w-3.5" />
-                            ) : (
-                              <Unlock className="h-3.5 w-3.5" />
-                            )}
-                            {isLinear ? "Linear" : "Free-form"}
-                          </span>
+                          <div className="flex shrink-0 items-center gap-2">
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-xs font-semibold text-foreground">
+                              {isLinear ? (
+                                <Lock className="h-3.5 w-3.5" />
+                              ) : (
+                                <Unlock className="h-3.5 w-3.5" />
+                              )}
+                              {isLinear ? "Linear" : "Free-form"}
+                            </span>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button
+                                  onClick={(e) => e.stopPropagation()}
+                                  aria-label="Product actions"
+                                  className="grid h-8 w-8 place-items-center rounded-full text-foreground transition-colors hover:bg-muted hover:text-primary focus:outline-none focus:ring-2 focus:ring-ring"
+                                >
+                                  <MoreVertical className="h-4 w-4" />
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent
+                                align="end"
+                                onClick={(e) => e.stopPropagation()}
+                                className="min-w-[180px]"
+                              >
+                                <DropdownMenuItem
+                                  onSelect={() =>
+                                    navigate({ to: "/products/$productId", params: { productId: p.id } })
+                                  }
+                                >
+                                  <Pencil className="h-4 w-4" /> Edit Product
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onSelect={() =>
+                                    navigate({ to: "/products/$productId", params: { productId: p.id } })
+                                  }
+                                >
+                                  <SettingsIcon className="h-4 w-4" /> Edit Setting
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         </div>
                         {p.description ? (
                           <p className="text-small text-muted-foreground line-clamp-2">
