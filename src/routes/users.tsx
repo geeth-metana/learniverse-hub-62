@@ -13,7 +13,7 @@ import {
   KeyRound,
   Lock,
   UserX,
-  ChevronRight,
+  ChevronRight, ChevronDown,
   Circle,
   BookOpen,
   Activity,
