@@ -436,48 +436,70 @@ function UserProfileModal({
 
 function ProfileInfo({ user }: { user: User; onUpdate: (u: User) => void }) {
   const description = "Lifelong learner exploring product, design, and code.";
-  const rows: { label: string; value: string }[] = [
-    { label: "Full name", value: user.name },
-    { label: "Email", value: user.email },
-    { label: "Description", value: description },
-    { label: "Role", value: user.role },
-    { label: "Joined Date", value: new Date(user.createdAt).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" }) },
+  const rows: { label: string; value: string; icon: any }[] = [
+    { label: "Full name", value: user.name, icon: UserIcon },
+    { label: "Email", value: user.email, icon: Mail },
+    { label: "Description", value: description, icon: FileText },
+    { label: "Role", value: user.role, icon: Briefcase },
+    {
+      label: "Joined Date",
+      value: new Date(user.createdAt).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" }),
+      icon: Calendar,
+    },
   ];
   return (
-    <div className="space-y-5">
-      {/* Header: picture + name on left, role/status on right */}
+    <div
+      className="rounded-2xl border bg-white overflow-hidden"
+      style={{ borderColor: BORDER, boxShadow: "0 1px 2px rgba(15,23,42,0.04)" }}
+    >
+      {/* Cover image */}
       <div
-        className="rounded-2xl border bg-white p-5 flex items-center gap-4"
-        style={{ borderColor: BORDER, boxShadow: "0 1px 2px rgba(15,23,42,0.04)" }}
-      >
-        <img src={user.avatar} alt={user.name} className="h-16 w-16 rounded-full object-cover ring-2 ring-white shadow" />
-        <div className="flex-1 min-w-0">
+        className="h-28 w-full"
+        style={{
+          background: `linear-gradient(135deg, ${TEXT_DARK} 0%, #2a2a2a 60%, ${BRAND} 140%)`,
+        }}
+      />
+      {/* Header: avatar + name on left, role/status on right */}
+      <div className="px-5 pt-0 pb-5 flex items-end gap-4 -mt-10">
+        <img
+          src={user.avatar}
+          alt={user.name}
+          className="h-20 w-20 rounded-full object-cover ring-4 ring-white shadow"
+        />
+        <div className="flex-1 min-w-0 pb-1">
           <p className="text-lg font-semibold truncate">{user.name}</p>
           <p className="text-sm truncate" style={{ color: TEXT_MUTED }}>{user.email}</p>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0 pb-1">
           <RolePill role={user.role} />
           <StatusBadge status={user.status} />
         </div>
       </div>
-
-      {/* Details list — single column with horizontal dividers */}
-      <div
-        className="rounded-2xl border bg-white overflow-hidden"
-        style={{ borderColor: BORDER, boxShadow: "0 1px 2px rgba(15,23,42,0.04)" }}
-      >
-        {rows.map((r, i) => (
-          <div
-            key={r.label}
-            className="flex items-start gap-6 px-5 py-4"
-            style={{ borderTop: i === 0 ? "none" : `1px solid ${BORDER}` }}
-          >
-            <p className="text-xs font-medium uppercase tracking-wider w-40 shrink-0 pt-0.5" style={{ color: TEXT_MUTED }}>
-              {r.label}
-            </p>
-            <p className="text-sm font-medium flex-1 min-w-0" style={{ color: TEXT_DARK }}>{r.value}</p>
-          </div>
-        ))}
+      {/* Details — single column, icons per row, subtle dividers */}
+      <div>
+        {rows.map((r, i) => {
+          const Icon = r.icon;
+          return (
+            <div
+              key={r.label}
+              className="flex items-start gap-4 px-5 py-4"
+              style={{ borderTop: `1px solid ${BORDER}` }}
+            >
+              <div
+                className="h-9 w-9 rounded-full grid place-items-center shrink-0"
+                style={{ backgroundColor: SOFT, color: TEXT_DARK }}
+              >
+                <Icon className="h-4 w-4" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium uppercase tracking-wider" style={{ color: TEXT_MUTED }}>
+                  {r.label}
+                </p>
+                <p className="text-sm font-medium mt-1" style={{ color: TEXT_DARK }}>{r.value}</p>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
