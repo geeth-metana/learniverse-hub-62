@@ -14,7 +14,6 @@ import {
   Lock,
   UserX,
   ChevronRight,
-  CheckCircle2,
   Circle,
   BookOpen,
   Activity,
