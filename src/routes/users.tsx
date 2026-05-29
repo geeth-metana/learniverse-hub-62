@@ -364,13 +364,13 @@ function UserProfileModal({
     <ModalShell onClose={onClose}>
       <div className="flex h-[680px]">
         {/* Left selector */}
-        <aside className="w-[260px] shrink-0 flex flex-col" style={{ backgroundColor: "#0B0B0B", color: "#fff" }}>
-          <div className="p-4 border-b" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
+        <aside className="w-[260px] shrink-0 flex flex-col sticky top-0 self-start h-full" style={{ backgroundColor: "#fff", borderRight: `1px solid ${BORDER}` }}>
+          <div className="p-4 border-b" style={{ borderColor: BORDER }}>
             <div className="flex items-center gap-3">
-              <img src={user.avatar} alt={user.name} className="h-10 w-10 rounded-full object-cover ring-2 ring-white/10" />
+              <img src={user.avatar} alt={user.name} className="h-10 w-10 rounded-full object-cover ring-2" style={{ ["--tw-ring-color" as any]: BORDER }} />
               <div className="min-w-0">
-                <p className="font-semibold truncate text-white">{user.name}</p>
-                <p className="text-xs truncate" style={{ color: "rgba(255,255,255,0.55)" }}>{user.email}</p>
+                <p className="font-semibold truncate" style={{ color: TEXT_DARK }}>{user.name}</p>
+                <p className="text-xs truncate" style={{ color: TEXT_MUTED }}>{user.email}</p>
               </div>
             </div>
           </div>
@@ -385,19 +385,19 @@ function UserProfileModal({
                   onClick={() => setSection(s.key)}
                   className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-sm transition-colors relative"
                   style={{
-                    backgroundColor: active ? "rgba(255,255,255,0.06)" : "transparent",
-                    color: "#fff",
+                    backgroundColor: active ? TEXT_DARK : "transparent",
+                    color: active ? "#fff" : TEXT_DARK,
                   }}
                   onMouseEnter={(e) => {
-                    if (!active) (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(255,255,255,0.04)";
+                    if (!active) (e.currentTarget as HTMLButtonElement).style.backgroundColor = SOFT;
                   }}
                   onMouseLeave={(e) => {
                     if (!active) (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent";
                   }}
                 >
                   <span className="flex items-center gap-3">
-                    <Icon className="h-4 w-4" style={{ color: active ? BRAND : "rgba(255,255,255,0.7)" }} />
-                    <span className="font-medium" style={{ color: "#fff" }}>{s.label}</span>
+                    <Icon className="h-4 w-4" style={{ color: active ? BRAND : TEXT_MUTED }} />
+                    <span className="font-medium">{s.label}</span>
                   </span>
                   {active && <ChevronRight className="h-4 w-4" style={{ color: BRAND }} />}
                 </motion.button>
