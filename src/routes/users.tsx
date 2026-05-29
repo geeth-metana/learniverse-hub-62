@@ -657,61 +657,222 @@ function PermissionsManager() {
 }
 
 /* Course progress */
-const MOCK_COURSES = [
-  { id: "c1", title: "Full-Stack Web Development", modules: [
-    { name: "HTML & CSS", lessons: 8, done: 8 },
-    { name: "JavaScript Foundations", lessons: 10, done: 7 },
-    { name: "React Basics", lessons: 12, done: 3 },
-  ]},
-  { id: "c2", title: "Rust for Web3", modules: [
-    { name: "Rust Basics", lessons: 8, done: 5 },
-    { name: "Smart Contracts", lessons: 6, done: 0 },
-  ]},
+type Lesson = { name: string; done: boolean };
+type Unit = { name: string; lessons: Lesson[] };
+type CourseModule = { name: string; units: Unit[] };
+type Course = { id: string; title: string; lastAccess: string; modules: CourseModule[] };
+
+const MOCK_COURSES: Course[] = [
+  {
+    id: "c1",
+    title: "Full-Stack Web Development",
+    lastAccess: "May 28, 2026",
+    modules: [
+      {
+        name: "HTML & CSS",
+        units: [
+          { name: "Semantic HTML", lessons: [
+            { name: "Document structure", done: true },
+            { name: "Forms & inputs", done: true },
+          ]},
+          { name: "Modern CSS", lessons: [
+            { name: "Flexbox", done: true },
+            { name: "Grid", done: true },
+          ]},
+        ],
+      },
+      {
+        name: "JavaScript Foundations",
+        units: [
+          { name: "Language basics", lessons: [
+            { name: "Variables & types", done: true },
+            { name: "Functions", done: true },
+            { name: "Promises", done: false },
+          ]},
+        ],
+      },
+      {
+        name: "React Basics",
+        units: [
+          { name: "Components", lessons: [
+            { name: "JSX", done: true },
+            { name: "Props & state", done: false },
+            { name: "Effects", done: false },
+          ]},
+        ],
+      },
+    ],
+  },
+  {
+    id: "c2",
+    title: "Rust for Web3",
+    lastAccess: "May 22, 2026",
+    modules: [
+      {
+        name: "Rust Basics",
+        units: [
+          { name: "Ownership", lessons: [
+            { name: "Borrowing", done: true },
+            { name: "Lifetimes", done: false },
+          ]},
+        ],
+      },
+      {
+        name: "Smart Contracts",
+        units: [
+          { name: "Solana programs", lessons: [
+            { name: "Anchor intro", done: false },
+            { name: "Accounts model", done: false },
+          ]},
+        ],
+      },
+    ],
+  },
 ];
 
+function flattenLessons(c: Course): Lesson[] {
+  return c.modules.flatMap((m) => m.units.flatMap((u) => u.lessons));
+}
+
 function CourseProgress() {
-  const [open, setOpen] = useState<string | null>(MOCK_COURSES[0].id);
+  const [openCourse, setOpenCourse] = useState<string | null>(null);
+  const [lessonsState, setLessonsState] = useState<Record<string, boolean>>(() => {
+    const init: Record<string, boolean> = {};
+    MOCK_COURSES.forEach((c) =>
+      c.modules.forEach((m) =>
+        m.units.forEach((u) =>
+          u.lessons.forEach((l) => {
+            init[`${c.id}::${m.name}::${u.name}::${l.name}`] = l.done;
+          })
+        )
+      )
+    );
+    return init;
+  });
+
+  const toggleLesson = (key: string) => {
+    setLessonsState((s) => {
+      const next = { ...s, [key]: !s[key] };
+      toast.success(next[key] ? "Lesson marked complete" : "Lesson reopened");
+      return next;
+    });
+  };
+
+  const courseStats = (c: Course) => {
+    const all = flattenLessons(c);
+    const total = all.length;
+    let done = 0;
+    c.modules.forEach((m) =>
+      m.units.forEach((u) =>
+        u.lessons.forEach((l) => {
+          if (lessonsState[`${c.id}::${m.name}::${u.name}::${l.name}`]) done++;
+        })
+      )
+    );
+    return { total, done, pct: total ? Math.round((done / total) * 100) : 0 };
+  };
+
   return (
     <div className="space-y-3">
       {MOCK_COURSES.map((c) => {
-        const total = c.modules.reduce((s, m) => s + m.lessons, 0);
-        const done = c.modules.reduce((s, m) => s + m.done, 0);
-        const pct = Math.round((done / total) * 100);
-        const isOpen = open === c.id;
+        const { total, done, pct } = courseStats(c);
+        const isOpen = openCourse === c.id;
         return (
-          <div key={c.id} className="rounded-2xl border bg-white" style={{ borderColor: BORDER, boxShadow: "0 1px 2px rgba(15,23,42,0.04)" }}>
-            <button onClick={() => setOpen(isOpen ? null : c.id)} className="w-full px-4 py-3 flex items-center gap-4 text-left">
-              <div className="flex-1">
-                <p className="font-semibold text-sm">{c.title}</p>
-                <p className="text-xs mt-0.5" style={{ color: TEXT_MUTED }}>{done}/{total} lessons completed</p>
+          <div
+            key={c.id}
+            className="rounded-2xl border bg-white overflow-hidden"
+            style={{ borderColor: BORDER, boxShadow: "0 1px 2px rgba(15,23,42,0.04)" }}
+          >
+            <button
+              onClick={() => setOpenCourse(isOpen ? null : c.id)}
+              className="w-full px-5 py-4 flex items-center gap-4 text-left transition-colors hover:bg-[color:var(--s)]"
+              style={{ ["--s" as any]: SOFT }}
+            >
+              <div
+                className="h-10 w-10 rounded-xl grid place-items-center shrink-0"
+                style={{ backgroundColor: SOFT, color: TEXT_DARK }}
+              >
+                <BookOpen className="h-4 w-4" />
               </div>
-              <div className="w-40">
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm truncate">{c.title}</p>
+                <p className="text-xs mt-0.5 inline-flex items-center gap-1" style={{ color: TEXT_MUTED }}>
+                  <Clock className="h-3 w-3" /> Last access {c.lastAccess} · {done}/{total} lessons
+                </p>
+              </div>
+              <div className="w-40 hidden sm:block">
                 <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: SOFT }}>
-                  <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: BRAND }} />
+                  <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: BRAND }} />
                 </div>
               </div>
               <span className="text-sm font-semibold tabular-nums w-10 text-right">{pct}%</span>
               <ChevronRight className={`h-4 w-4 transition-transform ${isOpen ? "rotate-90" : ""}`} />
             </button>
-            {isOpen && (
-              <div className="px-4 pb-4 space-y-2">
-                {c.modules.map((m) => (
-                  <div key={m.name} className="rounded-xl border p-3 flex items-center gap-3" style={{ borderColor: BORDER }}>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{m.name}</p>
-                      <p className="text-xs" style={{ color: TEXT_MUTED }}>{m.done}/{m.lessons} lessons</p>
-                    </div>
-                    <button
-                      onClick={() => toast.success("Marked complete")}
-                      className="h-8 px-3 rounded-lg text-xs font-semibold border inline-flex items-center gap-1.5"
-                      style={{ borderColor: BORDER, backgroundColor: "#fff" }}
-                    >
-                      <Check className="h-3.5 w-3.5" /> Mark complete
-                    </button>
+            <AnimatePresence initial={false}>
+              {isOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                  style={{ borderTop: `1px solid ${BORDER}` }}
+                >
+                  <div className="px-5 py-4 max-h-[360px] overflow-auto space-y-4">
+                    {c.modules.map((m) => (
+                      <div key={m.name}>
+                        <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: TEXT_MUTED }}>
+                          {m.name}
+                        </p>
+                        <div className="space-y-3">
+                          {m.units.map((u) => (
+                            <div
+                              key={u.name}
+                              className="rounded-xl border"
+                              style={{ borderColor: BORDER }}
+                            >
+                              <p className="px-3 py-2 text-sm font-medium" style={{ borderBottom: `1px solid ${BORDER}` }}>
+                                {u.name}
+                              </p>
+                              <ul>
+                                {u.lessons.map((l) => {
+                                  const key = `${c.id}::${m.name}::${u.name}::${l.name}`;
+                                  const checked = !!lessonsState[key];
+                                  return (
+                                    <li
+                                      key={l.name}
+                                      className="flex items-center justify-between gap-3 px-3 py-2 text-sm"
+                                      style={{ borderTop: `1px solid ${BORDER}` }}
+                                    >
+                                      <span style={{ color: checked ? TEXT_MUTED : TEXT_DARK, textDecoration: checked ? "line-through" : "none" }}>
+                                        {l.name}
+                                      </span>
+                                      <button
+                                        onClick={() => toggleLesson(key)}
+                                        aria-pressed={checked}
+                                        className="h-7 w-7 grid place-items-center rounded-full border transition-colors"
+                                        style={{
+                                          borderColor: checked ? BRAND : BORDER,
+                                          backgroundColor: checked ? BRAND : "#fff",
+                                          color: TEXT_DARK,
+                                        }}
+                                        title={checked ? "Mark incomplete" : "Mark complete"}
+                                      >
+                                        <Check className="h-3.5 w-3.5" />
+                                      </button>
+                                    </li>
+                                  );
+                                })}
+                              </ul>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         );
       })}
