@@ -561,6 +561,28 @@ function UserSettings({ user, onUpdate }: { user: User; onUpdate: (u: User) => v
           </button>
         }
       />
+      <SettingsRow
+        icon={Briefcase}
+        title="Manage User Type"
+        desc="Change this user's role across the platform."
+        action={
+          <select
+            value={user.role}
+            onChange={(e) => {
+              const next = e.target.value as Role;
+              onUpdate({ ...user, role: next });
+              toast.success(`Role changed to ${next}`);
+            }}
+            className="h-9 px-3 rounded-lg text-sm font-semibold border bg-white"
+            style={{ borderColor: BORDER, color: TEXT_DARK }}
+          >
+            <option value="Student">Student</option>
+            <option value="Instructor">Instructor</option>
+            <option value="Admin">Admin</option>
+            <option value="Sales">Sales</option>
+          </select>
+        }
+      />
     </div>
   );
 }
@@ -771,111 +793,173 @@ function CourseProgress() {
     return { total, done, pct: total ? Math.round((done / total) * 100) : 0 };
   };
 
+  const activeCourse = MOCK_COURSES.find((c) => c.id === openCourse) || null;
+
+  const completeAll = (c: Course) => {
+    setLessonsState((s) => {
+      const next = { ...s };
+      c.modules.forEach((m) =>
+        m.units.forEach((u) =>
+          u.lessons.forEach((l) => {
+            next[`${c.id}::${m.name}::${u.name}::${l.name}`] = true;
+          })
+        )
+      );
+      return next;
+    });
+    toast.success(`All lessons in ${c.title} marked complete`);
+  };
+
   return (
-    <div className="space-y-3">
-      {MOCK_COURSES.map((c) => {
-        const { total, done, pct } = courseStats(c);
-        const isOpen = openCourse === c.id;
-        return (
-          <div
-            key={c.id}
-            className="rounded-2xl border bg-white overflow-hidden"
-            style={{ borderColor: BORDER, boxShadow: "0 1px 2px rgba(15,23,42,0.04)" }}
-          >
+    <>
+      {/* Cards grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {MOCK_COURSES.map((c) => {
+          const { total, done, pct } = courseStats(c);
+          return (
             <button
-              onClick={() => setOpenCourse(isOpen ? null : c.id)}
-              className="w-full px-5 py-4 flex items-center gap-4 text-left transition-colors hover:bg-[color:var(--s)]"
-              style={{ ["--s" as any]: SOFT }}
+              key={c.id}
+              onClick={() => setOpenCourse(c.id)}
+              className="text-left rounded-2xl border bg-white p-4 transition-colors hover:bg-[color:var(--s)]"
+              style={{ borderColor: BORDER, boxShadow: "0 1px 2px rgba(15,23,42,0.04)", ["--s" as any]: SOFT }}
             >
-              <div
-                className="h-10 w-10 rounded-xl grid place-items-center shrink-0"
-                style={{ backgroundColor: SOFT, color: TEXT_DARK }}
-              >
-                <BookOpen className="h-4 w-4" />
+              <div className="flex items-start gap-3">
+                <div
+                  className="h-10 w-10 rounded-xl grid place-items-center shrink-0"
+                  style={{ backgroundColor: SOFT, color: TEXT_DARK }}
+                >
+                  <BookOpen className="h-4 w-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm truncate">{c.title}</p>
+                  <p className="text-xs mt-0.5 inline-flex items-center gap-1" style={{ color: TEXT_MUTED }}>
+                    <Clock className="h-3 w-3" /> Last access {c.lastAccess}
+                  </p>
+                </div>
+                <ChevronRight className="h-4 w-4" style={{ color: TEXT_MUTED }} />
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm truncate">{c.title}</p>
-                <p className="text-xs mt-0.5 inline-flex items-center gap-1" style={{ color: TEXT_MUTED }}>
-                  <Clock className="h-3 w-3" /> Last access {c.lastAccess} · {done}/{total} lessons
-                </p>
-              </div>
-              <div className="w-40 hidden sm:block">
+              <div className="mt-4">
+                <div className="flex items-center justify-between text-xs mb-1.5">
+                  <span style={{ color: TEXT_MUTED }}>{done}/{total} lessons</span>
+                  <span className="font-semibold tabular-nums">{pct}%</span>
+                </div>
                 <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: SOFT }}>
                   <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: BRAND }} />
                 </div>
               </div>
-              <span className="text-sm font-semibold tabular-nums w-10 text-right">{pct}%</span>
-              <ChevronRight className={`h-4 w-4 transition-transform ${isOpen ? "rotate-90" : ""}`} />
             </button>
-            <AnimatePresence initial={false}>
-              {isOpen && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden"
-                  style={{ borderTop: `1px solid ${BORDER}` }}
+          );
+        })}
+      </div>
+
+      {/* Right-side slide-over panel */}
+      <AnimatePresence>
+        {activeCourse && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60]"
+            style={{ backgroundColor: "rgba(15,23,42,0.45)" }}
+            onClick={() => setOpenCourse(null)}
+          >
+            <motion.aside
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", stiffness: 320, damping: 32 }}
+              onClick={(e) => e.stopPropagation()}
+              className="absolute right-0 top-0 h-full w-full max-w-md bg-white flex flex-col"
+              style={{ boxShadow: "-20px 0 60px rgba(15,23,42,0.25)" }}
+            >
+              <div className="px-5 py-4 flex items-start gap-3" style={{ borderBottom: `1px solid ${BORDER}` }}>
+                <div className="h-10 w-10 rounded-xl grid place-items-center shrink-0" style={{ backgroundColor: SOFT }}>
+                  <BookOpen className="h-4 w-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm truncate">{activeCourse.title}</p>
+                  <p className="text-xs mt-0.5" style={{ color: TEXT_MUTED }}>
+                    {courseStats(activeCourse).done}/{courseStats(activeCourse).total} lessons · {courseStats(activeCourse).pct}%
+                  </p>
+                </div>
+                <button
+                  onClick={() => setOpenCourse(null)}
+                  className="h-8 w-8 grid place-items-center rounded-full hover:bg-[color:var(--s)]"
+                  style={{ ["--s" as any]: SOFT }}
                 >
-                  <div className="px-5 py-4 max-h-[360px] overflow-auto space-y-4">
-                    {c.modules.map((m) => (
-                      <div key={m.name}>
-                        <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: TEXT_MUTED }}>
-                          {m.name}
-                        </p>
-                        <div className="space-y-3">
-                          {m.units.map((u) => (
-                            <div
-                              key={u.name}
-                              className="rounded-xl border"
-                              style={{ borderColor: BORDER }}
-                            >
-                              <p className="px-3 py-2 text-sm font-medium" style={{ borderBottom: `1px solid ${BORDER}` }}>
-                                {u.name}
-                              </p>
-                              <ul>
-                                {u.lessons.map((l) => {
-                                  const key = `${c.id}::${m.name}::${u.name}::${l.name}`;
-                                  const checked = !!lessonsState[key];
-                                  return (
-                                    <li
-                                      key={l.name}
-                                      className="flex items-center justify-between gap-3 px-3 py-2 text-sm"
-                                      style={{ borderTop: `1px solid ${BORDER}` }}
-                                    >
-                                      <span style={{ color: checked ? TEXT_MUTED : TEXT_DARK, textDecoration: checked ? "line-through" : "none" }}>
-                                        {l.name}
-                                      </span>
-                                      <button
-                                        onClick={() => toggleLesson(key)}
-                                        aria-pressed={checked}
-                                        className="h-7 w-7 grid place-items-center rounded-full border transition-colors"
-                                        style={{
-                                          borderColor: checked ? BRAND : BORDER,
-                                          backgroundColor: checked ? BRAND : "#fff",
-                                          color: TEXT_DARK,
-                                        }}
-                                        title={checked ? "Mark incomplete" : "Mark complete"}
-                                      >
-                                        <Check className="h-3.5 w-3.5" />
-                                      </button>
-                                    </li>
-                                  );
-                                })}
-                              </ul>
-                            </div>
-                          ))}
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-auto px-5 py-4 space-y-4">
+                {activeCourse.modules.map((m) => (
+                  <div key={m.name}>
+                    <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: TEXT_MUTED }}>
+                      {m.name}
+                    </p>
+                    <div className="space-y-3">
+                      {m.units.map((u) => (
+                        <div key={u.name} className="rounded-xl border" style={{ borderColor: BORDER }}>
+                          <p className="px-3 py-2 text-sm font-medium" style={{ borderBottom: `1px solid ${BORDER}` }}>
+                            {u.name}
+                          </p>
+                          <ul>
+                            {u.lessons.map((l) => {
+                              const key = `${activeCourse.id}::${m.name}::${u.name}::${l.name}`;
+                              const checked = !!lessonsState[key];
+                              return (
+                                <li
+                                  key={l.name}
+                                  className="flex items-center justify-between gap-3 px-3 py-2 text-sm"
+                                  style={{ borderTop: `1px solid ${BORDER}` }}
+                                >
+                                  <span style={{ color: checked ? TEXT_MUTED : TEXT_DARK, textDecoration: checked ? "line-through" : "none" }}>
+                                    {l.name}
+                                  </span>
+                                  <button
+                                    onClick={() => toggleLesson(key)}
+                                    aria-pressed={checked}
+                                    className="h-7 w-7 grid place-items-center rounded-md border transition-colors"
+                                    style={{
+                                      borderColor: checked ? BRAND : BORDER,
+                                      backgroundColor: checked ? BRAND : "#fff",
+                                      color: TEXT_DARK,
+                                    }}
+                                    title={checked ? "Mark incomplete" : "Mark complete"}
+                                  >
+                                    <Check className="h-3.5 w-3.5" />
+                                  </button>
+                                </li>
+                              );
+                            })}
+                          </ul>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        );
-      })}
-    </div>
+                ))}
+              </div>
+              <div className="px-5 py-3 flex items-center justify-end gap-2" style={{ borderTop: `1px solid ${BORDER}` }}>
+                <button
+                  onClick={() => setOpenCourse(null)}
+                  className="h-9 px-4 rounded-lg text-sm font-semibold border"
+                  style={{ borderColor: BORDER }}
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => completeAll(activeCourse)}
+                  className="h-9 px-4 rounded-lg text-sm font-semibold inline-flex items-center gap-2"
+                  style={{ backgroundColor: BRAND_HOVER, color: TEXT_DARK }}
+                >
+                  <Check className="h-4 w-4" />
+                  Complete All
+                </button>
+              </div>
+            </motion.aside>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
