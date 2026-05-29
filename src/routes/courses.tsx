@@ -570,6 +570,7 @@ function getProductMeta(product: Product) {
 function ProductCard({ product, view }: { product: Product; view: "grid" | "list" }) {
   const { courseCount, weeks, pathType, progress } = getProductMeta(product);
   const navigate = useNavigate();
+  const viewMode = useViewMode();
   return (
     <article
       onClick={() => navigate({ to: "/programs/$programSlug", params: { programSlug: slugifyProduct(product.title) } })}
@@ -581,7 +582,16 @@ function ProductCard({ product, view }: { product: Product; view: "grid" | "list
         <ProductVisual product={product} compact={view === "list"} />
       </div>
       <div className="flex flex-1 flex-col p-5">
-        <h3 className="text-second-header font-bold leading-snug text-foreground">{product.title}</h3>
+        <div className="flex items-start justify-between gap-3">
+          <h3 className="text-second-header font-bold leading-snug text-foreground">{product.title}</h3>
+          {viewMode === "admin" && (
+            <CardActionsMenu
+              onEdit={() => navigate({ to: "/products/$productId", params: { productId: product.id } })}
+              onSettings={() => navigate({ to: "/products/$productId", params: { productId: product.id } })}
+              editLabel="Edit Product"
+            />
+          )}
+        </div>
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-small text-muted-foreground">
           <span className="inline-flex items-center gap-1.5">
             <BookOpen className="h-3.5 w-3.5" />
