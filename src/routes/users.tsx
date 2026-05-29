@@ -184,19 +184,19 @@ function UsersPage() {
               </div>
               <div className="flex items-center gap-3 shrink-0">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: TEXT_MUTED }} />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: TEXT_MUTED }} />
                   <input
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Search by name, email, or role"
-                    className="h-11 w-72 pl-9 pr-3 rounded-xl border bg-white text-sm focus:outline-none focus:ring-2"
+                    className="h-12 w-80 pl-11 pr-5 rounded-full border bg-white text-sm focus:outline-none focus:ring-2"
                     style={{ borderColor: BORDER, boxShadow: "0 1px 2px rgba(15,23,42,0.04)" }}
                   />
                 </div>
                 <button
                   onClick={() => setAddOpen(true)}
-                  className="h-11 px-5 rounded-xl text-sm font-semibold inline-flex items-center gap-2 transition-transform hover:scale-[1.02] shrink-0"
-                  style={{ backgroundColor: BRAND_HOVER, color: TEXT_DARK, boxShadow: "0 2px 8px rgba(208, 252, 3, 0.35)" }}
+                  className="h-12 px-6 rounded-full text-sm font-semibold inline-flex items-center gap-2 transition-transform hover:scale-[1.02] shrink-0"
+                  style={{ backgroundColor: BRAND, color: TEXT_DARK, boxShadow: "0 2px 8px rgba(204, 246, 33, 0.45)" }}
                 >
                   <Plus className="h-4 w-4" />
                   Add User
