@@ -562,28 +562,6 @@ function UserSettings({ user, onUpdate }: { user: User; onUpdate: (u: User) => v
           </button>
         }
       />
-      <SettingsRow
-        icon={Briefcase}
-        title="Manage User Type"
-        desc="Change this user's role across the platform."
-        action={
-          <select
-            value={user.role}
-            onChange={(e) => {
-              const next = e.target.value as Role;
-              onUpdate({ ...user, role: next });
-              toast.success(`Role changed to ${next}`);
-            }}
-            className="h-9 px-3 rounded-lg text-sm font-semibold border bg-white"
-            style={{ borderColor: BORDER, color: TEXT_DARK }}
-          >
-            <option value="Student">Student</option>
-            <option value="Instructor">Instructor</option>
-            <option value="Admin">Admin</option>
-            <option value="Sales">Sales</option>
-          </select>
-        }
-      />
     </div>
   );
 }
