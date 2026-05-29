@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UsersRouteImport } from './routes/users'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as CoursesRouteImport } from './routes/courses'
 import { Route as IndexRouteImport } from './routes/index'
@@ -21,6 +22,11 @@ import { Route as CheckoutCourseIdRouteImport } from './routes/checkout.$courseI
 import { Route as BootcampsNewRouteImport } from './routes/bootcamps.new'
 import { Route as CoursesLearnCourseIdRouteImport } from './routes/courses.learn.$courseId'
 
+const UsersRoute = UsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProductsRoute = ProductsRouteImport.update({
   id: '/products',
   path: '/products',
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/courses': typeof CoursesRouteWithChildren
   '/products': typeof ProductsRouteWithChildren
+  '/users': typeof UsersRoute
   '/bootcamps/new': typeof BootcampsNewRoute
   '/checkout/$courseId': typeof CheckoutCourseIdRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/courses': typeof CoursesRouteWithChildren
   '/products': typeof ProductsRouteWithChildren
+  '/users': typeof UsersRoute
   '/bootcamps/new': typeof BootcampsNewRoute
   '/checkout/$courseId': typeof CheckoutCourseIdRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
@@ -108,6 +116,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/courses': typeof CoursesRouteWithChildren
   '/products': typeof ProductsRouteWithChildren
+  '/users': typeof UsersRoute
   '/bootcamps/new': typeof BootcampsNewRoute
   '/checkout/$courseId': typeof CheckoutCourseIdRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/'
     | '/courses'
     | '/products'
+    | '/users'
     | '/bootcamps/new'
     | '/checkout/$courseId'
     | '/courses/$courseId'
@@ -136,6 +146,7 @@ export interface FileRouteTypes {
     | '/'
     | '/courses'
     | '/products'
+    | '/users'
     | '/bootcamps/new'
     | '/checkout/$courseId'
     | '/courses/$courseId'
@@ -149,6 +160,7 @@ export interface FileRouteTypes {
     | '/'
     | '/courses'
     | '/products'
+    | '/users'
     | '/bootcamps/new'
     | '/checkout/$courseId'
     | '/courses/$courseId'
@@ -163,6 +175,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CoursesRoute: typeof CoursesRouteWithChildren
   ProductsRoute: typeof ProductsRouteWithChildren
+  UsersRoute: typeof UsersRoute
   BootcampsNewRoute: typeof BootcampsNewRoute
   CheckoutCourseIdRoute: typeof CheckoutCourseIdRoute
   ProgramsProgramSlugRoute: typeof ProgramsProgramSlugRoute
@@ -171,6 +184,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/users': {
+      id: '/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof UsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/products': {
       id: '/products'
       path: '/products'
@@ -282,6 +302,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CoursesRoute: CoursesRouteWithChildren,
   ProductsRoute: ProductsRouteWithChildren,
+  UsersRoute: UsersRoute,
   BootcampsNewRoute: BootcampsNewRoute,
   CheckoutCourseIdRoute: CheckoutCourseIdRoute,
   ProgramsProgramSlugRoute: ProgramsProgramSlugRoute,
@@ -290,13 +311,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
