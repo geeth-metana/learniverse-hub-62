@@ -426,10 +426,6 @@ const courseProgress: Record<string, number> = {
   rust: 28,
 };
 
-function CourseCard({
-  // placeholder anchor
-}
-
 function CardActionsMenu({
   onEdit,
   onSettings,
@@ -466,7 +462,7 @@ function CardActionsMenu({
   );
 }
 
-function _CourseCardOriginal({
+function CourseCard({
   course,
   view,
   onOpen,
