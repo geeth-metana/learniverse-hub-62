@@ -23,6 +23,12 @@ import {
   Check,
   ArrowRight,
   ArrowLeft,
+  Mail,
+  User as UserIcon,
+  FileText,
+  Briefcase,
+  Calendar,
+  Clock,
 } from "lucide-react";
 import { toast } from "sonner";
 
