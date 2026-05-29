@@ -247,16 +247,16 @@ function UsersPage() {
                             (e.currentTarget as HTMLTableRowElement).style.borderBottom = `1px solid ${BORDER}`;
                           }}
                         >
-                          <td className="px-5 py-4">
+                          <td className="px-5 py-5">
                             <div className="flex items-center gap-3">
                               <img src={u.avatar} alt={u.name} className="h-10 w-10 rounded-full object-cover" />
                               <span className="font-medium">{u.name}</span>
                             </div>
                           </td>
-                          <td className="px-5 py-4" style={{ color: TEXT_MUTED }}>{u.email}</td>
-                          <td className="px-5 py-4"><RolePill role={u.role} /></td>
-                          <td className="px-5 py-4"><StatusBadge status={u.status} /></td>
-                          <td className="px-5 py-4">
+                          <td className="px-5 py-5" style={{ color: TEXT_MUTED }}>{u.email}</td>
+                          <td className="px-5 py-5"><RolePill role={u.role} /></td>
+                          <td className="px-5 py-5"><StatusBadge status={u.status} /></td>
+                          <td className="px-5 py-5">
                             <div className="flex flex-col">
                               <span className="font-medium">{u.name.split(" ")[0]}</span>
                               <span className="text-xs" style={{ color: TEXT_MUTED }}>
@@ -264,7 +264,7 @@ function UsersPage() {
                               </span>
                             </div>
                           </td>
-                          <td className="px-5 py-4">
+                          <td className="px-5 py-5">
                             <div className="flex items-center justify-end gap-1">
                               <IconAction label="View" onClick={() => setViewUser(u)}>
                                 <Eye className="h-4 w-4" />
