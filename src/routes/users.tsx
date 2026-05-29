@@ -184,19 +184,19 @@ function UsersPage() {
               </div>
               <div className="flex items-center gap-3 shrink-0">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: TEXT_MUTED }} />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: TEXT_MUTED }} />
                   <input
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Search by name, email, or role"
-                    className="h-11 w-72 pl-9 pr-3 rounded-xl border bg-white text-sm focus:outline-none focus:ring-2"
+                    className="h-12 w-80 pl-11 pr-5 rounded-full border bg-white text-sm focus:outline-none focus:ring-2"
                     style={{ borderColor: BORDER, boxShadow: "0 1px 2px rgba(15,23,42,0.04)" }}
                   />
                 </div>
                 <button
                   onClick={() => setAddOpen(true)}
-                  className="h-11 px-5 rounded-xl text-sm font-semibold inline-flex items-center gap-2 transition-transform hover:scale-[1.02] shrink-0"
-                  style={{ backgroundColor: BRAND_HOVER, color: TEXT_DARK, boxShadow: "0 2px 8px rgba(208, 252, 3, 0.35)" }}
+                  className="h-12 px-6 rounded-full text-sm font-semibold inline-flex items-center gap-2 transition-transform hover:scale-[1.02] shrink-0"
+                  style={{ backgroundColor: BRAND, color: TEXT_DARK, boxShadow: "0 2px 8px rgba(204, 246, 33, 0.45)" }}
                 >
                   <Plus className="h-4 w-4" />
                   Add User
@@ -247,16 +247,16 @@ function UsersPage() {
                             (e.currentTarget as HTMLTableRowElement).style.borderBottom = `1px solid ${BORDER}`;
                           }}
                         >
-                          <td className="px-5 py-4">
+                          <td className="px-5 py-5">
                             <div className="flex items-center gap-3">
                               <img src={u.avatar} alt={u.name} className="h-10 w-10 rounded-full object-cover" />
                               <span className="font-medium">{u.name}</span>
                             </div>
                           </td>
-                          <td className="px-5 py-4" style={{ color: TEXT_MUTED }}>{u.email}</td>
-                          <td className="px-5 py-4"><RolePill role={u.role} /></td>
-                          <td className="px-5 py-4"><StatusBadge status={u.status} /></td>
-                          <td className="px-5 py-4">
+                          <td className="px-5 py-5" style={{ color: TEXT_MUTED }}>{u.email}</td>
+                          <td className="px-5 py-5"><RolePill role={u.role} /></td>
+                          <td className="px-5 py-5"><StatusBadge status={u.status} /></td>
+                          <td className="px-5 py-5">
                             <div className="flex flex-col">
                               <span className="font-medium">{u.name.split(" ")[0]}</span>
                               <span className="text-xs" style={{ color: TEXT_MUTED }}>
@@ -264,7 +264,7 @@ function UsersPage() {
                               </span>
                             </div>
                           </td>
-                          <td className="px-5 py-4">
+                          <td className="px-5 py-5">
                             <div className="flex items-center justify-end gap-1">
                               <IconAction label="View" onClick={() => setViewUser(u)}>
                                 <Eye className="h-4 w-4" />
@@ -419,7 +419,7 @@ function UserProfileModal({
               <X className="h-4 w-4" />
             </button>
           </div>
-          <div className="flex-1 overflow-auto p-6">
+          <div className="flex-1 overflow-auto p-8">
             {section === "profile" && <ProfileInfo user={user} onUpdate={onUpdate} />}
             {section === "settings" && <UserSettings user={user} onUpdate={onUpdate} />}
             {section === "permissions" && <PermissionsManager />}
@@ -434,11 +434,11 @@ function UserProfileModal({
 }
 
 function ProfileInfo({ user }: { user: User; onUpdate: (u: User) => void }) {
-  const description = "Lifelong learner exploring product, design, and code.";
+  const tagline = "Lifelong learner exploring product, design, and code.";
   const rows: { label: string; value: string; icon: any }[] = [
     { label: "Full name", value: user.name, icon: UserIcon },
     { label: "Email", value: user.email, icon: Mail },
-    { label: "Description", value: description, icon: FileText },
+    { label: "Description", value: tagline, icon: FileText },
     { label: "Role", value: user.role, icon: Briefcase },
     {
       label: "Joined Date",
@@ -453,43 +453,44 @@ function ProfileInfo({ user }: { user: User; onUpdate: (u: User) => void }) {
     >
       {/* Cover image */}
       <div
-        className="h-28 w-full"
+        className="h-32 w-full relative"
         style={{
           background: `linear-gradient(135deg, ${TEXT_DARK} 0%, #2a2a2a 60%, ${BRAND} 140%)`,
         }}
-      />
-      {/* Header: avatar + name on left, role/status on right */}
-      <div className="px-5 pt-0 pb-5 flex items-end gap-4 -mt-10">
+      >
+        {/* Avatar overlapping cover */}
         <img
           src={user.avatar}
           alt={user.name}
-          className="h-20 w-20 rounded-full object-cover ring-4 ring-white shadow"
+          className="h-24 w-24 rounded-full object-cover ring-4 ring-white shadow absolute left-6 -bottom-10"
         />
-        <div className="flex-1 min-w-0 pb-1">
-          <p className="text-lg font-semibold truncate">{user.name}</p>
-          <p className="text-sm truncate" style={{ color: TEXT_MUTED }}>{user.email}</p>
+      </div>
+
+      {/* Header row: name + tagline + role + status — placed BELOW the cover (no overlap) */}
+      <div className="pt-14 pb-5 px-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-3 flex-wrap">
+            <p className="text-lg font-semibold truncate">{user.name}</p>
+            <span className="text-sm truncate" style={{ color: TEXT_MUTED }}>· {tagline}</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0 pb-1">
+        <div className="flex items-center gap-2 shrink-0">
           <RolePill role={user.role} />
           <StatusBadge status={user.status} />
         </div>
       </div>
-      {/* Details — single column, icons per row, subtle dividers */}
+
+      {/* Details — single column, flat inline icons, subtle dividers */}
       <div>
-        {rows.map((r, i) => {
+        {rows.map((r) => {
           const Icon = r.icon;
           return (
             <div
               key={r.label}
-              className="flex items-start gap-4 px-5 py-4"
+              className="flex items-start gap-4 px-6 py-4"
               style={{ borderTop: `1px solid ${BORDER}` }}
             >
-              <div
-                className="h-9 w-9 rounded-full grid place-items-center shrink-0"
-                style={{ backgroundColor: SOFT, color: TEXT_DARK }}
-              >
-                <Icon className="h-4 w-4" />
-              </div>
+              <Icon className="h-4 w-4 mt-1 shrink-0" style={{ color: TEXT_MUTED }} />
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium uppercase tracking-wider" style={{ color: TEXT_MUTED }}>
                   {r.label}
@@ -559,28 +560,6 @@ function UserSettings({ user, onUpdate }: { user: User; onUpdate: (u: User) => v
           >
             {user.status === "Disabled" ? "Re-enable" : "Disable"}
           </button>
-        }
-      />
-      <SettingsRow
-        icon={Briefcase}
-        title="Manage User Type"
-        desc="Change this user's role across the platform."
-        action={
-          <select
-            value={user.role}
-            onChange={(e) => {
-              const next = e.target.value as Role;
-              onUpdate({ ...user, role: next });
-              toast.success(`Role changed to ${next}`);
-            }}
-            className="h-9 px-3 rounded-lg text-sm font-semibold border bg-white"
-            style={{ borderColor: BORDER, color: TEXT_DARK }}
-          >
-            <option value="Student">Student</option>
-            <option value="Instructor">Instructor</option>
-            <option value="Admin">Admin</option>
-            <option value="Sales">Sales</option>
-          </select>
         }
       />
     </div>
