@@ -21,6 +21,7 @@ import { Route as CoursesCourseIdRouteImport } from './routes/courses.$courseId'
 import { Route as CheckoutCourseIdRouteImport } from './routes/checkout.$courseId'
 import { Route as BootcampsNewRouteImport } from './routes/bootcamps.new'
 import { Route as CoursesLearnCourseIdRouteImport } from './routes/courses.learn.$courseId'
+import { Route as CoursesCourseIdSettingsRouteImport } from './routes/courses.$courseId.settings'
 
 const UsersRoute = UsersRouteImport.update({
   id: '/users',
@@ -82,6 +83,11 @@ const CoursesLearnCourseIdRoute = CoursesLearnCourseIdRouteImport.update({
   path: '/learn/$courseId',
   getParentRoute: () => CoursesRoute,
 } as any)
+const CoursesCourseIdSettingsRoute = CoursesCourseIdSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => CoursesCourseIdRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -90,11 +96,12 @@ export interface FileRoutesByFullPath {
   '/users': typeof UsersRoute
   '/bootcamps/new': typeof BootcampsNewRoute
   '/checkout/$courseId': typeof CheckoutCourseIdRoute
-  '/courses/$courseId': typeof CoursesCourseIdRoute
+  '/courses/$courseId': typeof CoursesCourseIdRouteWithChildren
   '/products/$productId': typeof ProductsProductIdRoute
   '/products/new': typeof ProductsNewRoute
   '/programs/$programSlug': typeof ProgramsProgramSlugRoute
   '/sales/payments': typeof SalesPaymentsRoute
+  '/courses/$courseId/settings': typeof CoursesCourseIdSettingsRoute
   '/courses/learn/$courseId': typeof CoursesLearnCourseIdRoute
 }
 export interface FileRoutesByTo {
@@ -104,11 +111,12 @@ export interface FileRoutesByTo {
   '/users': typeof UsersRoute
   '/bootcamps/new': typeof BootcampsNewRoute
   '/checkout/$courseId': typeof CheckoutCourseIdRoute
-  '/courses/$courseId': typeof CoursesCourseIdRoute
+  '/courses/$courseId': typeof CoursesCourseIdRouteWithChildren
   '/products/$productId': typeof ProductsProductIdRoute
   '/products/new': typeof ProductsNewRoute
   '/programs/$programSlug': typeof ProgramsProgramSlugRoute
   '/sales/payments': typeof SalesPaymentsRoute
+  '/courses/$courseId/settings': typeof CoursesCourseIdSettingsRoute
   '/courses/learn/$courseId': typeof CoursesLearnCourseIdRoute
 }
 export interface FileRoutesById {
@@ -119,11 +127,12 @@ export interface FileRoutesById {
   '/users': typeof UsersRoute
   '/bootcamps/new': typeof BootcampsNewRoute
   '/checkout/$courseId': typeof CheckoutCourseIdRoute
-  '/courses/$courseId': typeof CoursesCourseIdRoute
+  '/courses/$courseId': typeof CoursesCourseIdRouteWithChildren
   '/products/$productId': typeof ProductsProductIdRoute
   '/products/new': typeof ProductsNewRoute
   '/programs/$programSlug': typeof ProgramsProgramSlugRoute
   '/sales/payments': typeof SalesPaymentsRoute
+  '/courses/$courseId/settings': typeof CoursesCourseIdSettingsRoute
   '/courses/learn/$courseId': typeof CoursesLearnCourseIdRoute
 }
 export interface FileRouteTypes {
@@ -140,6 +149,7 @@ export interface FileRouteTypes {
     | '/products/new'
     | '/programs/$programSlug'
     | '/sales/payments'
+    | '/courses/$courseId/settings'
     | '/courses/learn/$courseId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -154,6 +164,7 @@ export interface FileRouteTypes {
     | '/products/new'
     | '/programs/$programSlug'
     | '/sales/payments'
+    | '/courses/$courseId/settings'
     | '/courses/learn/$courseId'
   id:
     | '__root__'
@@ -168,6 +179,7 @@ export interface FileRouteTypes {
     | '/products/new'
     | '/programs/$programSlug'
     | '/sales/payments'
+    | '/courses/$courseId/settings'
     | '/courses/learn/$courseId'
   fileRoutesById: FileRoutesById
 }
@@ -268,16 +280,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CoursesLearnCourseIdRouteImport
       parentRoute: typeof CoursesRoute
     }
+    '/courses/$courseId/settings': {
+      id: '/courses/$courseId/settings'
+      path: '/settings'
+      fullPath: '/courses/$courseId/settings'
+      preLoaderRoute: typeof CoursesCourseIdSettingsRouteImport
+      parentRoute: typeof CoursesCourseIdRoute
+    }
   }
 }
 
+interface CoursesCourseIdRouteChildren {
+  CoursesCourseIdSettingsRoute: typeof CoursesCourseIdSettingsRoute
+}
+
+const CoursesCourseIdRouteChildren: CoursesCourseIdRouteChildren = {
+  CoursesCourseIdSettingsRoute: CoursesCourseIdSettingsRoute,
+}
+
+const CoursesCourseIdRouteWithChildren = CoursesCourseIdRoute._addFileChildren(
+  CoursesCourseIdRouteChildren,
+)
+
 interface CoursesRouteChildren {
-  CoursesCourseIdRoute: typeof CoursesCourseIdRoute
+  CoursesCourseIdRoute: typeof CoursesCourseIdRouteWithChildren
   CoursesLearnCourseIdRoute: typeof CoursesLearnCourseIdRoute
 }
 
 const CoursesRouteChildren: CoursesRouteChildren = {
-  CoursesCourseIdRoute: CoursesCourseIdRoute,
+  CoursesCourseIdRoute: CoursesCourseIdRouteWithChildren,
   CoursesLearnCourseIdRoute: CoursesLearnCourseIdRoute,
 }
 
@@ -311,13 +342,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

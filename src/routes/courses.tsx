@@ -18,7 +18,16 @@ import {
   BookOpen,
   CalendarDays,
   GitBranch,
+  MoreVertical,
+  Pencil,
+  Settings as SettingsIcon,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import { myCourses, allCourses, type Course } from "@/lib/courses-data";
 import { useEnrollments } from "@/lib/enrollment";
 import { PricingDialog } from "@/components/courses/PricingDialog";
