@@ -427,6 +427,46 @@ const courseProgress: Record<string, number> = {
 };
 
 function CourseCard({
+  // placeholder anchor
+}
+
+function CardActionsMenu({
+  onEdit,
+  onSettings,
+  editLabel,
+}: {
+  onEdit: () => void;
+  onSettings: () => void;
+  editLabel: string;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          onClick={(e) => e.stopPropagation()}
+          aria-label="Card actions"
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-foreground transition-colors hover:bg-muted hover:text-primary focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          <MoreVertical className="h-4 w-4" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        onClick={(e) => e.stopPropagation()}
+        className="min-w-[180px]"
+      >
+        <DropdownMenuItem onSelect={() => onEdit()}>
+          <Pencil className="h-4 w-4" /> {editLabel}
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => onSettings()}>
+          <SettingsIcon className="h-4 w-4" /> Edit Setting
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function _CourseCardOriginal({
   course,
   view,
   onOpen,
