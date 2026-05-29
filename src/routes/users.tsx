@@ -14,7 +14,6 @@ import {
   Lock,
   UserX,
   ChevronRight,
-  Filter,
   CheckCircle2,
   Circle,
   BookOpen,
@@ -25,11 +24,6 @@ import {
   Check,
   ArrowRight,
   ArrowLeft,
-  Users as UsersIcon,
-  GraduationCap,
-  UserSquare2,
-  ShieldCheck,
-  TrendingUp,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -65,14 +59,6 @@ const MOCK_USERS: User[] = [
   { id: "u8", name: "Noah Patel", email: "noah@metana.io", role: "Student", status: "Disabled", createdAt: "2025-02-25", avatar: "https://i.pravatar.cc/120?img=13" },
   { id: "u9", name: "Mia Rossi", email: "mia@metana.io", role: "Sales", status: "Active", createdAt: "2025-03-18", avatar: "https://i.pravatar.cc/120?img=44" },
   { id: "u10", name: "Liam O'Connor", email: "liam@metana.io", role: "Student", status: "Active", createdAt: "2025-05-12", avatar: "https://i.pravatar.cc/120?img=11" },
-];
-
-const TOPICS: { key: Role | "All"; label: string; icon: any }[] = [
-  { key: "All", label: "All Users", icon: UsersIcon },
-  { key: "Student", label: "Students", icon: GraduationCap },
-  { key: "Instructor", label: "Instructors", icon: UserSquare2 },
-  { key: "Admin", label: "Admins", icon: ShieldCheck },
-  { key: "Sales", label: "Sales", icon: TrendingUp },
 ];
 
 export const Route = createFileRoute("/users")({
