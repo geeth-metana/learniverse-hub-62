@@ -428,57 +428,51 @@ function UserProfileModal({
   );
 }
 
-function ProfileInfo({ user, onUpdate }: { user: User; onUpdate: (u: User) => void }) {
+function ProfileInfo({ user }: { user: User; onUpdate: (u: User) => void }) {
+  const description = "Lifelong learner exploring product, design, and code.";
+  const rows: { label: string; value: string }[] = [
+    { label: "Full name", value: user.name },
+    { label: "Email", value: user.email },
+    { label: "Description", value: description },
+    { label: "Role", value: user.role },
+    { label: "Joined Date", value: new Date(user.createdAt).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" }) },
+  ];
   return (
     <div className="space-y-5">
+      {/* Header: picture + name on left, role/status on right */}
       <div
-        className="rounded-2xl overflow-hidden border"
+        className="rounded-2xl border bg-white p-5 flex items-center gap-4"
         style={{ borderColor: BORDER, boxShadow: "0 1px 2px rgba(15,23,42,0.04)" }}
       >
-        <div className="h-32" style={{ background: `linear-gradient(135deg, ${BRAND} 0%, #E8FF80 100%)` }} />
-        <div className="px-5 pb-5 -mt-10">
-          <img src={user.avatar} alt={user.name} className="h-20 w-20 rounded-full object-cover ring-4 ring-white" />
-          <div className="mt-3">
-            <p className="text-lg font-semibold">{user.name}</p>
-            <p className="text-sm" style={{ color: TEXT_MUTED }}>{user.email}</p>
-            <div className="mt-2 flex items-center gap-2">
-              <RolePill role={user.role} />
-              <StatusBadge status={user.status} />
-            </div>
-          </div>
+        <img src={user.avatar} alt={user.name} className="h-16 w-16 rounded-full object-cover ring-2 ring-white shadow" />
+        <div className="flex-1 min-w-0">
+          <p className="text-lg font-semibold truncate">{user.name}</p>
+          <p className="text-sm truncate" style={{ color: TEXT_MUTED }}>{user.email}</p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <RolePill role={user.role} />
+          <StatusBadge status={user.status} />
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Full name" value={user.name} />
-        <Field label="Email" value={user.email} />
-        <Field label="Role" value={user.role} />
-        <Field label="Joined" value={new Date(user.createdAt).toLocaleDateString()} />
+      {/* Details list — single column with horizontal dividers */}
+      <div
+        className="rounded-2xl border bg-white overflow-hidden"
+        style={{ borderColor: BORDER, boxShadow: "0 1px 2px rgba(15,23,42,0.04)" }}
+      >
+        {rows.map((r, i) => (
+          <div
+            key={r.label}
+            className="flex items-start gap-6 px-5 py-4"
+            style={{ borderTop: i === 0 ? "none" : `1px solid ${BORDER}` }}
+          >
+            <p className="text-xs font-medium uppercase tracking-wider w-40 shrink-0 pt-0.5" style={{ color: TEXT_MUTED }}>
+              {r.label}
+            </p>
+            <p className="text-sm font-medium flex-1 min-w-0" style={{ color: TEXT_DARK }}>{r.value}</p>
+          </div>
+        ))}
       </div>
-
-      <div>
-        <p className="text-sm font-semibold mb-2">Manage User Type</p>
-        <select
-          value={user.role}
-          onChange={(e) => onUpdate({ ...user, role: e.target.value as Role })}
-          className="h-10 px-3 rounded-xl border bg-white text-sm w-full max-w-xs"
-          style={{ borderColor: BORDER }}
-        >
-          <option value="Student">Student</option>
-          <option value="Instructor">Instructor</option>
-          <option value="Admin">Admin</option>
-          <option value="Sales">Sales</option>
-        </select>
-      </div>
-    </div>
-  );
-}
-
-function Field({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border p-3" style={{ borderColor: BORDER, backgroundColor: "#FAFAFA" }}>
-      <p className="text-xs" style={{ color: TEXT_MUTED }}>{label}</p>
-      <p className="text-sm font-medium mt-0.5">{value}</p>
     </div>
   );
 }
