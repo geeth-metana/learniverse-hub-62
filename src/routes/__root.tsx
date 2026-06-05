@@ -13,7 +13,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useTheme } from "@/hooks/use-theme";
 
-const themeInitScript = `(function(){try{var t=localStorage.getItem('metana:theme')||'dark';if(t==='dark')document.documentElement.classList.add('dark');}catch(e){document.documentElement.classList.add('dark');}})();`;
+const themeInitScript = `(function(){try{var t=localStorage.getItem('metana:theme')||'light';if(t==='dark')document.documentElement.classList.add('dark');}catch(e){}})();`;
 
 function NotFoundComponent() {
   return (
@@ -78,17 +78,37 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Lovable App" },
-      { name: "description", content: "A learning management system dashboard for managing courses, progress, and user feedback." },
+      {
+        name: "description",
+        content:
+          "A learning management system dashboard for managing courses, progress, and user feedback.",
+      },
       { name: "author", content: "Lovable" },
       { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "A learning management system dashboard for managing courses, progress, and user feedback." },
+      {
+        property: "og:description",
+        content:
+          "A learning management system dashboard for managing courses, progress, and user feedback.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "Lovable App" },
-      { name: "twitter:description", content: "A learning management system dashboard for managing courses, progress, and user feedback." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/598e975e-c005-470e-834e-9d5c72655300/id-preview-61976c34--c820b70a-180a-4e81-9022-73a19afc0a80.lovable.app-1778484450942.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/598e975e-c005-470e-834e-9d5c72655300/id-preview-61976c34--c820b70a-180a-4e81-9022-73a19afc0a80.lovable.app-1778484450942.png" },
+      {
+        name: "twitter:description",
+        content:
+          "A learning management system dashboard for managing courses, progress, and user feedback.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/598e975e-c005-470e-834e-9d5c72655300/id-preview-61976c34--c820b70a-180a-4e81-9022-73a19afc0a80.lovable.app-1778484450942.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/598e975e-c005-470e-834e-9d5c72655300/id-preview-61976c34--c820b70a-180a-4e81-9022-73a19afc0a80.lovable.app-1778484450942.png",
+      },
     ],
     links: [
       {

@@ -1,4 +1,4 @@
-import { Bell, Search, Moon, Sun, PanelLeft } from "lucide-react";
+import { Bell, Search, Moon, Sun, PanelLeft } from "@/components/icons";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import metanaLogo from "@/assets/metana-logo-black.png";
 import metanaLogoDark from "@/assets/metana-logo-white.png";
@@ -46,7 +46,11 @@ export function Topbar() {
       </IconBtn>
       <div className="flex items-center gap-2">
         <img src={metanaLogo} alt="Metana" className="h-8 w-32 object-contain block dark:hidden" />
-        <img src={metanaLogoDark} alt="Metana" className="h-8 w-32 object-contain hidden dark:block" />
+        <img
+          src={metanaLogoDark}
+          alt="Metana"
+          className="h-8 w-32 object-contain hidden dark:block"
+        />
       </div>
       <div className="flex items-center gap-1 text-muted-foreground">
         <IconBtn label="Notifications">
@@ -56,7 +60,10 @@ export function Topbar() {
         <IconBtn label="Search">
           <Search className="h-5 w-5" />
         </IconBtn>
-        <IconBtn label="Toggle theme" onClick={() => window.dispatchEvent(new Event(THEME_TOGGLE_EVENT))}>
+        <IconBtn
+          label="Toggle theme"
+          onClick={() => window.dispatchEvent(new Event(THEME_TOGGLE_EVENT))}
+        >
           {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </IconBtn>
       </div>

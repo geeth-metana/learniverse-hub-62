@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useMatch } from "@tanstack/react-router";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Topbar } from "@/components/dashboard/Topbar";
 import { WelcomeCard } from "@/components/dashboard/WelcomeCard";
@@ -7,21 +7,29 @@ import { ActivityHeatmap } from "@/components/dashboard/ActivityHeatmap";
 import { Announcements } from "@/components/dashboard/Announcements";
 import { ScheduledEvents } from "@/components/dashboard/ScheduledEvents";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/our-student")({
   head: () => ({
     meta: [
-      { title: "Dashboard — Metana Platform" },
+      { title: "Dashboard — Our Student" },
       {
         name: "description",
         content:
-          "Your Metana LMS dashboard: learning path, announcements, scheduled events and activity.",
+          "Our Student dashboard: learning path, announcements, scheduled events and activity.",
       },
     ],
   }),
-  component: Dashboard,
+  component: OurStudentDashboard,
 });
 
-function Dashboard() {
+function OurStudentDashboard() {
+  // Child routes (/our-student/courses, /our-student/prime) render their own
+  // full pages, so defer to the Outlet when one of them is active.
+  const coursesMatch = useMatch({ from: "/our-student/courses", shouldThrow: false });
+  const primeMatch = useMatch({ from: "/our-student/prime", shouldThrow: false });
+  if (coursesMatch || primeMatch) {
+    return <Outlet />;
+  }
+
   return (
     <div className="flex min-h-screen bg-background text-foreground">
       <Sidebar />

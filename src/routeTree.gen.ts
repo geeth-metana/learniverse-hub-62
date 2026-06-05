@@ -11,12 +11,16 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UsersRouteImport } from './routes/users'
 import { Route as ProductsRouteImport } from './routes/products'
+import { Route as PrimeRouteImport } from './routes/prime'
+import { Route as OurStudentRouteImport } from './routes/our-student'
 import { Route as CoursesRouteImport } from './routes/courses'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SalesPaymentsRouteImport } from './routes/sales.payments'
 import { Route as ProgramsProgramSlugRouteImport } from './routes/programs.$programSlug'
 import { Route as ProductsNewRouteImport } from './routes/products.new'
 import { Route as ProductsProductIdRouteImport } from './routes/products.$productId'
+import { Route as OurStudentPrimeRouteImport } from './routes/our-student.prime'
+import { Route as OurStudentCoursesRouteImport } from './routes/our-student.courses'
 import { Route as CoursesCourseIdRouteImport } from './routes/courses.$courseId'
 import { Route as CheckoutCourseIdRouteImport } from './routes/checkout.$courseId'
 import { Route as BootcampsNewRouteImport } from './routes/bootcamps.new'
@@ -31,6 +35,16 @@ const UsersRoute = UsersRouteImport.update({
 const ProductsRoute = ProductsRouteImport.update({
   id: '/products',
   path: '/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrimeRoute = PrimeRouteImport.update({
+  id: '/prime',
+  path: '/prime',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OurStudentRoute = OurStudentRouteImport.update({
+  id: '/our-student',
+  path: '/our-student',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CoursesRoute = CoursesRouteImport.update({
@@ -63,6 +77,16 @@ const ProductsProductIdRoute = ProductsProductIdRouteImport.update({
   path: '/$productId',
   getParentRoute: () => ProductsRoute,
 } as any)
+const OurStudentPrimeRoute = OurStudentPrimeRouteImport.update({
+  id: '/prime',
+  path: '/prime',
+  getParentRoute: () => OurStudentRoute,
+} as any)
+const OurStudentCoursesRoute = OurStudentCoursesRouteImport.update({
+  id: '/courses',
+  path: '/courses',
+  getParentRoute: () => OurStudentRoute,
+} as any)
 const CoursesCourseIdRoute = CoursesCourseIdRouteImport.update({
   id: '/$courseId',
   path: '/$courseId',
@@ -92,11 +116,15 @@ const CoursesCourseIdSettingsRoute = CoursesCourseIdSettingsRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/courses': typeof CoursesRouteWithChildren
+  '/our-student': typeof OurStudentRouteWithChildren
+  '/prime': typeof PrimeRoute
   '/products': typeof ProductsRouteWithChildren
   '/users': typeof UsersRoute
   '/bootcamps/new': typeof BootcampsNewRoute
   '/checkout/$courseId': typeof CheckoutCourseIdRoute
   '/courses/$courseId': typeof CoursesCourseIdRouteWithChildren
+  '/our-student/courses': typeof OurStudentCoursesRoute
+  '/our-student/prime': typeof OurStudentPrimeRoute
   '/products/$productId': typeof ProductsProductIdRoute
   '/products/new': typeof ProductsNewRoute
   '/programs/$programSlug': typeof ProgramsProgramSlugRoute
@@ -107,11 +135,15 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/courses': typeof CoursesRouteWithChildren
+  '/our-student': typeof OurStudentRouteWithChildren
+  '/prime': typeof PrimeRoute
   '/products': typeof ProductsRouteWithChildren
   '/users': typeof UsersRoute
   '/bootcamps/new': typeof BootcampsNewRoute
   '/checkout/$courseId': typeof CheckoutCourseIdRoute
   '/courses/$courseId': typeof CoursesCourseIdRouteWithChildren
+  '/our-student/courses': typeof OurStudentCoursesRoute
+  '/our-student/prime': typeof OurStudentPrimeRoute
   '/products/$productId': typeof ProductsProductIdRoute
   '/products/new': typeof ProductsNewRoute
   '/programs/$programSlug': typeof ProgramsProgramSlugRoute
@@ -123,11 +155,15 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/courses': typeof CoursesRouteWithChildren
+  '/our-student': typeof OurStudentRouteWithChildren
+  '/prime': typeof PrimeRoute
   '/products': typeof ProductsRouteWithChildren
   '/users': typeof UsersRoute
   '/bootcamps/new': typeof BootcampsNewRoute
   '/checkout/$courseId': typeof CheckoutCourseIdRoute
   '/courses/$courseId': typeof CoursesCourseIdRouteWithChildren
+  '/our-student/courses': typeof OurStudentCoursesRoute
+  '/our-student/prime': typeof OurStudentPrimeRoute
   '/products/$productId': typeof ProductsProductIdRoute
   '/products/new': typeof ProductsNewRoute
   '/programs/$programSlug': typeof ProgramsProgramSlugRoute
@@ -140,11 +176,15 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/courses'
+    | '/our-student'
+    | '/prime'
     | '/products'
     | '/users'
     | '/bootcamps/new'
     | '/checkout/$courseId'
     | '/courses/$courseId'
+    | '/our-student/courses'
+    | '/our-student/prime'
     | '/products/$productId'
     | '/products/new'
     | '/programs/$programSlug'
@@ -155,11 +195,15 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/courses'
+    | '/our-student'
+    | '/prime'
     | '/products'
     | '/users'
     | '/bootcamps/new'
     | '/checkout/$courseId'
     | '/courses/$courseId'
+    | '/our-student/courses'
+    | '/our-student/prime'
     | '/products/$productId'
     | '/products/new'
     | '/programs/$programSlug'
@@ -170,11 +214,15 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/courses'
+    | '/our-student'
+    | '/prime'
     | '/products'
     | '/users'
     | '/bootcamps/new'
     | '/checkout/$courseId'
     | '/courses/$courseId'
+    | '/our-student/courses'
+    | '/our-student/prime'
     | '/products/$productId'
     | '/products/new'
     | '/programs/$programSlug'
@@ -186,6 +234,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CoursesRoute: typeof CoursesRouteWithChildren
+  OurStudentRoute: typeof OurStudentRouteWithChildren
+  PrimeRoute: typeof PrimeRoute
   ProductsRoute: typeof ProductsRouteWithChildren
   UsersRoute: typeof UsersRoute
   BootcampsNewRoute: typeof BootcampsNewRoute
@@ -208,6 +258,20 @@ declare module '@tanstack/react-router' {
       path: '/products'
       fullPath: '/products'
       preLoaderRoute: typeof ProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prime': {
+      id: '/prime'
+      path: '/prime'
+      fullPath: '/prime'
+      preLoaderRoute: typeof PrimeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/our-student': {
+      id: '/our-student'
+      path: '/our-student'
+      fullPath: '/our-student'
+      preLoaderRoute: typeof OurStudentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/courses': {
@@ -251,6 +315,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/products/$productId'
       preLoaderRoute: typeof ProductsProductIdRouteImport
       parentRoute: typeof ProductsRoute
+    }
+    '/our-student/prime': {
+      id: '/our-student/prime'
+      path: '/prime'
+      fullPath: '/our-student/prime'
+      preLoaderRoute: typeof OurStudentPrimeRouteImport
+      parentRoute: typeof OurStudentRoute
+    }
+    '/our-student/courses': {
+      id: '/our-student/courses'
+      path: '/courses'
+      fullPath: '/our-student/courses'
+      preLoaderRoute: typeof OurStudentCoursesRouteImport
+      parentRoute: typeof OurStudentRoute
     }
     '/courses/$courseId': {
       id: '/courses/$courseId'
@@ -315,6 +393,20 @@ const CoursesRouteChildren: CoursesRouteChildren = {
 const CoursesRouteWithChildren =
   CoursesRoute._addFileChildren(CoursesRouteChildren)
 
+interface OurStudentRouteChildren {
+  OurStudentCoursesRoute: typeof OurStudentCoursesRoute
+  OurStudentPrimeRoute: typeof OurStudentPrimeRoute
+}
+
+const OurStudentRouteChildren: OurStudentRouteChildren = {
+  OurStudentCoursesRoute: OurStudentCoursesRoute,
+  OurStudentPrimeRoute: OurStudentPrimeRoute,
+}
+
+const OurStudentRouteWithChildren = OurStudentRoute._addFileChildren(
+  OurStudentRouteChildren,
+)
+
 interface ProductsRouteChildren {
   ProductsProductIdRoute: typeof ProductsProductIdRoute
   ProductsNewRoute: typeof ProductsNewRoute
@@ -332,6 +424,8 @@ const ProductsRouteWithChildren = ProductsRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CoursesRoute: CoursesRouteWithChildren,
+  OurStudentRoute: OurStudentRouteWithChildren,
+  PrimeRoute: PrimeRoute,
   ProductsRoute: ProductsRouteWithChildren,
   UsersRoute: UsersRoute,
   BootcampsNewRoute: BootcampsNewRoute,

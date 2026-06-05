@@ -1,4 +1,4 @@
-import { createFileRoute, Link, Outlet, useMatch, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Topbar } from "@/components/dashboard/Topbar";
@@ -38,10 +38,10 @@ import { useProducts, slugifyProduct, type Product } from "@/lib/products-store"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import courseReportLogo from "@/assets/course-report.png";
 
-export const Route = createFileRoute("/courses")({
+export const Route = createFileRoute("/our-student/courses")({
   head: () => ({
     meta: [
-      { title: "Courses — Metana Platform" },
+      { title: "Courses — Our Student" },
       {
         name: "description",
         content: "Browse your enrolled and available bootcamp courses on Metana.",
@@ -853,8 +853,6 @@ function JourneyHeader() {
 
 function CoursesPage() {
   const navigate = useNavigate();
-  const detailMatch = useMatch({ from: "/courses/$courseId", shouldThrow: false });
-  const learnMatch = useMatch({ from: "/courses/learn/$courseId", shouldThrow: false });
   const [tab, setTab] = useState<"my" | "all">("my");
   const [view, setView] = useState<"grid" | "list">("grid");
   const [query, setQuery] = useState("");
@@ -890,10 +888,6 @@ function CoursesPage() {
   const handlePurchase = (course: Course) => {
     setPricingFor(course.id);
   };
-
-  if (detailMatch || learnMatch) {
-    return <Outlet />;
-  }
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">

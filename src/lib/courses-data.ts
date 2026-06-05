@@ -1,5 +1,6 @@
 import fullstackCover from "@/assets/courses/fullstack.svg";
 import rustCover from "@/assets/courses/rust.svg";
+import { getPrimeCourseById } from "@/lib/prime-store";
 
 export type Course = {
   id: string;
@@ -84,8 +85,7 @@ export const allCourses: Course[] = [
     gradient: "linear-gradient(180deg, oklch(0.95 0.08 320), oklch(0.92 0.1 350))",
     icon: "zk",
     category: "all",
-    longDescription:
-      "Understand the math and engineering behind ZK and ship proofs to production.",
+    longDescription: "Understand the math and engineering behind ZK and ship proofs to production.",
   },
   {
     id: "data",
@@ -103,7 +103,23 @@ export const allCourses: Course[] = [
 export const allCoursesCombined = [...myCourses, ...allCourses];
 
 export function getCourse(id: string): Course | undefined {
-  return allCoursesCombined.find((c) => c.id === id);
+  const found = allCoursesCombined.find((c) => c.id === id);
+  if (found) return found;
+  // Fall back to Metana Prime courses so checkout can resolve a Prime course.
+  const prime = getPrimeCourseById(id);
+  if (prime) {
+    return {
+      id: prime.id,
+      title: prime.title,
+      description: prime.description,
+      meta: `${prime.hours}H · ${prime.lessons} lessons · ${prime.level}`,
+      gradient: prime.gradient,
+      icon: "ai",
+      category: "all",
+      longDescription: prime.description,
+    };
+  }
+  return undefined;
 }
 
 export const plans = [
@@ -152,3 +168,35 @@ export const plans = [
 ];
 
 export type PlanId = (typeof plans)[number]["id"];
+
+// Metana Prime subscription plans (separate from the bootcamp `plans` above so the
+// checkout/bootcamp flows stay untouched). Installment fields are 0/null — the
+// pricing dialog hides the installment text when there is no enrollment amount.
+export const primePlans: typeof plans = [
+  {
+    id: "plan-01" as const,
+    name: "Plan 01",
+    popular: true,
+    price: 50,
+    original: null,
+    upfront: true,
+    monthlyEnrollment: 0,
+    monthly: 0,
+    monthlyOriginal: null,
+    months: 0,
+    features: ["40+ Courses", "1-on-1 Stand-ups", "100 Credits"],
+  },
+  {
+    id: "plan-02" as const,
+    name: "Plan 02",
+    popular: false,
+    price: 60,
+    original: null,
+    upfront: true,
+    monthlyEnrollment: 0,
+    monthly: 0,
+    monthlyOriginal: null,
+    months: 0,
+    features: ["Everything in Plan 01", "Extra 100 credits"],
+  },
+];

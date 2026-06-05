@@ -11,7 +11,7 @@ import {
   CalendarClock,
   Sparkles,
   Check,
-} from "lucide-react";
+} from "@/components/icons";
 import type { ProductPricing, InstallmentPlan } from "@/lib/products-store";
 
 type Method = "upfront" | "installment";
@@ -274,11 +274,7 @@ export function SetPricingDialog({
                                 muted
                               />
                               <div className="my-2 border-t border-dashed border-border" />
-                              <SummaryRow
-                                label="Final payable"
-                                value={fmt(finalPrice)}
-                                emphasis
-                              />
+                              <SummaryRow label="Final payable" value={fmt(finalPrice)} emphasis />
                             </div>
                           </motion.div>
                         )}
@@ -422,87 +418,87 @@ export function SetPricingDialog({
                         "linear-gradient(135deg, rgba(206,252,4,0.02), rgba(91,236,215,0.02))",
                     }}
                   >
-                  <div className="p-4">
-                    <h4 className="text-second-header font-bold tracking-tight">
-                      {title || "Untitled product"}
-                    </h4>
+                    <div className="p-4">
+                      <h4 className="text-second-header font-bold tracking-tight">
+                        {title || "Untitled product"}
+                      </h4>
 
-                    <div className="mt-4 space-y-3">
-                      {active.length === 0 && (
-                        <p className="rounded-xl bg-muted/50 p-3 text-center text-small text-muted-foreground">
-                          No pricing configured yet
-                        </p>
-                      )}
-
-                      {isActive("upfront") && (
-                        <div className="rounded-xl border border-border bg-background p-3">
-                          <div className="flex items-center justify-between">
-                            <span className="text-smaller font-semibold uppercase tracking-wide text-muted-foreground">
-                              Upfront
-                            </span>
-                            {discountPct > 0 && (
-                              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-smaller font-semibold text-foreground">
-                                {discountPct}% off
-                              </span>
-                            )}
-                          </div>
-                          <div className="mt-1 flex items-baseline gap-2">
-                            <span className="text-primary-header font-bold tracking-tight">
-                              {fmt(finalPrice)}
-                            </span>
-                            {discountPct > 0 && (
-                              <span className="text-small text-muted-foreground line-through">
-                                {fmt(totalPrice)}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      )}
-
-                      {isActive("installment") && (
-                        <div className="rounded-xl border border-border bg-background p-3">
-                          <span className="text-smaller font-semibold uppercase tracking-wide text-muted-foreground">
-                            Installments
-                          </span>
-                          <p className="mt-1 text-body font-bold text-foreground">
-                            {fmt(deposit)} initial payment, then
+                      <div className="mt-4 space-y-3">
+                        {active.length === 0 && (
+                          <p className="rounded-xl bg-muted/50 p-3 text-center text-small text-muted-foreground">
+                            No pricing configured yet
                           </p>
-                          <div className="mt-2 grid grid-cols-1 gap-2">
-                            {plans.map((p) => {
-                              const monthly = p.months > 0 ? fullPrice / p.months : 0;
-                              return (
-                                <div
-                                  key={p.id}
-                                  className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2"
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <span className="h-2.5 w-2.5 rounded-full border border-dashed border-foreground/50" />
-                                    <span className="text-small font-medium">
-                                      {p.months} months
+                        )}
+
+                        {isActive("upfront") && (
+                          <div className="rounded-xl border border-border bg-background p-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-smaller font-semibold uppercase tracking-wide text-muted-foreground">
+                                Upfront
+                              </span>
+                              {discountPct > 0 && (
+                                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-smaller font-semibold text-foreground">
+                                  {discountPct}% off
+                                </span>
+                              )}
+                            </div>
+                            <div className="mt-1 flex items-baseline gap-2">
+                              <span className="text-primary-header font-bold tracking-tight">
+                                {fmt(finalPrice)}
+                              </span>
+                              {discountPct > 0 && (
+                                <span className="text-small text-muted-foreground line-through">
+                                  {fmt(totalPrice)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {isActive("installment") && (
+                          <div className="rounded-xl border border-border bg-background p-3">
+                            <span className="text-smaller font-semibold uppercase tracking-wide text-muted-foreground">
+                              Installments
+                            </span>
+                            <p className="mt-1 text-body font-bold text-foreground">
+                              {fmt(deposit)} initial payment, then
+                            </p>
+                            <div className="mt-2 grid grid-cols-1 gap-2">
+                              {plans.map((p) => {
+                                const monthly = p.months > 0 ? fullPrice / p.months : 0;
+                                return (
+                                  <div
+                                    key={p.id}
+                                    className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2"
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <span className="h-2.5 w-2.5 rounded-full border border-dashed border-foreground/50" />
+                                      <span className="text-small font-medium">
+                                        {p.months} months
+                                      </span>
+                                    </div>
+                                    <span className="text-body font-bold">
+                                      {fmt(monthly)}
+                                      <span className="text-smaller font-normal text-muted-foreground">
+                                        /mo
+                                      </span>
                                     </span>
                                   </div>
-                                  <span className="text-body font-bold">
-                                    {fmt(monthly)}
-                                    <span className="text-smaller font-normal text-muted-foreground">
-                                      /mo
-                                    </span>
-                                  </span>
-                                </div>
-                              );
-                            })}
+                                );
+                              })}
+                            </div>
+                            <div className="mt-3 flex items-center justify-between border-t border-dashed border-border pt-2">
+                              <span className="text-smaller font-semibold uppercase tracking-wide text-muted-foreground">
+                                Total
+                              </span>
+                              <span className="text-body font-bold text-foreground">
+                                {fmt(totalWithInitial)}
+                              </span>
+                            </div>
                           </div>
-                          <div className="mt-3 flex items-center justify-between border-t border-dashed border-border pt-2">
-                            <span className="text-smaller font-semibold uppercase tracking-wide text-muted-foreground">
-                              Total
-                            </span>
-                            <span className="text-body font-bold text-foreground">
-                              {fmt(totalWithInitial)}
-                            </span>
-                          </div>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
-                  </div>
                   </div>
                 </div>
               </aside>
@@ -578,11 +574,11 @@ function NumberField({
 }) {
   return (
     <label className="block">
-      <span className={cn("text-smaller font-semibold text-muted-foreground", labelClassName)}>{label}</span>
+      <span className={cn("text-smaller font-semibold text-muted-foreground", labelClassName)}>
+        {label}
+      </span>
       <div className="mt-1 flex items-center rounded-lg border border-border bg-background focus-within:ring-1 focus-within:ring-ring">
-        {prefix && (
-          <span className="pl-3 text-small text-muted-foreground">{prefix}</span>
-        )}
+        {prefix && <span className="pl-3 text-small text-muted-foreground">{prefix}</span>}
         <input
           type="number"
           min={0}
@@ -590,9 +586,7 @@ function NumberField({
           onChange={(e) => onChange(Number(e.target.value) || 0)}
           className="w-full bg-transparent px-2 py-2 text-body font-semibold focus:outline-none"
         />
-        {suffix && (
-          <span className="pr-3 text-small text-muted-foreground">{suffix}</span>
-        )}
+        {suffix && <span className="pr-3 text-small text-muted-foreground">{suffix}</span>}
       </div>
     </label>
   );

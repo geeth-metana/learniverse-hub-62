@@ -1,4 +1,4 @@
-import { Play, Calendar as CalendarIcon, ChevronRight } from "lucide-react";
+import { Play, Calendar as CalendarIcon, ChevronRight } from "@/components/icons";
 
 export function LearningPath() {
   return (

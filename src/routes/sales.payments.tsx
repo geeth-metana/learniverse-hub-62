@@ -21,7 +21,7 @@ import {
   CalendarClock,
   Banknote,
   Landmark,
-} from "lucide-react";
+} from "@/components/icons";
 import { toast } from "sonner";
 import {
   addCustomCohort,
@@ -38,7 +38,7 @@ import {
   type SalesCourse,
 } from "@/lib/invitations-store";
 
-import { SlidersHorizontal, Eye, Clock, Users } from "lucide-react";
+import { SlidersHorizontal, Eye, Clock, Users } from "@/components/icons";
 import {
   TrendingUp,
   FileText,
@@ -51,7 +51,7 @@ import {
   CreditCard,
   ShieldCheck,
   AlertCircle,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   User as UserIcon,
   BookOpen,
@@ -59,7 +59,7 @@ import {
   Layers,
   UploadCloud,
   Info,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   BarChart,
   Bar,
@@ -87,8 +87,7 @@ export const Route = createFileRoute("/sales/payments")({
       { title: "Payment — Metana" },
       {
         name: "description",
-        content:
-          "Create and manage student payment plans, checkout links, and invitations.",
+        content: "Create and manage student payment plans, checkout links, and invitations.",
       },
     ],
   }),
@@ -248,22 +247,17 @@ function PaymentPage() {
                 <table className="w-full text-left text-body">
                   <thead>
                     <tr style={{ color: TEXT_MUTED }}>
-                      {[
-                        "Student",
-                        "Email",
-                        "Course",
-                        "Payment Method",
-                        "Status",
-                        "Actions",
-                      ].map((h) => (
-                        <th
-                          key={h}
-                          className="px-6 py-3 text-small font-medium uppercase tracking-wide"
-                          style={{ borderBottom: `1px solid ${BORDER}` }}
-                        >
-                          {h}
-                        </th>
-                      ))}
+                      {["Student", "Email", "Course", "Payment Method", "Status", "Actions"].map(
+                        (h) => (
+                          <th
+                            key={h}
+                            className="px-6 py-3 text-small font-medium uppercase tracking-wide"
+                            style={{ borderBottom: `1px solid ${BORDER}` }}
+                          >
+                            {h}
+                          </th>
+                        ),
+                      )}
                     </tr>
                   </thead>
                   <tbody>
@@ -290,9 +284,15 @@ function PaymentPage() {
                           <td className="px-6 py-4 font-semibold" style={{ color: TEXT_DARK }}>
                             {row.studentName ?? "—"}
                           </td>
-                          <td className="px-6 py-4" style={{ color: TEXT_DARK }}>{row.studentEmail}</td>
-                          <td className="px-6 py-4" style={{ color: TEXT_DARK }}>{row.course}</td>
-                          <td className="px-6 py-4" style={{ color: TEXT_DARK }}>{row.paymentMethod}</td>
+                          <td className="px-6 py-4" style={{ color: TEXT_DARK }}>
+                            {row.studentEmail}
+                          </td>
+                          <td className="px-6 py-4" style={{ color: TEXT_DARK }}>
+                            {row.course}
+                          </td>
+                          <td className="px-6 py-4" style={{ color: TEXT_DARK }}>
+                            {row.paymentMethod}
+                          </td>
                           <td className="px-6 py-4">{statusPill(row.status)}</td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-1">
@@ -351,10 +351,7 @@ function PaymentPage() {
       )}
 
       {viewing && (
-        <PaymentOverviewDrawer
-          invitation={viewing}
-          onClose={() => setViewDetailsId(null)}
-        />
+        <PaymentOverviewDrawer invitation={viewing} onClose={() => setViewDetailsId(null)} />
       )}
 
       {removeTarget && (
@@ -474,14 +471,8 @@ function InstallmentsPanel({
       {/* Top summary */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <MiniStat label="Full Amount" value={`$${d.fullAmount.toLocaleString()}`} />
-        <MiniStat
-          label="Down Payment"
-          value={`$${d.initialDownPayment.toLocaleString()}`}
-        />
-        <MiniStat
-          label="Monthly Payment"
-          value={`$${d.monthlyPayment.toLocaleString()}`}
-        />
+        <MiniStat label="Down Payment" value={`$${d.initialDownPayment.toLocaleString()}`} />
+        <MiniStat label="Monthly Payment" value={`$${d.monthlyPayment.toLocaleString()}`} />
         <MiniStat label="Approved" value={`${approvedCount} / ${totalCount}`} />
         <MiniStat label="Access" value={accessStatus} />
       </div>
@@ -512,10 +503,7 @@ function InstallmentsPanel({
         style={{ border: `1px solid ${BORDER}` }}
       >
         {/* Left list */}
-        <div
-          className="flex min-h-0 flex-col"
-          style={{ borderRight: `1px solid ${BORDER}` }}
-        >
+        <div className="flex min-h-0 flex-col" style={{ borderRight: `1px solid ${BORDER}` }}>
           <div
             className="sticky top-0 z-10 flex items-center justify-between gap-2 px-4 py-2.5"
             style={{ borderBottom: `1px solid ${BORDER}`, backgroundColor: "#FAFAFA" }}
@@ -542,10 +530,7 @@ function InstallmentsPanel({
             >
               <span className="h-4 w-4 shrink-0" aria-hidden />
               <div className="min-w-0 flex-1">
-                <p
-                  className="truncate text-small font-semibold"
-                  style={{ color: TEXT_DARK }}
-                >
+                <p className="truncate text-small font-semibold" style={{ color: TEXT_DARK }}>
                   Down Payment
                 </p>
                 <p className="text-smaller" style={{ color: TEXT_MUTED }}>
@@ -591,10 +576,7 @@ function InstallmentsPanel({
                     className="flex flex-1 items-start justify-between gap-3 text-left"
                   >
                     <div className="min-w-0">
-                      <p
-                        className="truncate text-small font-semibold"
-                        style={{ color: TEXT_DARK }}
-                      >
+                      <p className="truncate text-small font-semibold" style={{ color: TEXT_DARK }}>
                         {it.label}
                       </p>
                       <p className="text-smaller" style={{ color: TEXT_MUTED }}>
@@ -603,20 +585,26 @@ function InstallmentsPanel({
                           ? `Paid $${it.paidAmount.toLocaleString()} / $${it.amount.toLocaleString()}`
                           : `$${it.amount.toLocaleString()}`}
                       </p>
-                      {it.status === "Approved" && it.paymentMethod && (
-                        it.remainingBalance ? null : (
+                      {it.status === "Approved" &&
+                        it.paymentMethod &&
+                        (it.remainingBalance ? null : (
                           <p className="text-smaller" style={{ color: TEXT_MUTED }}>
                             Approved · {it.paymentMethod === "Stripe" ? "Stripe" : "Bank / Offline"}
                           </p>
-                        )
-                      )}
+                        ))}
                       {it.remainingBalance ? (
-                        <p className="mt-1 text-smaller whitespace-nowrap" style={{ color: TEXT_MUTED }}>
+                        <p
+                          className="mt-1 text-smaller whitespace-nowrap"
+                          style={{ color: TEXT_MUTED }}
+                        >
                           Remaining Balance: ${it.remainingBalance.toLocaleString()}
                         </p>
                       ) : null}
                       {it.carriedFromAmount ? (
-                        <p className="mt-1 text-smaller whitespace-nowrap" style={{ color: TEXT_MUTED }}>
+                        <p
+                          className="mt-1 text-smaller whitespace-nowrap"
+                          style={{ color: TEXT_MUTED }}
+                        >
                           Includes ${it.carriedFromAmount.toLocaleString()} carried balance
                         </p>
                       ) : null}
@@ -701,9 +689,7 @@ function ManualPaymentForm({
   }) => void;
 }) {
   const defaultDue = (() => {
-    const dates = selectedRows
-      .map((r) => new Date(r.dueDate))
-      .filter((d) => !isNaN(d.getTime()));
+    const dates = selectedRows.map((r) => new Date(r.dueDate)).filter((d) => !isNaN(d.getTime()));
     if (!dates.length) return new Date().toISOString().slice(0, 10);
     const max = new Date(Math.max(...dates.map((d) => d.getTime())));
     return max.toISOString().slice(0, 10);
@@ -757,11 +743,7 @@ function ManualPaymentForm({
   })();
 
   const disabled =
-    selectedRows.length === 0 ||
-    !paymentAmount ||
-    paymentAmount <= 0 ||
-    !paymentDueDate ||
-    !proof;
+    selectedRows.length === 0 || !paymentAmount || paymentAmount <= 0 || !paymentDueDate || !proof;
 
   return (
     <div>
@@ -884,7 +866,10 @@ function ManualPaymentForm({
                 <span>${remaining.toLocaleString()}</span>
               </div>
             </div>
-            <div className="mt-2 space-y-1 border-t pt-2 text-smaller" style={{ borderColor: "#FDE68A", color: TEXT_DARK }}>
+            <div
+              className="mt-2 space-y-1 border-t pt-2 text-smaller"
+              style={{ borderColor: "#FDE68A", color: TEXT_DARK }}
+            >
               {allocations.map((a) => (
                 <div key={a.row.id} className="flex justify-between">
                   <span>{a.row.label}</span>
@@ -895,7 +880,8 @@ function ManualPaymentForm({
               ))}
               {isLast ? (
                 <p className="mt-1" style={{ color: "#991B1B" }}>
-                  This is the final installment. Remaining unpaid balance will be recorded as neglected balance.
+                  This is the final installment. Remaining unpaid balance will be recorded as
+                  neglected balance.
                 </p>
               ) : carryTarget ? (
                 <div className="flex justify-between">
@@ -1052,7 +1038,10 @@ function InstallmentDetailPanel({
           className="mt-4 rounded-xl p-4"
           style={{ backgroundColor: "#F9FAFB", border: `1px solid ${BORDER}` }}
         >
-          <p className="mb-2 text-smaller font-semibold uppercase tracking-wide" style={{ color: TEXT_MUTED }}>
+          <p
+            className="mb-2 text-smaller font-semibold uppercase tracking-wide"
+            style={{ color: TEXT_MUTED }}
+          >
             Installment Details
           </p>
           <div className="space-y-1.5">
@@ -1060,9 +1049,7 @@ function InstallmentDetailPanel({
             <Row label="Status" value="Approved" />
             {isStripe ? (
               <>
-                {row.stripeTxnId && (
-                  <Row label="Stripe Transaction ID" value={row.stripeTxnId} />
-                )}
+                {row.stripeTxnId && <Row label="Stripe Transaction ID" value={row.stripeTxnId} />}
                 <Row label="Paid Date" value={row.dueDate} />
                 <Row
                   label="Amount Paid"
@@ -1099,7 +1086,11 @@ function InstallmentDetailPanel({
               type="button"
               onClick={() => toast.success("Download started")}
               className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-small font-semibold"
-              style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+              style={{
+                backgroundColor: "#FFFFFF",
+                color: TEXT_DARK,
+                border: `1px solid ${BORDER}`,
+              }}
             >
               Download {isStripe ? "Receipt" : "Proof"}
             </button>
@@ -1114,7 +1105,10 @@ function InstallmentDetailPanel({
           style={{ backgroundColor: "#FFFBEB", border: `1px solid #FDE68A` }}
         >
           <div className="flex items-center justify-between">
-            <p className="text-smaller font-semibold uppercase tracking-wide" style={{ color: "#92400E" }}>
+            <p
+              className="text-smaller font-semibold uppercase tracking-wide"
+              style={{ color: "#92400E" }}
+            >
               Manual Payment Approval
             </p>
             <InstallmentStatusPill status={manualPayment.status} />
@@ -1137,12 +1131,8 @@ function InstallmentDetailPanel({
               />
             )}
             <Row label="Payment Due Date" value={manualPayment.paymentDueDate} />
-            {manualPayment.proof && (
-              <Row label="Proof" value={manualPayment.proof.name} />
-            )}
-            {manualPayment.note && (
-              <Row label="Internal Note" value={manualPayment.note} last />
-            )}
+            {manualPayment.proof && <Row label="Proof" value={manualPayment.proof.name} />}
+            {manualPayment.note && <Row label="Internal Note" value={manualPayment.note} last />}
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
             {manualPayment.status === "Needs Approval" && (
@@ -1159,7 +1149,11 @@ function InstallmentDetailPanel({
                   type="button"
                   onClick={() => onMarkNeedsNewProof(manualPayment.id)}
                   className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
-                  style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+                  style={{
+                    backgroundColor: "#FFFFFF",
+                    color: TEXT_DARK,
+                    border: `1px solid ${BORDER}`,
+                  }}
                 >
                   Needs New Proof
                 </button>
@@ -1193,7 +1187,10 @@ function InstallmentDetailPanel({
             className="mt-4 rounded-xl p-4"
             style={{ backgroundColor: "#F9FAFB", border: `1px solid ${BORDER}` }}
           >
-            <p className="mb-2 text-smaller font-semibold uppercase tracking-wide" style={{ color: TEXT_MUTED }}>
+            <p
+              className="mb-2 text-smaller font-semibold uppercase tracking-wide"
+              style={{ color: TEXT_MUTED }}
+            >
               Installment Details
             </p>
             <div className="space-y-1.5">
@@ -1209,16 +1206,10 @@ function InstallmentDetailPanel({
                     label="Carried Balance"
                     value={`+ $${row.carriedFromAmount.toLocaleString()}${row.carriedFromLabel ? ` (from ${row.carriedFromLabel})` : ""}`}
                   />
-                  <Row
-                    label="Current Amount Due"
-                    value={`$${row.amount.toLocaleString()}`}
-                  />
+                  <Row label="Current Amount Due" value={`$${row.amount.toLocaleString()}`} />
                 </>
               ) : (
-                <Row
-                  label="Current Amount Due"
-                  value={`$${row.amount.toLocaleString()}`}
-                />
+                <Row label="Current Amount Due" value={`$${row.amount.toLocaleString()}`} />
               )}
               <Row label="Status" value={row.status} last />
             </div>
@@ -1244,7 +1235,11 @@ function InstallmentDetailPanel({
                 type="button"
                 onClick={onOpenChangeDueDate}
                 className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-small font-semibold"
-                style={{ backgroundColor: "#FFFFFF", color: TEXT_DARK, border: `1px solid ${BORDER}` }}
+                style={{
+                  backgroundColor: "#FFFFFF",
+                  color: TEXT_DARK,
+                  border: `1px solid ${BORDER}`,
+                }}
               >
                 <CalendarClock className="h-4 w-4" /> Change Due Date
               </button>
@@ -1315,7 +1310,8 @@ function ChangeDueDateModal({
               {title}
             </h3>
             <p className="mt-1 text-smaller" style={{ color: TEXT_MUTED }}>
-              {description ?? `Update the due date for ${row.label}. The installment stays Pending.`}
+              {description ??
+                `Update the due date for ${row.label}. The installment stays Pending.`}
             </p>
           </div>
           <button
@@ -1615,9 +1611,7 @@ function AnalyticsSection() {
               <Legend
                 iconType="circle"
                 wrapperStyle={{ paddingTop: 12, fontSize: 12, color: TEXT_DARK }}
-                formatter={(value: string) => (
-                  <span style={{ color: TEXT_DARK }}>{value}</span>
-                )}
+                formatter={(value: string) => <span style={{ color: TEXT_DARK }}>{value}</span>}
               />
               <Bar dataKey="Upfront" fill="#CCF621" radius={[8, 8, 0, 0]} maxBarSize={22} />
               <Bar dataKey="Installment" fill="#A3E635" radius={[8, 8, 0, 0]} maxBarSize={22} />
@@ -1672,9 +1666,7 @@ function AnalyticsSection() {
               <Legend
                 iconType="circle"
                 wrapperStyle={{ paddingTop: 8, fontSize: 12, color: TEXT_DARK }}
-                formatter={(value: string) => (
-                  <span style={{ color: TEXT_DARK }}>{value}</span>
-                )}
+                formatter={(value: string) => <span style={{ color: TEXT_DARK }}>{value}</span>}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -1926,7 +1918,9 @@ function ChartCard({
           {title}
         </h3>
         {subtitle && (
-          <p className="mt-1 text-small" style={{ color: TEXT_MUTED }}>{subtitle}</p>
+          <p className="mt-1 text-small" style={{ color: TEXT_MUTED }}>
+            {subtitle}
+          </p>
         )}
       </div>
       <div className="flex-1">{children}</div>
@@ -1952,7 +1946,9 @@ function SelectPill({
         style={{ border: `1px solid ${BORDER}`, color: TEXT_DARK }}
       >
         {options.map((o) => (
-          <option key={o} value={o}>{o}</option>
+          <option key={o} value={o}>
+            {o}
+          </option>
         ))}
       </select>
       <ChevronDown
@@ -2065,9 +2061,13 @@ function AddStudentModal({
   });
 
   // Installment state
-  const [installmentPlanId, setInstallmentPlanId] = useState<"plan-01" | "plan-02" | "custom">("plan-01");
+  const [installmentPlanId, setInstallmentPlanId] = useState<"plan-01" | "plan-02" | "custom">(
+    "plan-01",
+  );
   // Discount % is editable for all three plans (default 0%).
-  const [installmentDiscount, setInstallmentDiscount] = useState<Record<"plan-01" | "plan-02" | "custom", number>>({
+  const [installmentDiscount, setInstallmentDiscount] = useState<
+    Record<"plan-01" | "plan-02" | "custom", number>
+  >({
     "plan-01": 0,
     "plan-02": 0,
     custom: 0,
@@ -2118,8 +2118,10 @@ function AddStudentModal({
           installments: customInstallments,
           discountPercent: installmentDiscount[installmentPlanId],
         });
-        if (!setup.fullAmount || setup.fullAmount <= 0) return toast.error("Full amount is required.");
-        if (!setup.installments || setup.installments <= 0) return toast.error("Number of installments must be greater than 0.");
+        if (!setup.fullAmount || setup.fullAmount <= 0)
+          return toast.error("Full amount is required.");
+        if (!setup.installments || setup.installments <= 0)
+          return toast.error("Number of installments must be greater than 0.");
         if (setup.downPayment >= setup.discountedFullAmount) {
           return toast.error("Down payment cannot be greater than the discounted full amount.");
         }
@@ -2200,19 +2202,20 @@ function AddStudentModal({
             : 0;
     const discountPercent = details.paymentType === "Upfront" ? details.discountPercent : 0;
     const planLabel: "Plan 01" | "Plan 02" =
-      details.paymentType === "Upfront"
-        ? (details.planName as "Plan 01" | "Plan 02")
-        : "Plan 01";
+      details.paymentType === "Upfront" ? (details.planName as "Plan 01" | "Plan 02") : "Plan 01";
     const planId: "plan-01" | "plan-02" =
       details.paymentType === "Upfront" ? upfrontPlanId : "plan-01";
 
-    const effectivePaymentMethod = (isMetanaPrime
+    const effectivePaymentMethod = isMetanaPrime
       ? ("Subscription" as unknown as PaymentMethod)
-      : (paymentMethod as PaymentMethod));
+      : (paymentMethod as PaymentMethod);
     const effectiveAccessType = isMetanaPrime ? "Subscription Access" : "Full Program Access";
 
     const inv = addInvitation({
-      studentName: email.split("@")[0].replace(/[._-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+      studentName: email
+        .split("@")[0]
+        .replace(/[._-]+/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase()),
       studentEmail: email.trim(),
       course: course.title,
       courseId: course.id,
@@ -2241,11 +2244,7 @@ function AddStudentModal({
       topAlign
     >
       <StepIndicator step={step} labels={stepperLabels} />
-      <motion.div
-        layout
-        transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
-        className="mt-6"
-      >
+      <motion.div layout transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }} className="mt-6">
         {createCohortMode && course ? (
           <CreateCohortView
             course={course}
@@ -2266,76 +2265,80 @@ function AddStudentModal({
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.22, ease: "easeInOut" }}
             >
-            {currentKey === "student" && (
-              <Step1
-                email={email}
-                setEmail={setEmail}
-                course={course}
-                setCourse={(c) => {
-                  const wasPrime = course?.title === "Metana Prime";
-                  const becomesPrime = c?.title === "Metana Prime";
-                  setCourse(c);
-                  setCohort(null);
-                  if (wasPrime !== becomesPrime) {
-                    setPaymentMethod(null);
-                    setStep(1);
+              {currentKey === "student" && (
+                <Step1
+                  email={email}
+                  setEmail={setEmail}
+                  course={course}
+                  setCourse={(c) => {
+                    const wasPrime = course?.title === "Metana Prime";
+                    const becomesPrime = c?.title === "Metana Prime";
+                    setCourse(c);
+                    setCohort(null);
+                    if (wasPrime !== becomesPrime) {
+                      setPaymentMethod(null);
+                      setStep(1);
+                    }
+                  }}
+                />
+              )}
+              {currentKey === "cohort" && course && (
+                <Step2
+                  course={course}
+                  cohort={cohort}
+                  setCohort={setCohort}
+                  onCreateNew={() => setCreateCohortMode(true)}
+                />
+              )}
+              {currentKey === "method" && (
+                <Step3PaymentMethod method={paymentMethod} setMethod={setPaymentMethod} />
+              )}
+              {currentKey === "plan" && isMetanaPrime && (
+                <StepPrimePlanSetup
+                  subscriptionAmount={subscriptionAmount}
+                  setSubscriptionAmount={setSubscriptionAmount}
+                  monthlyPayment={monthlyPayment}
+                  setMonthlyPayment={setMonthlyPayment}
+                />
+              )}
+              {currentKey === "plan" && !isMetanaPrime && paymentMethod && (
+                <Step4PlanSetup
+                  method={paymentMethod}
+                  upfrontPlanId={upfrontPlanId}
+                  setUpfrontPlanId={setUpfrontPlanId}
+                  upfrontAmount={upfrontAmount}
+                  setUpfrontAmount={setUpfrontAmount}
+                  upfrontDiscount={upfrontDiscount}
+                  setUpfrontDiscount={setUpfrontDiscount}
+                  installmentPlanId={installmentPlanId}
+                  setInstallmentPlanId={setInstallmentPlanId}
+                  installmentDiscount={installmentDiscount}
+                  setInstallmentDiscount={setInstallmentDiscount}
+                  customFullAmount={customFullAmount}
+                  setCustomFullAmount={setCustomFullAmount}
+                  customDownPayment={customDownPayment}
+                  setCustomDownPayment={setCustomDownPayment}
+                  customInstallments={customInstallments}
+                  setCustomInstallments={setCustomInstallments}
+                  loanProvider={loanProvider}
+                  setLoanProvider={setLoanProvider}
+                  loanLink={loanLink}
+                  setLoanLink={setLoanLink}
+                />
+              )}
+              {currentKey === "preview" && course && (
+                <Step5Preview
+                  email={email}
+                  course={course}
+                  cohort={cohort}
+                  paymentMethod={
+                    isMetanaPrime
+                      ? ("Subscription" as unknown as PaymentMethod)
+                      : (paymentMethod as PaymentMethod)
                   }
-                }}
-              />
-            )}
-            {currentKey === "cohort" && course && (
-              <Step2
-                course={course}
-                cohort={cohort}
-                setCohort={setCohort}
-                onCreateNew={() => setCreateCohortMode(true)}
-              />
-            )}
-            {currentKey === "method" && (
-              <Step3PaymentMethod method={paymentMethod} setMethod={setPaymentMethod} />
-            )}
-            {currentKey === "plan" && isMetanaPrime && (
-              <StepPrimePlanSetup
-                subscriptionAmount={subscriptionAmount}
-                setSubscriptionAmount={setSubscriptionAmount}
-                monthlyPayment={monthlyPayment}
-                setMonthlyPayment={setMonthlyPayment}
-              />
-            )}
-            {currentKey === "plan" && !isMetanaPrime && paymentMethod && (
-              <Step4PlanSetup
-                method={paymentMethod}
-                upfrontPlanId={upfrontPlanId}
-                setUpfrontPlanId={setUpfrontPlanId}
-                upfrontAmount={upfrontAmount}
-                setUpfrontAmount={setUpfrontAmount}
-                upfrontDiscount={upfrontDiscount}
-                setUpfrontDiscount={setUpfrontDiscount}
-                installmentPlanId={installmentPlanId}
-                setInstallmentPlanId={setInstallmentPlanId}
-                installmentDiscount={installmentDiscount}
-                setInstallmentDiscount={setInstallmentDiscount}
-                customFullAmount={customFullAmount}
-                setCustomFullAmount={setCustomFullAmount}
-                customDownPayment={customDownPayment}
-                setCustomDownPayment={setCustomDownPayment}
-                customInstallments={customInstallments}
-                setCustomInstallments={setCustomInstallments}
-                loanProvider={loanProvider}
-                setLoanProvider={setLoanProvider}
-                loanLink={loanLink}
-                setLoanLink={setLoanLink}
-              />
-            )}
-            {currentKey === "preview" && course && (
-              <Step5Preview
-                email={email}
-                course={course}
-                cohort={cohort}
-                paymentMethod={isMetanaPrime ? ("Subscription" as unknown as PaymentMethod) : (paymentMethod as PaymentMethod)}
-                details={buildPaymentDetails()}
-              />
-            )}
+                  details={buildPaymentDetails()}
+                />
+              )}
             </motion.div>
           </AnimatePresence>
         )}
@@ -2440,9 +2443,7 @@ function Step1({
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const filtered = salesCourses.filter((c) =>
-    c.title.toLowerCase().includes(query.toLowerCase()),
-  );
+  const filtered = salesCourses.filter((c) => c.title.toLowerCase().includes(query.toLowerCase()));
   return (
     <div className="flex flex-col gap-5">
       <Field label="Student Email" required>
@@ -2470,7 +2471,10 @@ function Step1({
           {open && (
             <div
               className="absolute bottom-full z-20 mb-2 w-full overflow-hidden rounded-xl bg-white"
-              style={{ border: `1px solid ${BORDER}`, boxShadow: "0 -10px 30px rgba(15,23,42,0.08)" }}
+              style={{
+                border: `1px solid ${BORDER}`,
+                boxShadow: "0 -10px 30px rgba(15,23,42,0.08)",
+              }}
             >
               <ul className="max-h-64 overflow-y-auto">
                 {filtered.map((c) => (
@@ -2559,7 +2563,9 @@ function Step2({
               style={{ border: `2px solid ${active ? TEXT_DARK : BORDER}` }}
             >
               <div>
-                <p className="font-semibold" style={{ color: TEXT_DARK }}>{c.date}</p>
+                <p className="font-semibold" style={{ color: TEXT_DARK }}>
+                  {c.date}
+                </p>
                 <p className="mt-1 text-small" style={{ color: TEXT_MUTED }}>
                   {c.day} · {c.time}
                 </p>
@@ -2574,9 +2580,7 @@ function Step2({
                   backgroundColor: active ? TEXT_DARK : "transparent",
                 }}
               >
-                {active && (
-                  <Check className="h-3 w-3" style={{ color: "#FFFFFF" }} />
-                )}
+                {active && <Check className="h-3 w-3" style={{ color: "#FFFFFF" }} />}
               </span>
             </button>
           );
@@ -2610,10 +2614,15 @@ function CreateCohortView({
   const submit = () => {
     if (!date) return toast.error("Cohort date is required.");
     if (!time) return toast.error("Start time is required.");
-    if (!seats || Number(seats) <= 0) return toast.error("Max student limit must be greater than 0.");
+    if (!seats || Number(seats) <= 0)
+      return toast.error("Max student limit must be greater than 0.");
     const d = new Date(date + "T00:00:00");
     const dayName = d.toLocaleDateString("en-US", { weekday: "long" });
-    const formattedDate = d.toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" });
+    const formattedDate = d.toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    });
     const [hh, mm] = time.split(":");
     const h = Number(hh);
     const ampm = h >= 12 ? "PM" : "AM";
@@ -2693,9 +2702,17 @@ function Step3PaymentMethod({
   method: PaymentMethod | null;
   setMethod: (m: PaymentMethod) => void;
 }) {
-  const options: { id: PaymentMethod; icon: React.ComponentType<{ className?: string }>; desc: string }[] = [
+  const options: {
+    id: PaymentMethod;
+    icon: React.ComponentType<{ className?: string }>;
+    desc: string;
+  }[] = [
     { id: "Upfront", icon: Wallet, desc: "Student pays the full amount at once." },
-    { id: "Installment", icon: CalendarClock, desc: "Student pays a down payment first, then monthly installments." },
+    {
+      id: "Installment",
+      icon: CalendarClock,
+      desc: "Student pays a down payment first, then monthly installments.",
+    },
     { id: "Loan", icon: Banknote, desc: "Student continues through a loan application link." },
   ];
   return (
@@ -2737,8 +2754,12 @@ function Step3PaymentMethod({
                 )}
               </div>
               <div className="flex-1">
-                <p className="font-semibold" style={{ color: TEXT_DARK }}>{o.id}</p>
-                <p className="mt-1 text-small" style={{ color: TEXT_MUTED }}>{o.desc}</p>
+                <p className="font-semibold" style={{ color: TEXT_DARK }}>
+                  {o.id}
+                </p>
+                <p className="mt-1 text-small" style={{ color: TEXT_MUTED }}>
+                  {o.desc}
+                </p>
               </div>
             </button>
           );
@@ -2791,13 +2812,24 @@ function Step4PlanSetup(props: {
                 style={{ border: `2px solid ${active ? TEXT_DARK : BORDER}` }}
               >
                 <div className="flex items-center justify-between">
-                  <p className="font-semibold" style={{ color: TEXT_DARK }}>{p.name}</p>
-                  <span className="text-small" style={{ color: TEXT_MUTED }}>Upfront</span>
+                  <p className="font-semibold" style={{ color: TEXT_DARK }}>
+                    {p.name}
+                  </p>
+                  <span className="text-small" style={{ color: TEXT_MUTED }}>
+                    Upfront
+                  </span>
                 </div>
                 <label className="mt-3 flex flex-col gap-1.5">
-                  <span className="text-small" style={{ color: TEXT_MUTED }}>Full Amount</span>
-                  <div className="flex items-center rounded-lg bg-white" style={{ border: `1px solid ${BORDER}` }}>
-                    <span className="pl-3 text-body" style={{ color: TEXT_MUTED }}>$</span>
+                  <span className="text-small" style={{ color: TEXT_MUTED }}>
+                    Full Amount
+                  </span>
+                  <div
+                    className="flex items-center rounded-lg bg-white"
+                    style={{ border: `1px solid ${BORDER}` }}
+                  >
+                    <span className="pl-3 text-body" style={{ color: TEXT_MUTED }}>
+                      $
+                    </span>
                     <input
                       type="number"
                       min={0}
@@ -2815,7 +2847,9 @@ function Step4PlanSetup(props: {
                   </div>
                 </label>
                 <label className="flex flex-col gap-1.5">
-                  <span className="text-small" style={{ color: TEXT_MUTED }}>Discount</span>
+                  <span className="text-small" style={{ color: TEXT_MUTED }}>
+                    Discount
+                  </span>
                   <div
                     className="flex items-center rounded-lg bg-white"
                     style={{ border: `1px solid ${BORDER}` }}
@@ -2836,11 +2870,15 @@ function Step4PlanSetup(props: {
                       className="w-full bg-transparent px-3 py-2 text-body outline-none"
                       style={{ color: TEXT_DARK }}
                     />
-                    <span className="pr-3 text-small" style={{ color: TEXT_MUTED }}>%</span>
+                    <span className="pr-3 text-small" style={{ color: TEXT_MUTED }}>
+                      %
+                    </span>
                   </div>
                 </label>
                 <div className="mt-3 flex items-center justify-between">
-                  <span className="text-small" style={{ color: TEXT_MUTED }}>Checkout Amount</span>
+                  <span className="text-small" style={{ color: TEXT_MUTED }}>
+                    Checkout Amount
+                  </span>
                   <span className="font-semibold" style={{ color: TEXT_DARK }}>
                     ${checkout.toLocaleString()}
                   </span>
@@ -2913,7 +2951,9 @@ function CurrencyInput({ value, onChange }: { value: number; onChange: (v: numbe
       className="flex items-center rounded-xl bg-white"
       style={{ border: `1px solid ${BORDER}` }}
     >
-      <span className="pl-4 text-body" style={{ color: TEXT_MUTED }}>$</span>
+      <span className="pl-4 text-body" style={{ color: TEXT_MUTED }}>
+        $
+      </span>
       <input
         type="number"
         min={0}
@@ -2984,8 +3024,12 @@ function InstallmentPlanSetup(props: {
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="font-semibold" style={{ color: TEXT_DARK }}>{p.name}</p>
-                  <p className="mt-0.5 text-smaller" style={{ color: TEXT_MUTED }}>{p.subtitle}</p>
+                  <p className="font-semibold" style={{ color: TEXT_DARK }}>
+                    {p.name}
+                  </p>
+                  <p className="mt-0.5 text-smaller" style={{ color: TEXT_MUTED }}>
+                    {p.subtitle}
+                  </p>
                 </div>
                 {active ? (
                   <span
@@ -2995,10 +3039,15 @@ function InstallmentPlanSetup(props: {
                     <Check className="h-3 w-3" />
                   </span>
                 ) : (
-                  <span className="h-5 w-5 rounded-full" style={{ border: `1.5px solid ${BORDER}` }} />
+                  <span
+                    className="h-5 w-5 rounded-full"
+                    style={{ border: `1.5px solid ${BORDER}` }}
+                  />
                 )}
               </div>
-              <p className="mt-1 text-smaller" style={{ color: TEXT_MUTED }}>{p.subtitle}</p>
+              <p className="mt-1 text-smaller" style={{ color: TEXT_MUTED }}>
+                {p.subtitle}
+              </p>
             </div>
           );
         })}
@@ -3016,7 +3065,10 @@ function InstallmentPlanSetup(props: {
           </Field>
           <Field label="Initial Down Payment" required>
             {props.installmentPlanId === "custom" ? (
-              <CurrencyInput value={props.customDownPayment} onChange={props.setCustomDownPayment} />
+              <CurrencyInput
+                value={props.customDownPayment}
+                onChange={props.setCustomDownPayment}
+              />
             ) : (
               <ReadOnlyField value={`$${setup.downPayment.toLocaleString()}`} />
             )}
@@ -3047,14 +3099,14 @@ function InstallmentPlanSetup(props: {
                 min={0}
                 max={100}
                 value={props.installmentDiscount[props.installmentPlanId]}
-                onChange={(e) =>
-                  setDiscount(props.installmentPlanId, Number(e.target.value))
-                }
+                onChange={(e) => setDiscount(props.installmentPlanId, Number(e.target.value))}
                 placeholder="0"
                 className="w-full bg-transparent px-3 py-3 text-body outline-none"
                 style={{ color: TEXT_DARK }}
               />
-              <span className="pr-4 text-small" style={{ color: TEXT_MUTED }}>%</span>
+              <span className="pr-4 text-small" style={{ color: TEXT_MUTED }}>
+                %
+              </span>
             </div>
           </Field>
         </div>
@@ -3062,7 +3114,9 @@ function InstallmentPlanSetup(props: {
 
       {/* Installment Preview */}
       <div className="rounded-2xl bg-white p-5" style={{ border: `1px solid ${BORDER}` }}>
-        <p className="mb-3 font-semibold" style={{ color: TEXT_DARK }}>Installment Preview</p>
+        <p className="mb-3 font-semibold" style={{ color: TEXT_DARK }}>
+          Installment Preview
+        </p>
         {(
           [
             ["Plan", setup.planName],
@@ -3081,7 +3135,9 @@ function InstallmentPlanSetup(props: {
             style={{ borderBottom: i < arr.length - 1 ? `1px solid ${BORDER}` : undefined }}
           >
             <span style={{ color: TEXT_MUTED }}>{k}</span>
-            <span className="font-semibold" style={{ color: TEXT_DARK }}>{v}</span>
+            <span className="font-semibold" style={{ color: TEXT_DARK }}>
+              {v}
+            </span>
           </div>
         ))}
       </div>
@@ -3126,7 +3182,9 @@ function StepPrimePlanSetup({
             className="flex items-center rounded-xl bg-white"
             style={{ border: `1px solid ${BORDER}` }}
           >
-            <span className="pl-4 text-body" style={{ color: TEXT_MUTED }}>$</span>
+            <span className="pl-4 text-body" style={{ color: TEXT_MUTED }}>
+              $
+            </span>
             <input
               type="number"
               min={0}
@@ -3135,7 +3193,9 @@ function StepPrimePlanSetup({
               className="w-full bg-transparent px-3 py-3 text-body outline-none"
               style={{ color: TEXT_DARK }}
             />
-            <span className="pr-4 text-small" style={{ color: TEXT_MUTED }}>/ month</span>
+            <span className="pr-4 text-small" style={{ color: TEXT_MUTED }}>
+              / month
+            </span>
           </div>
         </Field>
       </div>
@@ -3230,7 +3290,9 @@ function Step5Preview({
               style={{ borderBottom: i < rows.length - 1 ? `1px solid ${BORDER}` : undefined }}
             >
               <dt style={{ color: TEXT_MUTED }}>{k}</dt>
-              <dd className="break-all text-right font-semibold" style={{ color: TEXT_DARK }}>{v}</dd>
+              <dd className="break-all text-right font-semibold" style={{ color: TEXT_DARK }}>
+                {v}
+              </dd>
             </div>
           ))}
         </dl>
@@ -3298,7 +3360,9 @@ function Step6Send({ invitation, onDone }: { invitation: Invitation; onDone: () 
         style={{ backgroundColor: "rgba(204, 246, 33, 0.2)", color: TEXT_DARK }}
       >
         <p className="font-semibold">The payment link has been created successfully.</p>
-        <p className="mt-1 text-small" style={{ color: TEXT_MUTED }}>Payment Link ID: {invitation.id}</p>
+        <p className="mt-1 text-small" style={{ color: TEXT_MUTED }}>
+          Payment Link ID: {invitation.id}
+        </p>
       </div>
       <div>
         <p className="mb-2 text-small font-medium" style={{ color: TEXT_DARK }}>
@@ -3349,10 +3413,15 @@ function Step6Send({ invitation, onDone }: { invitation: Invitation; onDone: () 
       {sent && (
         <p className="text-small" style={{ color: TEXT_MUTED }}>
           Payment Link sent to{" "}
-          <span className="font-semibold" style={{ color: TEXT_DARK }}>{invitation.studentEmail}</span>
+          <span className="font-semibold" style={{ color: TEXT_DARK }}>
+            {invitation.studentEmail}
+          </span>
         </p>
       )}
-      <div className="flex items-center justify-end pt-3" style={{ borderTop: `1px solid ${BORDER}` }}>
+      <div
+        className="flex items-center justify-end pt-3"
+        style={{ borderTop: `1px solid ${BORDER}` }}
+      >
         <button
           onClick={onDone}
           className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-button-primary font-semibold"
@@ -3387,13 +3456,7 @@ function Field({
 
 // ===================== Invitation Modal (view existing) =====================
 
-function InvitationModal({
-  invitation,
-  onClose,
-}: {
-  invitation: Invitation;
-  onClose: () => void;
-}) {
+function InvitationModal({ invitation, onClose }: { invitation: Invitation; onClose: () => void }) {
   const navigate = useNavigate();
   const localLink = useMemo(() => {
     if (typeof window === "undefined") return invitation.checkoutLink;
@@ -3601,9 +3664,7 @@ function PaymentOverviewDrawer({
       : [],
   );
 
-  const approvedCount = installments.filter(
-    (i) => i.status === "Approved",
-  ).length;
+  const approvedCount = installments.filter((i) => i.status === "Approved").length;
   const totalCount = installments.length;
   const progressPct = totalCount ? Math.round((approvedCount / totalCount) * 100) : 0;
 
@@ -3615,8 +3676,7 @@ function PaymentOverviewDrawer({
     return "Awaiting Installments";
   })();
 
-  const nextDue =
-    installments.find((i) => i.status !== "Approved")?.dueDate ?? "—";
+  const nextDue = installments.find((i) => i.status !== "Approved")?.dueDate ?? "—";
 
   // Manual payments awaiting approval (admin-created bank/offline payments)
   type ManualPayment = {
@@ -3632,9 +3692,7 @@ function PaymentOverviewDrawer({
   const [manualPayments, setManualPayments] = useState<ManualPayment[]>([]);
   const [selectedForPayment, setSelectedForPayment] = useState<string[]>([]);
   const [changeDueDateId, setChangeDueDateId] = useState<string | null>(null);
-  const [selectedInstallmentId, setSelectedInstallmentId] = useState<string | null>(
-    null,
-  );
+  const [selectedInstallmentId, setSelectedInstallmentId] = useState<string | null>(null);
 
   const changeInstallmentDueDate = (
     id: string,
@@ -3666,10 +3724,7 @@ function PaymentOverviewDrawer({
     note: string;
   }) => {
     const id = `mp-${Date.now()}`;
-    setManualPayments((prev) => [
-      ...prev,
-      { id, status: "Needs Approval", ...payload },
-    ]);
+    setManualPayments((prev) => [...prev, { id, status: "Needs Approval", ...payload }]);
     setInstallments((prev) =>
       prev.map((it) =>
         payload.installmentIds.includes(it.id)
@@ -3683,9 +3738,7 @@ function PaymentOverviewDrawer({
 
   const markManualNeedsNewProof = (id: string) => {
     setManualPayments((prev) =>
-      prev.map((m) =>
-        m.id === id ? { ...m, status: "Needs New Proof", proof: null } : m,
-      ),
+      prev.map((m) => (m.id === id ? { ...m, status: "Needs New Proof", proof: null } : m)),
     );
     toast.success("Marked as needs new proof");
   };
@@ -3728,12 +3781,8 @@ function PaymentOverviewDrawer({
       rem -= paid;
     }
     const shortfall = mp.calculatedAmount - mp.paymentAmount;
-    const lastNumber = ordered.length
-      ? ordered[ordered.length - 1].number
-      : 0;
-    const carryTarget = installments.find(
-      (i) => i.number > lastNumber && i.status !== "Approved",
-    );
+    const lastNumber = ordered.length ? ordered[ordered.length - 1].number : 0;
+    const carryTarget = installments.find((i) => i.number > lastNumber && i.status !== "Approved");
     const isLast = !carryTarget;
     const lastShortfallId = ordered
       .slice()
@@ -3753,16 +3802,12 @@ function PaymentOverviewDrawer({
             status: "Approved" as InstallmentStatus,
             remainingBalance: fullyPaid ? undefined : it.amount - paid,
             neglectedBalance:
-              isLast && it.id === lastShortfallId && shortfall > 0
-                ? shortfall
-                : undefined,
+              isLast && it.id === lastShortfallId && shortfall > 0 ? shortfall : undefined,
           };
         }
         if (carryTarget && it.id === carryTarget.id && shortfall > 0) {
           const newCarried = (it.carriedFromAmount ?? 0) + shortfall;
-          const base = it.carriedFromAmount
-            ? it.amount - it.carriedFromAmount
-            : it.amount;
+          const base = it.carriedFromAmount ? it.amount - it.carriedFromAmount : it.amount;
           return {
             ...it,
             amount: base + newCarried,
@@ -3774,9 +3819,7 @@ function PaymentOverviewDrawer({
       }),
     );
 
-    setManualPayments((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, status: "Approved" } : m)),
-    );
+    setManualPayments((prev) => prev.map((m) => (m.id === id ? { ...m, status: "Approved" } : m)));
 
     setApproval("Approved");
     toast.success("Manual payment approved");
@@ -3804,10 +3847,7 @@ function PaymentOverviewDrawer({
   });
 
   const accessStatus: "Active" | "Suspended" =
-    isInstallment &&
-    installments.some(
-      (i) => i.status === "Payment Failed",
-    )
+    isInstallment && installments.some((i) => i.status === "Payment Failed")
       ? "Suspended"
       : "Active";
 
@@ -3915,10 +3955,7 @@ function PaymentOverviewDrawer({
             <X className="h-4 w-4" style={{ color: TEXT_DARK }} />
           </button>
 
-          <div
-            className="flex-1 overflow-y-auto px-8 py-7"
-            style={{ backgroundColor: "#FFFFFF" }}
-          >
+          <div className="flex-1 overflow-y-auto px-8 py-7" style={{ backgroundColor: "#FFFFFF" }}>
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeTab}
@@ -3958,9 +3995,7 @@ function PaymentOverviewDrawer({
                           className="inline-flex items-center rounded-full px-2.5 py-1 text-smaller font-semibold"
                           style={{
                             backgroundColor:
-                              accessStatus === "Active"
-                                ? "rgba(204,246,33,0.35)"
-                                : "#FEE2E2",
+                              accessStatus === "Active" ? "rgba(204,246,33,0.35)" : "#FEE2E2",
                             color: accessStatus === "Active" ? "#3F5C00" : "#991B1B",
                           }}
                         >
@@ -3992,11 +4027,7 @@ function PaymentOverviewDrawer({
 
                 {activeTab === "timeline" && (
                   <PanelSection title="Payment Status Timeline">
-                    <Timeline
-                      invitation={inv}
-                      approval={approval}
-                      installments={installments}
-                    />
+                    <Timeline invitation={inv} approval={approval} installments={installments} />
                   </PanelSection>
                 )}
 
@@ -4021,37 +4052,31 @@ function PaymentOverviewDrawer({
                     onChangeDueDate={(id) => setChangeDueDateId(id)}
                   />
                 )}
-
               </motion.div>
             </AnimatePresence>
           </div>
         </div>
       </motion.div>
-      {changeDueDateId && (() => {
-        const target = installments.find((i) => i.id === changeDueDateId);
-        if (!target) return null;
-        return (
-          <ChangeDueDateModal
-            row={target}
-            onClose={() => setChangeDueDateId(null)}
-            onConfirm={(payload) => {
-              changeInstallmentDueDate(target.id, payload);
-              setChangeDueDateId(null);
-            }}
-          />
-        );
-      })()}
+      {changeDueDateId &&
+        (() => {
+          const target = installments.find((i) => i.id === changeDueDateId);
+          if (!target) return null;
+          return (
+            <ChangeDueDateModal
+              row={target}
+              onClose={() => setChangeDueDateId(null)}
+              onConfirm={(payload) => {
+                changeInstallmentDueDate(target.id, payload);
+                setChangeDueDateId(null);
+              }}
+            />
+          );
+        })()}
     </div>
   );
 }
 
-function PanelSection({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function PanelSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
       <h4 className="mb-4 text-second-header font-semibold" style={{ color: TEXT_DARK }}>
@@ -4119,15 +4144,7 @@ function ProofRow({
   );
 }
 
-function Row({
-  label,
-  value,
-  last,
-}: {
-  label: string;
-  value: React.ReactNode;
-  last?: boolean;
-}) {
+function Row({ label, value, last }: { label: string; value: React.ReactNode; last?: boolean }) {
   return (
     <div
       className="flex items-center justify-between gap-4 py-2.5"
@@ -4161,7 +4178,7 @@ function MiniStat({ label, value }: { label: string; value: string }) {
 
 function ApprovalPill({ state }: { state: ApprovalState }) {
   const map: Record<ApprovalState, { bg: string; color: string }> = {
-    "Pending": { bg: "#F3F4F6", color: "#4B5563" },
+    Pending: { bg: "#F3F4F6", color: "#4B5563" },
     Approved: { bg: "rgba(204, 246, 33, 0.45)", color: "#3F5C00" },
     Rejected: { bg: "#FEE2E2", color: "#991B1B" },
   };
@@ -4198,11 +4215,7 @@ function PaymentDetailsBlock({
         <Row label="Discount" value={`${d.discountPercent}%`} />
         <Row label="Promo Code Discount" value="$0" />
         <Row label="Total Amount" value={`$${d.checkoutAmount.toLocaleString()}`} />
-        <Row
-          label="Payment Status"
-          value={statusPill(invitation.status)}
-          last
-        />
+        <Row label="Payment Status" value={statusPill(invitation.status)} last />
       </>
     );
   }
@@ -4212,14 +4225,8 @@ function PaymentDetailsBlock({
       <>
         <Row label="Payment Method" value="Installment" />
         <Row label="Full Amount" value={`$${d.fullAmount.toLocaleString()}`} />
-        <Row
-          label="Initial Down Payment"
-          value={`$${d.initialDownPayment.toLocaleString()}`}
-        />
-        <Row
-          label="Monthly Payment"
-          value={`$${d.monthlyPayment.toLocaleString()} / month`}
-        />
+        <Row label="Initial Down Payment" value={`$${d.initialDownPayment.toLocaleString()}`} />
+        <Row label="Monthly Payment" value={`$${d.monthlyPayment.toLocaleString()} / month`} />
         <Row
           label="Payment Status"
           value={
@@ -4291,15 +4298,16 @@ function Timeline({
   const status = invitation.status;
   const isInstallment = invitation.paymentDetails.paymentType === "Installment";
 
-  const items: { label: string; icon: React.ComponentType<{ className?: string }>; state: TimelineState }[] = [
+  const items: {
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+    state: TimelineState;
+  }[] = [
     { label: "Payment plan created", icon: FileText, state: "done" },
     {
       label: "Payment Link sent",
       icon: Mail,
-      state:
-        status === "Pending"
-          ? "current"
-          : "done",
+      state: status === "Pending" ? "current" : "done",
     },
   ];
 
@@ -4345,8 +4353,7 @@ function Timeline({
                     : "upcoming";
       items.push({
         label: `${inst.label} ${suffix}`,
-        icon:
-          inst.status === "Approved" ? ShieldCheck : CreditCard,
+        icon: inst.status === "Approved" ? ShieldCheck : CreditCard,
         state,
       });
     }
@@ -4354,20 +4361,13 @@ function Timeline({
     items.push({
       label: "Student opened link",
       icon: MousePointerClick,
-      state:
-        status === "Pending"
-          ? "pending"
-          : status === "Invite Sent"
-            ? "current"
-            : "done",
+      state: status === "Pending" ? "pending" : status === "Invite Sent" ? "current" : "done",
     });
     items.push({
       label: "Payment submitted",
       icon: CreditCard,
       state:
-        status === "Paid" ||
-        status === "Bank Transfer Confirmed" ||
-        status === "Loan Approved"
+        status === "Paid" || status === "Bank Transfer Confirmed" || status === "Loan Approved"
           ? "done"
           : status === "Bank Transfer Pending" || status === "Loan Pending"
             ? "current"
@@ -4377,9 +4377,7 @@ function Timeline({
       label: "Payment approved",
       icon: ShieldCheck,
       state:
-        status === "Paid" ||
-        status === "Bank Transfer Confirmed" ||
-        status === "Loan Approved"
+        status === "Paid" || status === "Bank Transfer Confirmed" || status === "Loan Approved"
           ? "done"
           : "pending",
     });
@@ -4555,4 +4553,3 @@ function InstallmentStatusPill({ status }: { status: InstallmentStatus }) {
     </span>
   );
 }
-

@@ -13,7 +13,7 @@ import {
   Plus,
   Pencil,
   Trash2,
-} from "lucide-react";
+} from "@/components/icons";
 import { getCourse } from "@/lib/courses-data";
 import { Topbar } from "@/components/dashboard/Topbar";
 import { Sidebar } from "@/components/dashboard/Sidebar";
@@ -151,7 +151,9 @@ function LearnPage() {
 
   const persistNotes = (next: Note[]) => {
     setNotes(next);
-    try { localStorage.setItem(notesKey, JSON.stringify(next)); } catch {}
+    try {
+      localStorage.setItem(notesKey, JSON.stringify(next));
+    } catch {}
   };
 
   const selectedNote = notes.find((n) => n.id === selectedNoteId) || null;
@@ -174,7 +176,9 @@ function LearnPage() {
     const title = draftTitle.trim() || "Untitled";
     const content = draftContent;
     if (selectedNoteId && notes.some((n) => n.id === selectedNoteId)) {
-      const next = notes.map((n) => n.id === selectedNoteId ? { ...n, title, content, updatedAt: Date.now() } : n);
+      const next = notes.map((n) =>
+        n.id === selectedNoteId ? { ...n, title, content, updatedAt: Date.now() } : n,
+      );
       persistNotes(next);
     } else {
       const id = `note-${Date.now()}`;
@@ -204,9 +208,12 @@ function LearnPage() {
       next.setDate(now.getDate() + daysUntilMonday);
       next.setHours(0, 0, 0, 0);
       let diff = Math.max(0, next.getTime() - now.getTime());
-      const days = Math.floor(diff / 86400000); diff -= days * 86400000;
-      const hours = Math.floor(diff / 3600000); diff -= hours * 3600000;
-      const minutes = Math.floor(diff / 60000); diff -= minutes * 60000;
+      const days = Math.floor(diff / 86400000);
+      diff -= days * 86400000;
+      const hours = Math.floor(diff / 3600000);
+      diff -= hours * 3600000;
+      const minutes = Math.floor(diff / 60000);
+      diff -= minutes * 60000;
       const seconds = Math.floor(diff / 1000);
       setCountdown({ days, hours, minutes, seconds });
     };
@@ -214,7 +221,6 @@ function LearnPage() {
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, []);
-
 
   const activeIndex = FLAT_UNITS.findIndex((u) => u.id === activeUnitId);
   const activeUnit = FLAT_UNITS[activeIndex];
@@ -266,171 +272,196 @@ function LearnPage() {
 
   return (
     <>
-    <div className="min-h-screen flex bg-background text-foreground text-[14px]">
-      <Sidebar />
-      <div className="flex-1 min-w-0 flex flex-col">
-        <Topbar />
+      <div className="min-h-screen flex bg-background text-foreground text-[14px]">
+        <Sidebar />
+        <div className="flex-1 min-w-0 flex flex-col">
+          <Topbar />
 
-        <div className="flex gap-5 p-5 items-stretch min-h-[calc(100vh-72px)]">
-          {/* Sidebar */}
-        {sidebarOpen && (
-          <aside className="w-[320px] shrink-0 rounded-2xl border border-border bg-card p-5 flex flex-col self-stretch">
-            <div className="flex items-center gap-2 mb-3">
-              <BookOpen className="h-4 w-4 text-muted-foreground" />
-              <p className="text-[14px] font-semibold truncate">{courseTitle}</p>
-            </div>
-            <div className="flex items-center gap-3 mb-5">
-              <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
-                <div className="h-full rounded-full bg-brand transition-all" style={{ width: `${progress}%` }} />
-              </div>
-              <span className="text-[14px] font-semibold tabular-nums">{progress}%</span>
-            </div>
-
-            <div className="space-y-1 overflow-y-auto pr-1">
-              {MODULES.map((m, mIdx) => {
-                const isOpen = openModule === m.id;
-                const locked = moduleLocked(mIdx);
-                return (
-                  <div key={m.id}>
-                    <button
-                      onClick={() => setOpenModule(isOpen ? "" : m.id)}
-                      className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-[14px] font-medium text-left text-foreground hover:bg-muted transition-colors"
-                    >
-                      <span className="flex items-center gap-2 min-w-0">
-                        {locked && <Lock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />}
-                        <span className="truncate">{m.title}</span>
-                      </span>
-                      <ChevronDown className={`h-4 w-4 shrink-0 transition-transform ${isOpen ? "" : "-rotate-90"}`} />
-                    </button>
-                    {isOpen && m.units.length > 0 && (
-                      <ul className="mt-1 space-y-0.5 pl-2">
-                        {m.units.map((u) => {
-                          const flat = FLAT_UNITS.find((f) => f.id === u.id)!;
-                          const active = u.id === activeUnitId;
-                          const completed = completedUnits.has(u.id);
-                          return (
-                            <li key={u.id}>
-                              <button
-                                onClick={() => handleSelectUnit(flat)}
-                                className={`w-full flex items-center justify-between gap-3 pl-4 pr-3 py-2 rounded-lg text-[14px] transition-colors ${
-                                  active
-                                    ? "bg-brand/30 text-foreground font-medium"
-                                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                                } ${locked ? "opacity-60" : ""}`}
-                              >
-                                <span className="flex items-center gap-2 min-w-0">
-                                  <FileText className="h-3.5 w-3.5 shrink-0" />
-                                  <span className="truncate">{u.title}</span>
-                                </span>
-                                {completed ? (
-                                  <span className="grid h-4 w-4 place-items-center rounded-full bg-brand shrink-0">
-                                    <Check className="h-2.5 w-2.5 text-foreground" strokeWidth={3} />
-                                  </span>
-                                ) : (
-                                  <span className="h-4 w-4 rounded-full border border-border shrink-0" />
-                                )}
-                              </button>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    )}
+          <div className="flex gap-5 p-5 items-stretch min-h-[calc(100vh-72px)]">
+            {/* Sidebar */}
+            {sidebarOpen && (
+              <aside className="w-[320px] shrink-0 rounded-2xl border border-border bg-card p-5 flex flex-col self-stretch">
+                <div className="flex items-center gap-2 mb-3">
+                  <BookOpen className="h-4 w-4 text-muted-foreground" />
+                  <p className="text-[14px] font-semibold truncate">{courseTitle}</p>
+                </div>
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-brand transition-all"
+                      style={{ width: `${progress}%` }}
+                    />
                   </div>
-                );
-              })}
-            </div>
-          </aside>
-        )}
+                  <span className="text-[14px] font-semibold tabular-nums">{progress}%</span>
+                </div>
 
-        {/* Main content */}
-        <main className="flex-1 min-w-0 rounded-2xl border border-border bg-card flex flex-col self-stretch">
-          <div className="flex items-center justify-between px-8 pt-6">
-            <nav className="flex items-center gap-2 text-[14px] text-muted-foreground">
-              <ChevronRight className="h-3.5 w-3.5" />
-              <span>{activeModule.title.split(":")[0]}</span>
-              <ChevronRight className="h-3.5 w-3.5" />
-              <span className="text-foreground">{activeUnit.title}</span>
-            </nav>
-            <button
-              onClick={() => setNotesOpen(true)}
-              className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-[14px] font-medium hover:bg-muted transition-colors"
-            >
-              <FileText className="h-3.5 w-3.5" /> Personal Note
-            </button>
+                <div className="space-y-1 overflow-y-auto pr-1">
+                  {MODULES.map((m, mIdx) => {
+                    const isOpen = openModule === m.id;
+                    const locked = moduleLocked(mIdx);
+                    return (
+                      <div key={m.id}>
+                        <button
+                          onClick={() => setOpenModule(isOpen ? "" : m.id)}
+                          className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg text-[14px] font-medium text-left text-foreground hover:bg-muted transition-colors"
+                        >
+                          <span className="flex items-center gap-2 min-w-0">
+                            {locked && (
+                              <Lock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                            )}
+                            <span className="truncate">{m.title}</span>
+                          </span>
+                          <ChevronDown
+                            className={`h-4 w-4 shrink-0 transition-transform ${isOpen ? "" : "-rotate-90"}`}
+                          />
+                        </button>
+                        {isOpen && m.units.length > 0 && (
+                          <ul className="mt-1 space-y-0.5 pl-2">
+                            {m.units.map((u) => {
+                              const flat = FLAT_UNITS.find((f) => f.id === u.id)!;
+                              const active = u.id === activeUnitId;
+                              const completed = completedUnits.has(u.id);
+                              return (
+                                <li key={u.id}>
+                                  <button
+                                    onClick={() => handleSelectUnit(flat)}
+                                    className={`w-full flex items-center justify-between gap-3 pl-4 pr-3 py-2 rounded-lg text-[14px] transition-colors ${
+                                      active
+                                        ? "bg-brand/30 text-foreground font-medium"
+                                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                    } ${locked ? "opacity-60" : ""}`}
+                                  >
+                                    <span className="flex items-center gap-2 min-w-0">
+                                      <FileText className="h-3.5 w-3.5 shrink-0" />
+                                      <span className="truncate">{u.title}</span>
+                                    </span>
+                                    {completed ? (
+                                      <span className="grid h-4 w-4 place-items-center rounded-full bg-brand shrink-0">
+                                        <Check
+                                          className="h-2.5 w-2.5 text-foreground"
+                                          strokeWidth={3}
+                                        />
+                                      </span>
+                                    ) : (
+                                      <span className="h-4 w-4 rounded-full border border-border shrink-0" />
+                                    )}
+                                  </button>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </aside>
+            )}
+
+            {/* Main content */}
+            <main className="flex-1 min-w-0 rounded-2xl border border-border bg-card flex flex-col self-stretch">
+              <div className="flex items-center justify-between px-8 pt-6">
+                <nav className="flex items-center gap-2 text-[14px] text-muted-foreground">
+                  <ChevronRight className="h-3.5 w-3.5" />
+                  <span>{activeModule.title.split(":")[0]}</span>
+                  <ChevronRight className="h-3.5 w-3.5" />
+                  <span className="text-foreground">{activeUnit.title}</span>
+                </nav>
+                <button
+                  onClick={() => setNotesOpen(true)}
+                  className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-[14px] font-medium hover:bg-muted transition-colors"
+                >
+                  <FileText className="h-3.5 w-3.5" /> Personal Note
+                </button>
+              </div>
+
+              <hr className="mt-4 border-border" />
+
+              <article className="px-8 py-6 flex-1">
+                <h1 className="text-[20px] font-semibold mb-4">{activeUnit.title}</h1>
+
+                <p className="text-[14px] text-muted-foreground leading-relaxed mb-4">
+                  In our fast-paced world, where problem-solving is not just a technological
+                  necessity but an integral part of our daily lives, algorithms take center stage as
+                  the unsung heroes behind effective solutions. These step-by-step procedures, akin
+                  to a well-crafted recipe, empower the evolution of technology and enhance our
+                  ability to navigate the intricacies of everyday challenges.
+                </p>
+
+                <p className="text-[14px] text-muted-foreground leading-relaxed mb-6">
+                  Various algorithmic techniques are commonly used to approach different types of
+                  problems. Recursion is a method where a function calls itself to break down
+                  problems into smaller instances. Divide and Conquer is a powerful strategy that
+                  splits a problem into subproblems, solves them independently, and then combines
+                  the results. Dynamic Programming is used for optimization problems by breaking
+                  them into overlapping subproblems, storing previous results to avoid redundant
+                  calculations.
+                </p>
+
+                <h2 className="text-[14px] font-semibold mb-3">Step 1: Problem Understanding</h2>
+                <ul className="space-y-2 mb-6 pl-5 list-disc text-[14px] text-muted-foreground leading-relaxed marker:text-foreground">
+                  <li>
+                    <span className="font-semibold text-foreground">Flowchart:</span> Start by
+                    sketching out a flowchart to visually map the problem at hand. Use shapes like
+                    rectangles for processes, diamonds for decisions, and arrows for the flow.
+                  </li>
+                  <li>
+                    <span className="font-semibold text-foreground">Pseudocode:</span> Write simple,
+                    language-agnostic code-like instructions in pseudocode to outline the logic of
+                    the solution. This helps you focus on the algorithm's structure without worrying
+                    about syntax.
+                  </li>
+                </ul>
+
+                <p className="text-[14px] text-muted-foreground leading-relaxed">
+                  Various algorithmic techniques are commonly used to approach different types of
+                  problems. Recursion is a method where a function calls itself to break down
+                  problems into smaller instances.
+                </p>
+              </article>
+
+              <div className="mt-auto flex items-center justify-between px-8 py-5 border-t border-border">
+                <div className="flex items-center gap-6 text-[14px] text-muted-foreground">
+                  <button className="inline-flex items-center gap-2 hover:text-foreground transition-colors">
+                    <Flag className="h-4 w-4" /> Support & Feedback
+                  </button>
+                  <button className="inline-flex items-center gap-2 hover:text-foreground transition-colors">
+                    <Users className="h-4 w-4" /> Schedule 1 on 1
+                  </button>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handlePrev}
+                    disabled={activeIndex === 0}
+                    className="inline-flex items-center gap-2 rounded-full border border-border px-5 py-2.5 text-[14px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-40 disabled:pointer-events-none"
+                  >
+                    <ChevronLeft className="h-4 w-4" /> Previous
+                  </button>
+                  <button
+                    onClick={handleCompleteAndNext}
+                    disabled={isLast || showModuleLocked}
+                    className={`inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[14px] font-semibold transition-colors disabled:pointer-events-none ${
+                      showModuleLocked
+                        ? "bg-muted text-muted-foreground disabled:opacity-100"
+                        : "bg-brand text-foreground hover:bg-brand/90 disabled:opacity-40"
+                    }`}
+                  >
+                    {showModuleLocked ? (
+                      <>
+                        Module Locked <Lock className="h-3.5 w-3.5" />
+                      </>
+                    ) : nextIsLocked ? (
+                      <>Complete</>
+                    ) : (
+                      <>
+                        Complete and Next <ChevronRight className="h-4 w-4" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </main>
           </div>
-
-          <hr className="mt-4 border-border" />
-
-          <article className="px-8 py-6 flex-1">
-            <h1 className="text-[20px] font-semibold mb-4">
-              {activeUnit.title}
-            </h1>
-
-            <p className="text-[14px] text-muted-foreground leading-relaxed mb-4">
-              In our fast-paced world, where problem-solving is not just a technological necessity but an integral part of our daily lives, algorithms take center stage as the unsung heroes behind effective solutions. These step-by-step procedures, akin to a well-crafted recipe, empower the evolution of technology and enhance our ability to navigate the intricacies of everyday challenges.
-            </p>
-
-            <p className="text-[14px] text-muted-foreground leading-relaxed mb-6">
-              Various algorithmic techniques are commonly used to approach different types of problems. Recursion is a method where a function calls itself to break down problems into smaller instances. Divide and Conquer is a powerful strategy that splits a problem into subproblems, solves them independently, and then combines the results. Dynamic Programming is used for optimization problems by breaking them into overlapping subproblems, storing previous results to avoid redundant calculations.
-            </p>
-
-            <h2 className="text-[14px] font-semibold mb-3">Step 1: Problem Understanding</h2>
-            <ul className="space-y-2 mb-6 pl-5 list-disc text-[14px] text-muted-foreground leading-relaxed marker:text-foreground">
-              <li>
-                <span className="font-semibold text-foreground">Flowchart:</span> Start by sketching out a flowchart to visually map the problem at hand. Use shapes like rectangles for processes, diamonds for decisions, and arrows for the flow.
-              </li>
-              <li>
-                <span className="font-semibold text-foreground">Pseudocode:</span> Write simple, language-agnostic code-like instructions in pseudocode to outline the logic of the solution. This helps you focus on the algorithm's structure without worrying about syntax.
-              </li>
-            </ul>
-
-            <p className="text-[14px] text-muted-foreground leading-relaxed">
-              Various algorithmic techniques are commonly used to approach different types of problems. Recursion is a method where a function calls itself to break down problems into smaller instances.
-            </p>
-          </article>
-
-          <div className="mt-auto flex items-center justify-between px-8 py-5 border-t border-border">
-            <div className="flex items-center gap-6 text-[14px] text-muted-foreground">
-              <button className="inline-flex items-center gap-2 hover:text-foreground transition-colors">
-                <Flag className="h-4 w-4" /> Support & Feedback
-              </button>
-              <button className="inline-flex items-center gap-2 hover:text-foreground transition-colors">
-                <Users className="h-4 w-4" /> Schedule 1 on 1
-              </button>
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handlePrev}
-                disabled={activeIndex === 0}
-                className="inline-flex items-center gap-2 rounded-full border border-border px-5 py-2.5 text-[14px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-40 disabled:pointer-events-none"
-              >
-                <ChevronLeft className="h-4 w-4" /> Previous
-              </button>
-              <button
-                onClick={handleCompleteAndNext}
-                disabled={isLast || showModuleLocked}
-                className={`inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[14px] font-semibold transition-colors disabled:pointer-events-none ${
-                  showModuleLocked
-                    ? "bg-muted text-muted-foreground disabled:opacity-100"
-                    : "bg-brand text-foreground hover:bg-brand/90 disabled:opacity-40"
-                }`}
-              >
-                {showModuleLocked ? (
-                  <>
-                    Module Locked <Lock className="h-3.5 w-3.5" />
-                  </>
-                ) : nextIsLocked ? (
-                  <>Complete</>
-                ) : (
-                  <>
-                    Complete and Next <ChevronRight className="h-4 w-4" />
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </main>
-      </div>
         </div>
       </div>
 
@@ -439,7 +470,8 @@ function LearnPage() {
           <DialogHeader>
             <DialogTitle>Module Locked</DialogTitle>
             <DialogDescription className="text-[14px] pt-2">
-              You can only access up to {ACCESSIBLE_MODULES} modules per week. The next {MODULES[ACCESSIBLE_MODULES]?.title ?? 'module'} will unlock in:
+              You can only access up to {ACCESSIBLE_MODULES} modules per week. The next{" "}
+              {MODULES[ACCESSIBLE_MODULES]?.title ?? "module"} will unlock in:
             </DialogDescription>
           </DialogHeader>
 
@@ -470,7 +502,13 @@ function LearnPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={notesOpen} onOpenChange={(o) => { setNotesOpen(o); if (!o) setIsEditing(false); }}>
+      <Dialog
+        open={notesOpen}
+        onOpenChange={(o) => {
+          setNotesOpen(o);
+          if (!o) setIsEditing(false);
+        }}
+      >
         <DialogContent className="max-w-4xl p-0 gap-0 overflow-hidden">
           <DialogHeader className="px-6 py-4 border-b border-border text-left">
             <DialogTitle className="text-left">Personal Notes</DialogTitle>
@@ -500,7 +538,10 @@ function LearnPage() {
                     {notes.map((n) => (
                       <li key={n.id}>
                         <button
-                          onClick={() => { setSelectedNoteId(n.id); setIsEditing(false); }}
+                          onClick={() => {
+                            setSelectedNoteId(n.id);
+                            setIsEditing(false);
+                          }}
                           className={`group w-full text-left px-4 py-3 border-l-2 transition-colors ${
                             selectedNoteId === n.id
                               ? "border-brand bg-background"
@@ -511,7 +552,10 @@ function LearnPage() {
                             <span className="text-[13px] font-medium truncate">{n.title}</span>
                             <Trash2
                               role="button"
-                              onClick={(e) => { e.stopPropagation(); handleDeleteNote(n.id); }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteNote(n.id);
+                              }}
                               className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-foreground shrink-0"
                             />
                           </div>

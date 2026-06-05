@@ -13,11 +13,12 @@ function applyTheme(theme: Theme) {
 }
 
 export function useTheme() {
-  const [theme, setTheme] = useState<Theme>("dark");
+  const [theme, setTheme] = useState<Theme>("light");
 
   useEffect(() => {
-    const stored = (typeof localStorage !== "undefined" && localStorage.getItem(THEME_KEY)) as Theme | null;
-    const initial: Theme = stored ?? "dark";
+    const stored = (typeof localStorage !== "undefined" &&
+      localStorage.getItem(THEME_KEY)) as Theme | null;
+    const initial: Theme = stored ?? "light";
     setTheme(initial);
     applyTheme(initial);
 
@@ -25,7 +26,11 @@ export function useTheme() {
       setTheme((prev) => {
         const next: Theme = prev === "dark" ? "light" : "dark";
         applyTheme(next);
-        try { localStorage.setItem(THEME_KEY, next); } catch {}
+        try {
+          localStorage.setItem(THEME_KEY, next);
+        } catch {
+          // ignore persistence errors (e.g. storage disabled)
+        }
         return next;
       });
     };

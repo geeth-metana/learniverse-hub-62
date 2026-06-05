@@ -3,12 +3,7 @@ import { useState } from "react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Topbar } from "@/components/dashboard/Topbar";
 import { getCourse } from "@/lib/courses-data";
-import {
-  ArrowLeft,
-  Settings as SettingsIcon,
-  MoreVertical,
-  Pencil,
-} from "lucide-react";
+import { ArrowLeft, Settings as SettingsIcon, MoreVertical, Pencil } from "@/components/icons";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -92,7 +87,11 @@ function CourseSettingsPage() {
             {/* Course Image & Menu */}
             <div className="relative mb-6 h-48 w-full overflow-hidden rounded-3xl bg-muted sm:h-64 shadow-[var(--shadow-soft)]">
               {course?.cover ? (
-                <img src={course.cover} alt={course?.title} className="h-full w-full object-cover" />
+                <img
+                  src={course.cover}
+                  alt={course?.title}
+                  className="h-full w-full object-cover"
+                />
               ) : (
                 <div className="h-full w-full bg-gradient-to-r from-primary/20 to-primary/5" />
               )}
@@ -103,7 +102,10 @@ function CourseSettingsPage() {
                       <MoreVertical className="h-5 w-5" />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48 rounded-2xl p-2 shadow-[var(--shadow-soft)]">
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-48 rounded-2xl p-2 shadow-[var(--shadow-soft)]"
+                  >
                     <DropdownMenuItem
                       onClick={() => navigate({ to: "/courses/$courseId", params: { courseId } })}
                       className="cursor-pointer gap-2 rounded-xl py-2.5 text-body font-medium"
@@ -121,27 +123,57 @@ function CourseSettingsPage() {
             <div className="rounded-3xl border border-border bg-card shadow-[var(--shadow-soft)]">
               {/* Course Access Setting */}
               <section className="border-b border-border p-6">
-              <div>
-                  <h2 className="text-second-header font-bold text-[#1A1A1A]">Course Access Setting</h2>
-                  <p className="mt-1 text-small text-muted-foreground">Controls how users will gain access to the course.</p>
+                <div>
+                  <h2 className="text-second-header font-bold text-[#1A1A1A]">
+                    Course Access Setting
+                  </h2>
+                  <p className="mt-1 text-small text-muted-foreground">
+                    Controls how users will gain access to the course.
+                  </p>
                 </div>
                 <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  <RadioCard checked={accessSetting === "open"} onChange={() => setAccessSetting("open")} title="Open" description="course not protected." />
-                  <RadioCard checked={accessSetting === "free"} onChange={() => setAccessSetting("free")} title="Free" description="course protected; registration required." />
-                  <RadioCard checked={accessSetting === "buy"} onChange={() => setAccessSetting("buy")} title="Buy Now" description="one-time payment required." />
-                  <RadioCard checked={accessSetting === "recurring"} onChange={() => setAccessSetting("recurring")} title="Recurring" description="recurring payment required." />
+                  <RadioCard
+                    checked={accessSetting === "open"}
+                    onChange={() => setAccessSetting("open")}
+                    title="Open"
+                    description="course not protected."
+                  />
+                  <RadioCard
+                    checked={accessSetting === "free"}
+                    onChange={() => setAccessSetting("free")}
+                    title="Free"
+                    description="course protected; registration required."
+                  />
+                  <RadioCard
+                    checked={accessSetting === "buy"}
+                    onChange={() => setAccessSetting("buy")}
+                    title="Buy Now"
+                    description="one-time payment required."
+                  />
+                  <RadioCard
+                    checked={accessSetting === "recurring"}
+                    onChange={() => setAccessSetting("recurring")}
+                    title="Recurring"
+                    description="recurring payment required."
+                  />
                 </div>
               </section>
 
               {/* Display and Content Options */}
               <section className="border-b border-border p-6">
                 <div>
-                  <h2 className="text-second-header font-bold text-[#1A1A1A]">Display and Content Options</h2>
-                  <p className="mt-1 text-small text-muted-foreground">Controls the look and feed of the course and optional content settings.</p>
+                  <h2 className="text-second-header font-bold text-[#1A1A1A]">
+                    Display and Content Options
+                  </h2>
+                  <p className="mt-1 text-small text-muted-foreground">
+                    Controls the look and feed of the course and optional content settings.
+                  </p>
                 </div>
                 <div className="mt-6 grid gap-8 lg:grid-cols-2">
                   <div className="flex flex-col gap-3">
-                    <label className="text-small font-semibold text-[#1A1A1A]">Course Certificate</label>
+                    <label className="text-small font-semibold text-[#1A1A1A]">
+                      Course Certificate
+                    </label>
                     <div className="flex w-full flex-wrap items-center gap-4 sm:flex-nowrap">
                       <select
                         value={certificate}
@@ -161,8 +193,16 @@ function CourseSettingsPage() {
                   <div className="flex flex-col gap-3">
                     <label className="text-small font-semibold text-[#1A1A1A]">Access Mode</label>
                     <div className="grid gap-4 sm:grid-cols-2">
-                      <RadioCard checked={visibility === "always"} onChange={() => setVisibility("always")} title="Always Visible" />
-                      <RadioCard checked={visibility === "enrollees"} onChange={() => setVisibility("enrollees")} title="Only visible to enrollees" />
+                      <RadioCard
+                        checked={visibility === "always"}
+                        onChange={() => setVisibility("always")}
+                        title="Always Visible"
+                      />
+                      <RadioCard
+                        checked={visibility === "enrollees"}
+                        onChange={() => setVisibility("enrollees")}
+                        title="Only visible to enrollees"
+                      />
                     </div>
                   </div>
                 </div>
@@ -171,14 +211,30 @@ function CourseSettingsPage() {
               {/* Course Navigation Setting */}
               <section className="p-6">
                 <div>
-                  <h2 className="text-second-header font-bold text-[#1A1A1A]">Course Navigation Setting</h2>
-                  <p className="mt-1 text-small text-muted-foreground">Controls how users interact with the content and their navigational experience.</p>
+                  <h2 className="text-second-header font-bold text-[#1A1A1A]">
+                    Course Navigation Setting
+                  </h2>
+                  <p className="mt-1 text-small text-muted-foreground">
+                    Controls how users interact with the content and their navigational experience.
+                  </p>
                 </div>
                 <div className="mt-6 flex flex-col gap-3">
-                  <label className="text-small font-semibold text-[#1A1A1A]">Progression Mode</label>
+                  <label className="text-small font-semibold text-[#1A1A1A]">
+                    Progression Mode
+                  </label>
                   <div className="grid gap-4 sm:grid-cols-2 lg:max-w-2xl">
-                    <RadioCard checked={progression === "linear"} onChange={() => setProgression("linear")} title="Linear" description="Students must complete lessons in order." />
-                    <RadioCard checked={progression === "free"} onChange={() => setProgression("free")} title="Free Form" description="Students can access any lesson at any time." />
+                    <RadioCard
+                      checked={progression === "linear"}
+                      onChange={() => setProgression("linear")}
+                      title="Linear"
+                      description="Students must complete lessons in order."
+                    />
+                    <RadioCard
+                      checked={progression === "free"}
+                      onChange={() => setProgression("free")}
+                      title="Free Form"
+                      description="Students can access any lesson at any time."
+                    />
                   </div>
                 </div>
               </section>

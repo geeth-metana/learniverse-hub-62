@@ -24,21 +24,9 @@ import {
   Zap,
   Download,
   Award,
-} from "lucide-react";
-import {
-  Bar,
-  BarChart,
-  Cell,
-  ResponsiveContainer,
-  Tooltip as RTooltip,
-  XAxis,
-} from "recharts";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@/components/icons";
+import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip as RTooltip, XAxis } from "recharts";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { getProductBySlug, type Product } from "@/lib/products-store";
 import { getCourse } from "@/lib/courses-data";
 import { courseDetails, fallbackDetail } from "./courses.$courseId";
@@ -55,7 +43,13 @@ const BORDER = "#E5E7EB";
 
 type LessonKind = "video" | "reading" | "quiz" | "assignment";
 type LessonStatus = "completed" | "current" | "available" | "locked";
-type Lesson = { id: string; title: string; duration: string; kind: LessonKind; status: LessonStatus };
+type Lesson = {
+  id: string;
+  title: string;
+  duration: string;
+  kind: LessonKind;
+  status: LessonStatus;
+};
 type Unit = { id: string; title: string; lessons: Lesson[] };
 type Mod = { id: string; title: string; units: Unit[] };
 type CourseStatus = "completed" | "in-progress" | "available" | "locked";
@@ -82,7 +76,10 @@ export const Route = createFileRoute("/programs/$programSlug")({
   component: ProgramPage,
 });
 
-function buildCourseTree(courseId: string, seededProgress: number): {
+function buildCourseTree(
+  courseId: string,
+  seededProgress: number,
+): {
   modules: Mod[];
   totalLessons: number;
   completedLessons: number;
@@ -141,9 +138,7 @@ function buildCourseTree(courseId: string, seededProgress: number): {
 function ProgramPage() {
   const { programSlug } = useParams({ from: "/programs/$programSlug" });
   const navigate = useNavigate();
-  const [product, setProduct] = useState<Product | undefined>(() =>
-    getProductBySlug(programSlug),
-  );
+  const [product, setProduct] = useState<Product | undefined>(() => getProductBySlug(programSlug));
 
   useEffect(() => {
     setProduct(getProductBySlug(programSlug));
@@ -167,9 +162,9 @@ function ProgramPage() {
       data: 0,
     };
     const isLinear = (product.accessibility ?? "free") === "linear";
-    const list = product.courseIds
-      .map((id) => getCourse(id))
-      .filter(Boolean) as NonNullable<ReturnType<typeof getCourse>>[];
+    const list = product.courseIds.map((id) => getCourse(id)).filter(Boolean) as NonNullable<
+      ReturnType<typeof getCourse>
+    >[];
 
     const built = list.map((c, i) => {
       const prog = seeded[c.id] ?? (i === 0 ? 60 : i === 1 ? 25 : 0);
@@ -257,9 +252,7 @@ function ProgramPage() {
   const isLinear = (product.accessibility ?? "free") === "linear";
   const totalLessons = courses.reduce((a, c) => a + c.totalLessons, 0);
   const completedLessons = courses.reduce((a, c) => a + c.completedLessons, 0);
-  const programProgress = totalLessons
-    ? Math.round((completedLessons / totalLessons) * 100)
-    : 0;
+  const programProgress = totalLessons ? Math.round((completedLessons / totalLessons) * 100) : 0;
   const currentCourse =
     courses.find((c) => c.status === "in-progress") ??
     courses.find((c) => c.status === "available") ??
@@ -301,7 +294,9 @@ function ProgramPage() {
               </button>
               <p className="text-sm" style={{ color: MUTED }}>
                 Programs <ChevronRight className="mx-1 inline h-3.5 w-3.5 -translate-y-px" />
-                <span style={{ color: INK }} className="font-medium">{product.title}</span>
+                <span style={{ color: INK }} className="font-medium">
+                  {product.title}
+                </span>
               </p>
             </div>
 
@@ -345,9 +340,7 @@ function ProgramPage() {
                   />
                 </div>
 
-                {isProgramCompleted && (
-                  <CertificatePreview programName={product.title} />
-                )}
+                {isProgramCompleted && <CertificatePreview programName={product.title} />}
               </section>
 
               <aside className="space-y-5 self-start lg:sticky lg:top-6">
@@ -377,10 +370,7 @@ function StatusPill({ linear }: { linear: boolean }) {
       className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold"
       style={{ border: `1px solid ${BORDER}`, color: INK_2 }}
     >
-      <span
-        className="h-1.5 w-1.5 rounded-full"
-        style={{ background: linear ? INK_2 : BRAND }}
-      />
+      <span className="h-1.5 w-1.5 rounded-full" style={{ background: linear ? INK_2 : BRAND }} />
       {linear ? "Linear Program" : "Self-Paced Program"}
     </span>
   );
@@ -398,10 +388,7 @@ function ProgressBar({
   fill?: string;
 }) {
   return (
-    <div
-      className="w-full overflow-hidden rounded-full"
-      style={{ height, background: BORDER }}
-    >
+    <div className="w-full overflow-hidden rounded-full" style={{ height, background: BORDER }}>
       <div
         className="h-full rounded-full transition-[width] duration-700"
         style={{ width: `${value}%`, background: locked ? "#C9CDC9" : fill }}
@@ -539,7 +526,10 @@ function ProgramHeroCard({
 function MetaInfoRow({
   items,
 }: {
-  items: { icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>; label: string }[];
+  items: {
+    icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
+    label: string;
+  }[];
 }) {
   return (
     <div
@@ -597,9 +587,7 @@ function CurriculumList({
   defaultOpenCourseId?: string;
   onOpenLesson: (courseId: string) => void;
 }) {
-  const [openCourseId, setOpenCourseId] = useState<string | null>(
-    defaultOpenCourseId ?? null,
-  );
+  const [openCourseId, setOpenCourseId] = useState<string | null>(defaultOpenCourseId ?? null);
   useEffect(() => {
     if (defaultOpenCourseId) setOpenCourseId(defaultOpenCourseId);
   }, [defaultOpenCourseId]);
@@ -612,9 +600,7 @@ function CurriculumList({
           index={idx + 1}
           isLast={idx === courses.length - 1}
           isOpen={openCourseId === c.id}
-          onToggle={() =>
-            setOpenCourseId((cur) => (cur === c.id ? null : c.id))
-          }
+          onToggle={() => setOpenCourseId((cur) => (cur === c.id ? null : c.id))}
           onOpenLesson={() => onOpenLesson(c.id)}
         />
       ))}
@@ -698,7 +684,11 @@ function CourseRow({
         {!locked ? (
           <div
             className="ml-2 grid h-8 w-8 shrink-0 place-items-center rounded-full"
-            style={{ background: SOFT_BG, transition: "transform 0.2s", transform: open ? "rotate(180deg)" : "rotate(0)" }}
+            style={{
+              background: SOFT_BG,
+              transition: "transform 0.2s",
+              transform: open ? "rotate(180deg)" : "rotate(0)",
+            }}
           >
             <ChevronDown className="h-4 w-4" style={{ color: INK_2 }} />
           </div>
@@ -729,9 +719,7 @@ function CourseRow({
                       mod={m}
                       index={mi}
                       isOpen={openModuleId === m.id}
-                      onToggle={() =>
-                        setOpenModuleId((cur) => (cur === m.id ? null : m.id))
-                      }
+                      onToggle={() => setOpenModuleId((cur) => (cur === m.id ? null : m.id))}
                       defaultOpenUnitId={defaultLoc.unitId}
                       onOpenLesson={onOpenLesson}
                     />
@@ -809,10 +797,7 @@ function ModuleAccordion({
     }
   }, [defaultOpenUnitId, mod.units]);
   return (
-    <div
-      className="overflow-hidden rounded-xl bg-white"
-      style={{ border: `1px solid ${BORDER}` }}
-    >
+    <div className="overflow-hidden rounded-xl bg-white" style={{ border: `1px solid ${BORDER}` }}>
       <button
         type="button"
         onClick={onToggle}
@@ -856,9 +841,7 @@ function ModuleAccordion({
                   unit={u}
                   index={ui}
                   isOpen={openUnitId === u.id}
-                  onToggle={() =>
-                    setOpenUnitId((cur) => (cur === u.id ? null : u.id))
-                  }
+                  onToggle={() => setOpenUnitId((cur) => (cur === u.id ? null : u.id))}
                   onOpenLesson={onOpenLesson}
                 />
               ))}
@@ -936,11 +919,7 @@ function LessonRow({ lesson, onClick }: { lesson: Lesson; onClick: () => void })
       className={`flex items-center gap-3 rounded-md px-3 py-2.5 transition-colors ${
         isLocked ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:bg-[#FAFCFA]"
       }`}
-      style={
-        isCurrent
-          ? { background: "#F3FFD6", borderLeft: `3px solid ${BRAND}` }
-          : undefined
-      }
+      style={isCurrent ? { background: "#F3FFD6", borderLeft: `3px solid ${BRAND}` } : undefined}
     >
       <LessonStatusIcon status={lesson.status} kind={lesson.kind} />
       <span
@@ -995,11 +974,7 @@ function LessonStatusIcon({ status, kind }: { status: LessonStatus; kind: Lesson
 /* ---------- Sidebar Cards ---------- */
 
 function SidebarCard({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="rounded-[20px] bg-white p-5">
-      {children}
-    </div>
-  );
+  return <div className="rounded-[20px] bg-white p-5">{children}</div>;
 }
 
 function InstructorCard() {
@@ -1035,8 +1010,8 @@ function InstructorCard() {
       </div>
 
       <p className="mt-3 text-xs leading-relaxed" style={{ color: MUTED }}>
-        Guides students through real-world AI workflows, software engineering
-        practices, and project-based learning.
+        Guides students through real-world AI workflows, software engineering practices, and
+        project-based learning.
       </p>
 
       <div className="mt-4 grid grid-cols-3 gap-2">
@@ -1045,11 +1020,7 @@ function InstructorCard() {
           { v: "120+", l: "Students" },
           { v: "AI/SE", l: "Domain" },
         ].map((s) => (
-          <div
-            key={s.l}
-            className="rounded-xl p-2.5 text-center"
-            style={{ background: ALT_BG }}
-          >
+          <div key={s.l} className="rounded-xl p-2.5 text-center" style={{ background: ALT_BG }}>
             <p className="text-sm font-bold" style={{ color: INK }}>
               {s.v}
             </p>
@@ -1170,7 +1141,8 @@ function LearningStreakCard({
               </p>
             </div>
             <TooltipContent side="top" className="max-w-[220px] text-xs">
-              Calculated using your streak, total completed lessons, and lessons completed in the last 7 days.
+              Calculated using your streak, total completed lessons, and lessons completed in the
+              last 7 days.
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -1275,7 +1247,10 @@ function CertificatePreview({ programName }: { programName: string }) {
           </div>
 
           <div className="mt-8 text-center">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em]" style={{ color: MUTED }}>
+            <p
+              className="text-[11px] font-semibold uppercase tracking-[0.2em]"
+              style={{ color: MUTED }}
+            >
               Certificate of Completion
             </p>
             <p className="mt-4 text-xs" style={{ color: MUTED }}>
@@ -1297,7 +1272,10 @@ function CertificatePreview({ programName }: { programName: string }) {
             style={{ borderTop: `1px solid ${BORDER}` }}
           >
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: MUTED }}>
+              <p
+                className="text-[10px] font-semibold uppercase tracking-wider"
+                style={{ color: MUTED }}
+              >
                 Completion Date
               </p>
               <p className="mt-1 text-xs font-bold" style={{ color: INK }}>
@@ -1305,7 +1283,10 @@ function CertificatePreview({ programName }: { programName: string }) {
               </p>
             </div>
             <div className="text-right">
-              <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: MUTED }}>
+              <p
+                className="text-[10px] font-semibold uppercase tracking-wider"
+                style={{ color: MUTED }}
+              >
                 Certificate ID
               </p>
               <p className="mt-1 text-xs font-bold tabular-nums" style={{ color: INK }}>

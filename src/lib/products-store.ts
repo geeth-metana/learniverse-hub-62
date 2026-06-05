@@ -143,7 +143,10 @@ export function getProduct(id: string): Product | undefined {
   return read().find((p) => p.id === id);
 }
 
-export function updateProduct(id: string, patch: Partial<Omit<Product, "id" | "createdAt">>): Product | undefined {
+export function updateProduct(
+  id: string,
+  patch: Partial<Omit<Product, "id" | "createdAt">>,
+): Product | undefined {
   const list = read();
   const idx = list.findIndex((p) => p.id === id);
   if (idx === -1) return undefined;

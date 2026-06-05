@@ -18,17 +18,12 @@ import {
   Layers,
   Lock,
   Unlock,
-} from "lucide-react";
+} from "@/components/icons";
 import { allCoursesCombined, getCourse } from "@/lib/courses-data";
 import { addProduct } from "@/lib/products-store";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -299,10 +294,6 @@ function CreateProductPage() {
     navigate({ to: "/products" });
   };
 
-
-
-
-
   let positionCounter = 0;
   const positionMap = new Map<string, number>();
   items.forEach((it) => {
@@ -344,7 +335,9 @@ function CreateProductPage() {
               {/* Left: form */}
               <div className="space-y-6">
                 <section className="rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
-                  <h2 className="text-second-header font-semibold text-foreground">Product details</h2>
+                  <h2 className="text-second-header font-semibold text-foreground">
+                    Product details
+                  </h2>
                   <div className="mt-4 space-y-4">
                     <div>
                       <label className="mb-1.5 block text-small font-semibold text-foreground">
@@ -431,7 +424,9 @@ function CreateProductPage() {
                 <section className="rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-baseline gap-4">
-                      <h2 className="text-second-header font-semibold text-foreground">Add courses</h2>
+                      <h2 className="text-second-header font-semibold text-foreground">
+                        Add courses
+                      </h2>
                       <span className="text-small text-muted-foreground">{totalCount} added</span>
                     </div>
                     <div className="flex flex-wrap items-center gap-3">
@@ -493,7 +488,9 @@ function CreateProductPage() {
                               <p className="truncate text-small font-semibold text-foreground">
                                 {c.title}
                               </p>
-                              <p className="truncate text-smaller text-muted-foreground">{c.meta}</p>
+                              <p className="truncate text-smaller text-muted-foreground">
+                                {c.meta}
+                              </p>
                             </div>
                             <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-muted px-3 py-1.5 text-smaller font-semibold text-foreground">
                               <Plus className="h-3.5 w-3.5" /> Add Course
@@ -542,8 +539,12 @@ function CreateProductPage() {
                                       ? "opacity-80 border-primary"
                                       : "border-border"
                                   }`}
-                                  whileDrag={{ scale: 1.02, boxShadow: "var(--shadow-soft-hover)", zIndex: 30 }}
-                                   onDragStart={() => {
+                                  whileDrag={{
+                                    scale: 1.02,
+                                    boxShadow: "var(--shadow-soft-hover)",
+                                    zIndex: 30,
+                                  }}
+                                  onDragStart={() => {
                                     setDraggingItemId(it.id);
                                     itemsBeforeDragRef.current = items;
                                     captureGroupRects();
@@ -663,8 +664,7 @@ function CreateProductPage() {
                   style={{
                     padding: "1.5px",
                     background: "linear-gradient(135deg, #CEFC04, #5BECD7)",
-                    WebkitMask:
-                      "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+                    WebkitMask: "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
                     WebkitMaskComposite: "xor",
                     maskComposite: "exclude",
                   }}
@@ -703,10 +703,7 @@ function CreateProductPage() {
                   )}
                 </div>
                 <div className="mt-3 border-t border-border pt-3">
-                  <PreviewList
-                    items={items}
-                    optionalIds={optionalIds}
-                  />
+                  <PreviewList items={items} optionalIds={optionalIds} />
                 </div>
                 <button
                   onClick={handlePublish}
@@ -761,7 +758,6 @@ function CreateProductPage() {
     </div>
   );
 }
-
 
 function CourseRow({
   title,
@@ -883,7 +879,9 @@ function GroupBlock({
           onChange={(e) => onRename(e.target.value)}
           className="flex-1 min-w-0 rounded-lg bg-transparent px-2 py-1 text-small font-semibold text-foreground hover:bg-background focus:bg-background focus:outline-none focus:ring-2 focus:ring-ring"
         />
-        <span className="text-smaller text-muted-foreground">{group.courseIds.length} in group</span>
+        <span className="text-smaller text-muted-foreground">
+          {group.courseIds.length} in group
+        </span>
         <button
           onClick={onRemoveGroup}
           className="grid h-8 w-8 place-items-center rounded-full border border-border text-muted-foreground hover:bg-destructive hover:text-destructive-foreground transition-colors"
@@ -996,10 +994,7 @@ function PreviewList({ items, optionalIds }: { items: Item[]; optionalIds: strin
                   if (!c) return null;
                   const isOptional = optionalIds.includes(cid);
                   return (
-                    <li
-                      key={cid}
-                      className="flex items-center gap-2 text-small text-foreground"
-                    >
+                    <li key={cid} className="flex items-center gap-2 text-small text-foreground">
                       <BookOpen className="h-4 w-4 shrink-0" />
                       <span className="truncate flex-1">{c.title}</span>
                       {isOptional && (

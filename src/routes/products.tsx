@@ -1,7 +1,17 @@
 import { createFileRoute, Outlet, useMatch, useNavigate } from "@tanstack/react-router";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Topbar } from "@/components/dashboard/Topbar";
-import { Plus, Package, BookOpen, Clock, Lock, Unlock, MoreVertical, Pencil, Settings as SettingsIcon } from "lucide-react";
+import {
+  Plus,
+  Package,
+  BookOpen,
+  Clock,
+  Lock,
+  Unlock,
+  MoreVertical,
+  Pencil,
+  Settings as SettingsIcon,
+} from "@/components/icons";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -33,7 +43,10 @@ export const Route = createFileRoute("/products")({
   head: () => ({
     meta: [
       { title: "Metana Products" },
-      { name: "description", content: "Browse and manage product packages built from your courses." },
+      {
+        name: "description",
+        content: "Browse and manage product packages built from your courses.",
+      },
     ],
   }),
   component: ProductsLayout,
@@ -149,14 +162,20 @@ function ProductsListPage() {
                               >
                                 <DropdownMenuItem
                                   onSelect={() =>
-                                    navigate({ to: "/products/$productId", params: { productId: p.id } })
+                                    navigate({
+                                      to: "/products/$productId",
+                                      params: { productId: p.id },
+                                    })
                                   }
                                 >
                                   <Pencil className="h-4 w-4" /> Edit Product
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onSelect={() =>
-                                    navigate({ to: "/products/$productId", params: { productId: p.id } })
+                                    navigate({
+                                      to: "/products/$productId",
+                                      params: { productId: p.id },
+                                    })
                                   }
                                 >
                                   <SettingsIcon className="h-4 w-4" /> Edit Setting

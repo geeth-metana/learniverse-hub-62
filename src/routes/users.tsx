@@ -13,7 +13,8 @@ import {
   KeyRound,
   Lock,
   UserX,
-  ChevronRight, ChevronDown,
+  ChevronRight,
+  ChevronDown,
   Circle,
   BookOpen,
   Activity,
@@ -29,7 +30,7 @@ import {
   Briefcase,
   Calendar,
   Clock,
-} from "lucide-react";
+} from "@/components/icons";
 import { toast } from "sonner";
 
 const BRAND = "#CCF621";
@@ -54,16 +55,96 @@ type User = {
 };
 
 const MOCK_USERS: User[] = [
-  { id: "u1", name: "Ava Thompson", email: "ava@metana.io", role: "Student", status: "Active", createdAt: "2025-02-12", avatar: "https://i.pravatar.cc/120?img=47" },
-  { id: "u2", name: "Marcus Lee", email: "marcus@metana.io", role: "Instructor", status: "Active", createdAt: "2024-11-03", avatar: "https://i.pravatar.cc/120?img=12" },
-  { id: "u3", name: "Priya Shah", email: "priya@metana.io", role: "Admin", status: "Active", createdAt: "2024-08-19", avatar: "https://i.pravatar.cc/120?img=32" },
-  { id: "u4", name: "Diego Alvarez", email: "diego@metana.io", role: "Sales", status: "Active", createdAt: "2025-01-22", avatar: "https://i.pravatar.cc/120?img=15" },
-  { id: "u5", name: "Sofia Müller", email: "sofia@metana.io", role: "Student", status: "Suspended", createdAt: "2025-03-08", avatar: "https://i.pravatar.cc/120?img=49" },
-  { id: "u6", name: "Kenji Watanabe", email: "kenji@metana.io", role: "Instructor", status: "Inactive", createdAt: "2024-09-30", avatar: "https://i.pravatar.cc/120?img=68" },
-  { id: "u7", name: "Olivia Brown", email: "olivia@metana.io", role: "Student", status: "Active", createdAt: "2025-04-01", avatar: "https://i.pravatar.cc/120?img=45" },
-  { id: "u8", name: "Noah Patel", email: "noah@metana.io", role: "Student", status: "Disabled", createdAt: "2025-02-25", avatar: "https://i.pravatar.cc/120?img=13" },
-  { id: "u9", name: "Mia Rossi", email: "mia@metana.io", role: "Sales", status: "Active", createdAt: "2025-03-18", avatar: "https://i.pravatar.cc/120?img=44" },
-  { id: "u10", name: "Liam O'Connor", email: "liam@metana.io", role: "Student", status: "Active", createdAt: "2025-05-12", avatar: "https://i.pravatar.cc/120?img=11" },
+  {
+    id: "u1",
+    name: "Ava Thompson",
+    email: "ava@metana.io",
+    role: "Student",
+    status: "Active",
+    createdAt: "2025-02-12",
+    avatar: "https://i.pravatar.cc/120?img=47",
+  },
+  {
+    id: "u2",
+    name: "Marcus Lee",
+    email: "marcus@metana.io",
+    role: "Instructor",
+    status: "Active",
+    createdAt: "2024-11-03",
+    avatar: "https://i.pravatar.cc/120?img=12",
+  },
+  {
+    id: "u3",
+    name: "Priya Shah",
+    email: "priya@metana.io",
+    role: "Admin",
+    status: "Active",
+    createdAt: "2024-08-19",
+    avatar: "https://i.pravatar.cc/120?img=32",
+  },
+  {
+    id: "u4",
+    name: "Diego Alvarez",
+    email: "diego@metana.io",
+    role: "Sales",
+    status: "Active",
+    createdAt: "2025-01-22",
+    avatar: "https://i.pravatar.cc/120?img=15",
+  },
+  {
+    id: "u5",
+    name: "Sofia Müller",
+    email: "sofia@metana.io",
+    role: "Student",
+    status: "Suspended",
+    createdAt: "2025-03-08",
+    avatar: "https://i.pravatar.cc/120?img=49",
+  },
+  {
+    id: "u6",
+    name: "Kenji Watanabe",
+    email: "kenji@metana.io",
+    role: "Instructor",
+    status: "Inactive",
+    createdAt: "2024-09-30",
+    avatar: "https://i.pravatar.cc/120?img=68",
+  },
+  {
+    id: "u7",
+    name: "Olivia Brown",
+    email: "olivia@metana.io",
+    role: "Student",
+    status: "Active",
+    createdAt: "2025-04-01",
+    avatar: "https://i.pravatar.cc/120?img=45",
+  },
+  {
+    id: "u8",
+    name: "Noah Patel",
+    email: "noah@metana.io",
+    role: "Student",
+    status: "Disabled",
+    createdAt: "2025-02-25",
+    avatar: "https://i.pravatar.cc/120?img=13",
+  },
+  {
+    id: "u9",
+    name: "Mia Rossi",
+    email: "mia@metana.io",
+    role: "Sales",
+    status: "Active",
+    createdAt: "2025-03-18",
+    avatar: "https://i.pravatar.cc/120?img=44",
+  },
+  {
+    id: "u10",
+    name: "Liam O'Connor",
+    email: "liam@metana.io",
+    role: "Student",
+    status: "Active",
+    createdAt: "2025-05-12",
+    avatar: "https://i.pravatar.cc/120?img=11",
+  },
 ];
 
 export const Route = createFileRoute("/users")({
@@ -184,7 +265,10 @@ function UsersPage() {
               </div>
               <div className="flex items-center gap-3 shrink-0">
                 <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: TEXT_MUTED }} />
+                  <Search
+                    className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4"
+                    style={{ color: TEXT_MUTED }}
+                  />
                   <input
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
@@ -196,7 +280,11 @@ function UsersPage() {
                 <button
                   onClick={() => setAddOpen(true)}
                   className="h-12 px-6 rounded-full text-sm font-semibold inline-flex items-center gap-2 transition-transform hover:scale-[1.02] shrink-0"
-                  style={{ backgroundColor: BRAND, color: TEXT_DARK, boxShadow: "0 2px 8px rgba(204, 246, 33, 0.45)" }}
+                  style={{
+                    backgroundColor: BRAND,
+                    color: TEXT_DARK,
+                    boxShadow: "0 2px 8px rgba(204, 246, 33, 0.45)",
+                  }}
                 >
                   <Plus className="h-4 w-4" />
                   Add User
@@ -209,76 +297,96 @@ function UsersPage() {
               className="rounded-2xl bg-white border overflow-hidden"
               style={{ borderColor: BORDER, boxShadow: "0 1px 2px rgba(15,23,42,0.04)" }}
             >
-                <div className="max-h-[640px] overflow-auto">
-                  <table className="w-full text-sm">
-                    <thead
-                      className="sticky top-0 z-10"
-                      style={{ backgroundColor: "#FAFAFA", borderBottom: `1px solid ${BORDER}` }}
-                    >
-                      <tr className="text-left" style={{ color: TEXT_MUTED }}>
-                        <th className="px-5 py-4 font-medium">User</th>
-                        <th className="px-5 py-4 font-medium">Email</th>
-                        <th className="px-5 py-4 font-medium">Role</th>
-                        <th className="px-5 py-4 font-medium">Status</th>
-                        <th className="px-5 py-4 font-medium">Created</th>
-                        <th className="px-5 py-4 font-medium text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filtered.length === 0 && (
-                        <tr>
-                          <td colSpan={6} className="px-4 py-12 text-center text-sm" style={{ color: TEXT_MUTED }}>
-                            No users match your filters.
-                          </td>
-                        </tr>
-                      )}
-                      {filtered.map((u) => (
-                        <tr
-                          key={u.id}
-                          className="transition-colors hover:bg-[color:var(--row-hover)]"
-                          style={{
-                            borderBottom: `1px solid ${BORDER}`,
-                            ["--row-hover" as any]: "rgba(204, 246, 33, 0.10)",
-                          }}
-                          onMouseEnter={(e) => {
-                            (e.currentTarget as HTMLTableRowElement).style.borderBottom = `1px solid ${BRAND}`;
-                          }}
-                          onMouseLeave={(e) => {
-                            (e.currentTarget as HTMLTableRowElement).style.borderBottom = `1px solid ${BORDER}`;
-                          }}
+              <div className="max-h-[640px] overflow-auto">
+                <table className="w-full text-sm">
+                  <thead
+                    className="sticky top-0 z-10"
+                    style={{ backgroundColor: "#FAFAFA", borderBottom: `1px solid ${BORDER}` }}
+                  >
+                    <tr className="text-left" style={{ color: TEXT_MUTED }}>
+                      <th className="px-5 py-4 font-medium">User</th>
+                      <th className="px-5 py-4 font-medium">Email</th>
+                      <th className="px-5 py-4 font-medium">Role</th>
+                      <th className="px-5 py-4 font-medium">Status</th>
+                      <th className="px-5 py-4 font-medium">Created</th>
+                      <th className="px-5 py-4 font-medium text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filtered.length === 0 && (
+                      <tr>
+                        <td
+                          colSpan={6}
+                          className="px-4 py-12 text-center text-sm"
+                          style={{ color: TEXT_MUTED }}
                         >
-                          <td className="px-5 py-5">
-                            <div className="flex items-center gap-3">
-                              <img src={u.avatar} alt={u.name} className="h-10 w-10 rounded-full object-cover" />
-                              <span className="font-medium">{u.name}</span>
-                            </div>
-                          </td>
-                          <td className="px-5 py-5" style={{ color: TEXT_MUTED }}>{u.email}</td>
-                          <td className="px-5 py-5"><RolePill role={u.role} /></td>
-                          <td className="px-5 py-5"><StatusBadge status={u.status} /></td>
-                          <td className="px-5 py-5">
-                            <div className="flex flex-col">
-                              <span className="font-medium">{u.name.split(" ")[0]}</span>
-                              <span className="text-xs" style={{ color: TEXT_MUTED }}>
-                                {new Date(u.createdAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-5 py-5">
-                            <div className="flex items-center justify-end gap-1">
-                              <IconAction label="View" onClick={() => setViewUser(u)}>
-                                <Eye className="h-4 w-4" />
-                              </IconAction>
-                              <IconAction label="Delete" danger onClick={() => setConfirmDelete(u)}>
-                                <Trash2 className="h-4 w-4" />
-                              </IconAction>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                          No users match your filters.
+                        </td>
+                      </tr>
+                    )}
+                    {filtered.map((u) => (
+                      <tr
+                        key={u.id}
+                        className="transition-colors hover:bg-[color:var(--row-hover)]"
+                        style={{
+                          borderBottom: `1px solid ${BORDER}`,
+                          ["--row-hover" as any]: "rgba(204, 246, 33, 0.10)",
+                        }}
+                        onMouseEnter={(e) => {
+                          (e.currentTarget as HTMLTableRowElement).style.borderBottom =
+                            `1px solid ${BRAND}`;
+                        }}
+                        onMouseLeave={(e) => {
+                          (e.currentTarget as HTMLTableRowElement).style.borderBottom =
+                            `1px solid ${BORDER}`;
+                        }}
+                      >
+                        <td className="px-5 py-5">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={u.avatar}
+                              alt={u.name}
+                              className="h-10 w-10 rounded-full object-cover"
+                            />
+                            <span className="font-medium">{u.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-5 py-5" style={{ color: TEXT_MUTED }}>
+                          {u.email}
+                        </td>
+                        <td className="px-5 py-5">
+                          <RolePill role={u.role} />
+                        </td>
+                        <td className="px-5 py-5">
+                          <StatusBadge status={u.status} />
+                        </td>
+                        <td className="px-5 py-5">
+                          <div className="flex flex-col">
+                            <span className="font-medium">{u.name.split(" ")[0]}</span>
+                            <span className="text-xs" style={{ color: TEXT_MUTED }}>
+                              {new Date(u.createdAt).toLocaleDateString(undefined, {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              })}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-5 py-5">
+                          <div className="flex items-center justify-end gap-1">
+                            <IconAction label="View" onClick={() => setViewUser(u)}>
+                              <Eye className="h-4 w-4" />
+                            </IconAction>
+                            <IconAction label="Delete" danger onClick={() => setConfirmDelete(u)}>
+                              <Trash2 className="h-4 w-4" />
+                            </IconAction>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </main>
@@ -286,10 +394,14 @@ function UsersPage() {
 
       <AnimatePresence>
         {viewUser && (
-          <UserProfileModal user={viewUser} onClose={() => setViewUser(null)} onUpdate={(u) => {
-            setUsers((arr) => arr.map((x) => (x.id === u.id ? u : x)));
-            setViewUser(u);
-          }} />
+          <UserProfileModal
+            user={viewUser}
+            onClose={() => setViewUser(null)}
+            onUpdate={(u) => {
+              setUsers((arr) => arr.map((x) => (x.id === u.id ? u : x)));
+              setViewUser(u);
+            }}
+          />
         )}
         {confirmDelete && (
           <ConfirmDeleteModal
@@ -319,7 +431,15 @@ function UsersPage() {
 
 /* ============ Modals ============ */
 
-function ModalShell({ children, onClose, width = "max-w-5xl" }: { children: React.ReactNode; onClose: () => void; width?: string }) {
+function ModalShell({
+  children,
+  onClose,
+  width = "max-w-5xl",
+}: {
+  children: React.ReactNode;
+  onClose: () => void;
+  width?: string;
+}) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -370,13 +490,25 @@ function UserProfileModal({
     <ModalShell onClose={onClose}>
       <div className="flex h-[680px]">
         {/* Left selector */}
-        <aside className="w-[260px] shrink-0 flex flex-col sticky top-0 self-start h-full" style={{ backgroundColor: "#fff", borderRight: `1px solid ${BORDER}` }}>
+        <aside
+          className="w-[260px] shrink-0 flex flex-col sticky top-0 self-start h-full"
+          style={{ backgroundColor: "#fff", borderRight: `1px solid ${BORDER}` }}
+        >
           <div className="p-4 border-b" style={{ borderColor: BORDER }}>
             <div className="flex items-center gap-3">
-              <img src={user.avatar} alt={user.name} className="h-10 w-10 rounded-full object-cover ring-2" style={{ ["--tw-ring-color" as any]: BORDER }} />
+              <img
+                src={user.avatar}
+                alt={user.name}
+                className="h-10 w-10 rounded-full object-cover ring-2"
+                style={{ ["--tw-ring-color" as any]: BORDER }}
+              />
               <div className="min-w-0">
-                <p className="font-semibold truncate" style={{ color: TEXT_DARK }}>{user.name}</p>
-                <p className="text-xs truncate" style={{ color: TEXT_MUTED }}>{user.email}</p>
+                <p className="font-semibold truncate" style={{ color: TEXT_DARK }}>
+                  {user.name}
+                </p>
+                <p className="text-xs truncate" style={{ color: TEXT_MUTED }}>
+                  {user.email}
+                </p>
               </div>
             </div>
           </div>
@@ -394,10 +526,12 @@ function UserProfileModal({
                     color: active ? "#fff" : TEXT_DARK,
                   }}
                   onMouseEnter={(e) => {
-                    if (!active) (e.currentTarget as HTMLButtonElement).style.backgroundColor = SOFT;
+                    if (!active)
+                      (e.currentTarget as HTMLButtonElement).style.backgroundColor = SOFT;
                   }}
                   onMouseLeave={(e) => {
-                    if (!active) (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent";
+                    if (!active)
+                      (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent";
                   }}
                 >
                   <span className="flex items-center gap-3">
@@ -413,9 +547,18 @@ function UserProfileModal({
 
         {/* Right content */}
         <div className="flex-1 min-w-0 flex flex-col">
-          <div className="flex items-center justify-between px-6 py-3 border-b" style={{ borderColor: BORDER }}>
-            <h3 className="font-semibold">{PROFILE_SECTIONS.find((s) => s.key === section)?.label}</h3>
-            <button onClick={onClose} className="h-8 w-8 grid place-items-center rounded-full hover:bg-[color:var(--s)]" style={{ ["--s" as any]: SOFT }}>
+          <div
+            className="flex items-center justify-between px-6 py-3 border-b"
+            style={{ borderColor: BORDER }}
+          >
+            <h3 className="font-semibold">
+              {PROFILE_SECTIONS.find((s) => s.key === section)?.label}
+            </h3>
+            <button
+              onClick={onClose}
+              className="h-8 w-8 grid place-items-center rounded-full hover:bg-[color:var(--s)]"
+              style={{ ["--s" as any]: SOFT }}
+            >
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -442,7 +585,11 @@ function ProfileInfo({ user }: { user: User; onUpdate: (u: User) => void }) {
     { label: "Role", value: user.role, icon: Briefcase },
     {
       label: "Joined Date",
-      value: new Date(user.createdAt).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" }),
+      value: new Date(user.createdAt).toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }),
       icon: Calendar,
     },
   ];
@@ -471,7 +618,9 @@ function ProfileInfo({ user }: { user: User; onUpdate: (u: User) => void }) {
         <div className="min-w-0">
           <div className="flex items-center gap-3 flex-wrap">
             <p className="text-lg font-semibold truncate">{user.name}</p>
-            <span className="text-sm truncate" style={{ color: TEXT_MUTED }}>· {tagline}</span>
+            <span className="text-sm truncate" style={{ color: TEXT_MUTED }}>
+              · {tagline}
+            </span>
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
@@ -492,10 +641,15 @@ function ProfileInfo({ user }: { user: User; onUpdate: (u: User) => void }) {
             >
               <Icon className="h-4 w-4 mt-1 shrink-0" style={{ color: TEXT_MUTED }} />
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium uppercase tracking-wider" style={{ color: TEXT_MUTED }}>
+                <p
+                  className="text-xs font-medium uppercase tracking-wider"
+                  style={{ color: TEXT_MUTED }}
+                >
                   {r.label}
                 </p>
-                <p className="text-sm font-medium mt-1" style={{ color: TEXT_DARK }}>{r.value}</p>
+                <p className="text-sm font-medium mt-1" style={{ color: TEXT_DARK }}>
+                  {r.value}
+                </p>
               </div>
             </div>
           );
@@ -566,15 +720,33 @@ function UserSettings({ user, onUpdate }: { user: User; onUpdate: (u: User) => v
   );
 }
 
-function SettingsRow({ icon: Icon, title, desc, action }: { icon: any; title: string; desc: string; action: React.ReactNode }) {
+function SettingsRow({
+  icon: Icon,
+  title,
+  desc,
+  action,
+}: {
+  icon: any;
+  title: string;
+  desc: string;
+  action: React.ReactNode;
+}) {
   return (
-    <div className="rounded-2xl border p-4 flex items-center gap-4" style={{ borderColor: BORDER, boxShadow: "0 1px 2px rgba(15,23,42,0.04)" }}>
-      <div className="h-10 w-10 rounded-full grid place-items-center shrink-0" style={{ backgroundColor: SOFT }}>
+    <div
+      className="rounded-2xl border p-4 flex items-center gap-4"
+      style={{ borderColor: BORDER, boxShadow: "0 1px 2px rgba(15,23,42,0.04)" }}
+    >
+      <div
+        className="h-10 w-10 rounded-full grid place-items-center shrink-0"
+        style={{ backgroundColor: SOFT }}
+      >
         <Icon className="h-4 w-4" />
       </div>
       <div className="flex-1 min-w-0">
         <p className="font-semibold text-sm">{title}</p>
-        <p className="text-xs mt-0.5" style={{ color: TEXT_MUTED }}>{desc}</p>
+        <p className="text-xs mt-0.5" style={{ color: TEXT_MUTED }}>
+          {desc}
+        </p>
       </div>
       <div className="shrink-0">{action}</div>
     </div>
@@ -618,7 +790,10 @@ function PermissionsManager() {
       className="rounded-2xl border p-3 flex flex-col gap-2 min-h-[320px]"
       style={{ borderColor: BORDER, backgroundColor: "#FAFAFA" }}
     >
-      <p className="text-xs font-semibold uppercase tracking-wider px-1" style={{ color: TEXT_MUTED }}>
+      <p
+        className="text-xs font-semibold uppercase tracking-wider px-1"
+        style={{ color: TEXT_MUTED }}
+      >
         {title}
       </p>
       {items.length === 0 && (
@@ -641,7 +816,11 @@ function PermissionsManager() {
             style={{ ["--s" as any]: SOFT }}
             aria-label="Toggle"
           >
-            {side === "a" ? <ArrowRight className="h-3.5 w-3.5" /> : <ArrowLeft className="h-3.5 w-3.5" />}
+            {side === "a" ? (
+              <ArrowRight className="h-3.5 w-3.5" />
+            ) : (
+              <ArrowLeft className="h-3.5 w-3.5" />
+            )}
           </button>
         </div>
       ))}
@@ -671,34 +850,46 @@ const MOCK_COURSES: Course[] = [
       {
         name: "HTML & CSS",
         units: [
-          { name: "Semantic HTML", lessons: [
-            { name: "Document structure", done: true },
-            { name: "Forms & inputs", done: true },
-          ]},
-          { name: "Modern CSS", lessons: [
-            { name: "Flexbox", done: true },
-            { name: "Grid", done: true },
-          ]},
+          {
+            name: "Semantic HTML",
+            lessons: [
+              { name: "Document structure", done: true },
+              { name: "Forms & inputs", done: true },
+            ],
+          },
+          {
+            name: "Modern CSS",
+            lessons: [
+              { name: "Flexbox", done: true },
+              { name: "Grid", done: true },
+            ],
+          },
         ],
       },
       {
         name: "JavaScript Foundations",
         units: [
-          { name: "Language basics", lessons: [
-            { name: "Variables & types", done: true },
-            { name: "Functions", done: true },
-            { name: "Promises", done: false },
-          ]},
+          {
+            name: "Language basics",
+            lessons: [
+              { name: "Variables & types", done: true },
+              { name: "Functions", done: true },
+              { name: "Promises", done: false },
+            ],
+          },
         ],
       },
       {
         name: "React Basics",
         units: [
-          { name: "Components", lessons: [
-            { name: "JSX", done: true },
-            { name: "Props & state", done: false },
-            { name: "Effects", done: false },
-          ]},
+          {
+            name: "Components",
+            lessons: [
+              { name: "JSX", done: true },
+              { name: "Props & state", done: false },
+              { name: "Effects", done: false },
+            ],
+          },
         ],
       },
     ],
@@ -711,19 +902,25 @@ const MOCK_COURSES: Course[] = [
       {
         name: "Rust Basics",
         units: [
-          { name: "Ownership", lessons: [
-            { name: "Borrowing", done: true },
-            { name: "Lifetimes", done: false },
-          ]},
+          {
+            name: "Ownership",
+            lessons: [
+              { name: "Borrowing", done: true },
+              { name: "Lifetimes", done: false },
+            ],
+          },
         ],
       },
       {
         name: "Smart Contracts",
         units: [
-          { name: "Solana programs", lessons: [
-            { name: "Anchor intro", done: false },
-            { name: "Accounts model", done: false },
-          ]},
+          {
+            name: "Solana programs",
+            lessons: [
+              { name: "Anchor intro", done: false },
+              { name: "Accounts model", done: false },
+            ],
+          },
         ],
       },
     ],
@@ -743,9 +940,9 @@ function CourseProgress() {
         m.units.forEach((u) =>
           u.lessons.forEach((l) => {
             init[`${c.id}::${m.name}::${u.name}::${l.name}`] = l.done;
-          })
-        )
-      )
+          }),
+        ),
+      ),
     );
     return init;
   });
@@ -766,8 +963,8 @@ function CourseProgress() {
       m.units.forEach((u) =>
         u.lessons.forEach((l) => {
           if (lessonsState[`${c.id}::${m.name}::${u.name}::${l.name}`]) done++;
-        })
-      )
+        }),
+      ),
     );
     return { total, done, pct: total ? Math.round((done / total) * 100) : 0 };
   };
@@ -781,8 +978,8 @@ function CourseProgress() {
         m.units.forEach((u) =>
           u.lessons.forEach((l) => {
             next[`${c.id}::${m.name}::${u.name}::${l.name}`] = true;
-          })
-        )
+          }),
+        ),
       );
       return next;
     });
@@ -800,7 +997,11 @@ function CourseProgress() {
               key={c.id}
               onClick={() => setOpenCourse(c.id)}
               className="text-left rounded-2xl border bg-white p-4 transition-colors hover:bg-[color:var(--s)]"
-              style={{ borderColor: BORDER, boxShadow: "0 1px 2px rgba(15,23,42,0.04)", ["--s" as any]: SOFT }}
+              style={{
+                borderColor: BORDER,
+                boxShadow: "0 1px 2px rgba(15,23,42,0.04)",
+                ["--s" as any]: SOFT,
+              }}
             >
               <div className="flex items-start gap-3">
                 <div
@@ -811,7 +1012,10 @@ function CourseProgress() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-sm truncate">{c.title}</p>
-                  <p className="text-xs mt-0.5 inline-flex items-center gap-1" style={{ color: TEXT_MUTED }}>
+                  <p
+                    className="text-xs mt-0.5 inline-flex items-center gap-1"
+                    style={{ color: TEXT_MUTED }}
+                  >
                     <Clock className="h-3 w-3" /> Last access {c.lastAccess}
                   </p>
                 </div>
@@ -819,11 +1023,16 @@ function CourseProgress() {
               </div>
               <div className="mt-4">
                 <div className="flex items-center justify-between text-xs mb-1.5">
-                  <span style={{ color: TEXT_MUTED }}>{done}/{total} lessons</span>
+                  <span style={{ color: TEXT_MUTED }}>
+                    {done}/{total} lessons
+                  </span>
                   <span className="font-semibold tabular-nums">{pct}%</span>
                 </div>
                 <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: SOFT }}>
-                  <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: BRAND }} />
+                  <div
+                    className="h-full rounded-full transition-all"
+                    style={{ width: `${pct}%`, backgroundColor: BRAND }}
+                  />
                 </div>
               </div>
             </button>
@@ -851,14 +1060,21 @@ function CourseProgress() {
               className="absolute right-0 top-0 h-full w-full max-w-md bg-white flex flex-col"
               style={{ boxShadow: "-20px 0 60px rgba(15,23,42,0.25)" }}
             >
-              <div className="px-5 py-4 flex items-start gap-3" style={{ borderBottom: `1px solid ${BORDER}` }}>
-                <div className="h-10 w-10 rounded-xl grid place-items-center shrink-0" style={{ backgroundColor: SOFT }}>
+              <div
+                className="px-5 py-4 flex items-start gap-3"
+                style={{ borderBottom: `1px solid ${BORDER}` }}
+              >
+                <div
+                  className="h-10 w-10 rounded-xl grid place-items-center shrink-0"
+                  style={{ backgroundColor: SOFT }}
+                >
                   <BookOpen className="h-4 w-4" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-sm truncate">{activeCourse.title}</p>
                   <p className="text-xs mt-0.5" style={{ color: TEXT_MUTED }}>
-                    {courseStats(activeCourse).done}/{courseStats(activeCourse).total} lessons · {courseStats(activeCourse).pct}%
+                    {courseStats(activeCourse).done}/{courseStats(activeCourse).total} lessons ·{" "}
+                    {courseStats(activeCourse).pct}%
                   </p>
                 </div>
                 <button
@@ -872,13 +1088,23 @@ function CourseProgress() {
               <div className="flex-1 overflow-auto px-5 py-4 space-y-4">
                 {activeCourse.modules.map((m) => (
                   <div key={m.name}>
-                    <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: TEXT_MUTED }}>
+                    <p
+                      className="text-xs font-semibold uppercase tracking-wider mb-2"
+                      style={{ color: TEXT_MUTED }}
+                    >
                       {m.name}
                     </p>
                     <div className="space-y-3">
                       {m.units.map((u) => (
-                        <div key={u.name} className="rounded-xl border" style={{ borderColor: BORDER }}>
-                          <p className="px-3 py-2 text-sm font-medium" style={{ borderBottom: `1px solid ${BORDER}` }}>
+                        <div
+                          key={u.name}
+                          className="rounded-xl border"
+                          style={{ borderColor: BORDER }}
+                        >
+                          <p
+                            className="px-3 py-2 text-sm font-medium"
+                            style={{ borderBottom: `1px solid ${BORDER}` }}
+                          >
                             {u.name}
                           </p>
                           <ul>
@@ -891,7 +1117,12 @@ function CourseProgress() {
                                   className="flex items-center justify-between gap-3 px-3 py-2 text-sm"
                                   style={{ borderTop: `1px solid ${BORDER}` }}
                                 >
-                                  <span style={{ color: checked ? TEXT_MUTED : TEXT_DARK, textDecoration: checked ? "line-through" : "none" }}>
+                                  <span
+                                    style={{
+                                      color: checked ? TEXT_MUTED : TEXT_DARK,
+                                      textDecoration: checked ? "line-through" : "none",
+                                    }}
+                                  >
                                     {l.name}
                                   </span>
                                   <button
@@ -917,7 +1148,10 @@ function CourseProgress() {
                   </div>
                 ))}
               </div>
-              <div className="px-5 py-3 flex items-center justify-end gap-2" style={{ borderTop: `1px solid ${BORDER}` }}>
+              <div
+                className="px-5 py-3 flex items-center justify-end gap-2"
+                style={{ borderTop: `1px solid ${BORDER}` }}
+              >
                 <button
                   onClick={() => setOpenCourse(null)}
                   className="h-9 px-4 rounded-lg text-sm font-semibold border"
@@ -963,41 +1197,103 @@ const LOG_DATA: LogDay[] = [
     date: "2025-08-28",
     label: "August 28, 2025 (Today)",
     events: [
-      { title: "Lesson completed", subtitle: "React Basics · Components · JSX", category: "Course", time: "10:53 PM", details: "Completed the JSX lesson with 100% quiz score. Time spent: 45 minutes." },
-      { title: "New announcement published", subtitle: "System maintenance scheduled for tonight at 2 AM UTC", category: "Announcement", time: "09:15 PM" },
-      { title: "Password changed", subtitle: "Account security update initiated by user", category: "Platform", time: "02:40 PM", details: "User updated their password from the account settings page." },
+      {
+        title: "Lesson completed",
+        subtitle: "React Basics · Components · JSX",
+        category: "Course",
+        time: "10:53 PM",
+        details: "Completed the JSX lesson with 100% quiz score. Time spent: 45 minutes.",
+      },
+      {
+        title: "New announcement published",
+        subtitle: "System maintenance scheduled for tonight at 2 AM UTC",
+        category: "Announcement",
+        time: "09:15 PM",
+      },
+      {
+        title: "Password changed",
+        subtitle: "Account security update initiated by user",
+        category: "Platform",
+        time: "02:40 PM",
+        details: "User updated their password from the account settings page.",
+      },
     ],
   },
   {
     date: "2025-08-27",
     label: "August 27, 2025",
     events: [
-      { title: "Module started", subtitle: "React Basics", category: "Course", time: "11:30 AM", details: "Enrolled in the React Basics module. Estimated completion: 3 weeks." },
-      { title: "Signed in", subtitle: "Chrome on macOS · IP 192.168.1.42", category: "Platform", time: "09:05 AM" },
-      { title: "Payment processed", subtitle: "Installment #2 — Full-Stack Web Development", category: "Course", time: "08:00 AM", details: "$1,200 received via Stripe. Receipt sent to email." },
+      {
+        title: "Module started",
+        subtitle: "React Basics",
+        category: "Course",
+        time: "11:30 AM",
+        details: "Enrolled in the React Basics module. Estimated completion: 3 weeks.",
+      },
+      {
+        title: "Signed in",
+        subtitle: "Chrome on macOS · IP 192.168.1.42",
+        category: "Platform",
+        time: "09:05 AM",
+      },
+      {
+        title: "Payment processed",
+        subtitle: "Installment #2 — Full-Stack Web Development",
+        category: "Course",
+        time: "08:00 AM",
+        details: "$1,200 received via Stripe. Receipt sent to email.",
+      },
     ],
   },
   {
     date: "2025-08-25",
     label: "August 25, 2025",
     events: [
-      { title: "Assignment submitted", subtitle: "JavaScript Foundations · Promises", category: "Course", time: "03:20 PM", details: "Submitted async/await coding challenge. Pending instructor review." },
-      { title: "Profile updated", subtitle: "Changed display name and avatar", category: "Platform", time: "10:00 AM" },
+      {
+        title: "Assignment submitted",
+        subtitle: "JavaScript Foundations · Promises",
+        category: "Course",
+        time: "03:20 PM",
+        details: "Submitted async/await coding challenge. Pending instructor review.",
+      },
+      {
+        title: "Profile updated",
+        subtitle: "Changed display name and avatar",
+        category: "Platform",
+        time: "10:00 AM",
+      },
     ],
   },
   {
     date: "2025-08-22",
     label: "August 22, 2025",
     events: [
-      { title: "Course enrolled", subtitle: "Full-Stack Web Development", category: "Course", time: "08:45 AM", details: "Enrolled via sales team referral. Full installment plan activated." },
-      { title: "Welcome email sent", subtitle: "Onboarding sequence initiated", category: "Platform", time: "08:47 AM" },
+      {
+        title: "Course enrolled",
+        subtitle: "Full-Stack Web Development",
+        category: "Course",
+        time: "08:45 AM",
+        details: "Enrolled via sales team referral. Full installment plan activated.",
+      },
+      {
+        title: "Welcome email sent",
+        subtitle: "Onboarding sequence initiated",
+        category: "Platform",
+        time: "08:47 AM",
+      },
     ],
   },
   {
     date: "2025-08-20",
     label: "August 20, 2025",
     events: [
-      { title: "Account created", subtitle: "Registered via invite link", category: "Platform", time: "02:15 PM", details: "Account created by admin. Temporary password sent to email." },
+      {
+        title: "Account created",
+        subtitle: "Registered via invite link",
+        category: "Platform",
+        time: "02:15 PM",
+        details: "Account created by admin. Temporary password sent to email.",
+      },
     ],
   },
 ];
@@ -1016,9 +1312,12 @@ function ActivityLog() {
 
   const tagStyle = (cat: LogCategory) => {
     switch (cat) {
-      case "Course": return { bg: "#EDE7FF", color: TEXT_DARK };
-      case "Announcement": return { bg: "#FFF7E5", color: TEXT_DARK };
-      case "Platform": return { bg: "#ECFDF5", color: TEXT_DARK };
+      case "Course":
+        return { bg: "#EDE7FF", color: TEXT_DARK };
+      case "Announcement":
+        return { bg: "#FFF7E5", color: TEXT_DARK };
+      case "Platform":
+        return { bg: "#ECFDF5", color: TEXT_DARK };
     }
   };
 
@@ -1028,7 +1327,9 @@ function ActivityLog() {
         <div key={day.date}>
           <div className="flex items-center justify-center gap-2 mb-3">
             <Calendar className="h-4 w-4" style={{ color: TEXT_MUTED }} />
-            <span className="text-sm font-medium" style={{ color: TEXT_MUTED }}>{day.label}</span>
+            <span className="text-sm font-medium" style={{ color: TEXT_MUTED }}>
+              {day.label}
+            </span>
           </div>
           <div className="space-y-2">
             {day.events.map((e, idx) => {
@@ -1059,7 +1360,9 @@ function ActivityLog() {
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="text-sm font-semibold" style={{ color: TEXT_DARK }}>{e.title}</p>
+                          <p className="text-sm font-semibold" style={{ color: TEXT_DARK }}>
+                            {e.title}
+                          </p>
                           <span
                             className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold"
                             style={{ backgroundColor: tag.bg, color: tag.color }}
@@ -1067,16 +1370,24 @@ function ActivityLog() {
                             {e.category}
                           </span>
                         </div>
-                        <p className="text-xs mt-1" style={{ color: "#4B5563" }}>{e.subtitle}</p>
+                        <p className="text-xs mt-1" style={{ color: "#4B5563" }}>
+                          {e.subtitle}
+                        </p>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
                         {e.details && (
                           <ChevronDown
                             className="h-3.5 w-3.5 transition-transform"
-                            style={{ color: TEXT_MUTED, transform: isOpen ? "rotate(180deg)" : "rotate(0deg)", transitionDuration: "0.2s" }}
+                            style={{
+                              color: TEXT_MUTED,
+                              transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+                              transitionDuration: "0.2s",
+                            }}
                           />
                         )}
-                        <span className="text-xs tabular-nums" style={{ color: TEXT_MUTED }}>{e.time}</span>
+                        <span className="text-xs tabular-nums" style={{ color: TEXT_MUTED }}>
+                          {e.time}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -1089,7 +1400,10 @@ function ActivityLog() {
                       }}
                     >
                       <div className="min-w-0">
-                        <div className="mx-4 pb-3 pt-0 border-t text-xs" style={{ borderColor: "#E5E7EB", color: "#4B5563" }}>
+                        <div
+                          className="mx-4 pb-3 pt-0 border-t text-xs"
+                          style={{ borderColor: "#E5E7EB", color: "#4B5563" }}
+                        >
                           <p className="pt-3">{e.details}</p>
                         </div>
                       </div>
@@ -1110,9 +1424,19 @@ function ActivityLog() {
 
 function PaymentDetailsView() {
   const rows = [
-    { course: "Full-Stack Web Development", amount: "$2,400", status: "Paid" as const, date: "Apr 10, 2026" },
+    {
+      course: "Full-Stack Web Development",
+      amount: "$2,400",
+      status: "Paid" as const,
+      date: "Apr 10, 2026",
+    },
     { course: "Rust for Web3", amount: "$800", status: "Pending" as const, date: "May 20, 2026" },
-    { course: "Add-on: Career Coaching", amount: "$300", status: "Needs Approval" as const, date: "May 26, 2026" },
+    {
+      course: "Add-on: Career Coaching",
+      amount: "$300",
+      status: "Needs Approval" as const,
+      date: "May 26, 2026",
+    },
   ];
   const stylesMap = {
     Paid: { bg: "rgba(204, 246, 33, 0.35)", color: "#3F5C00" },
@@ -1139,11 +1463,16 @@ function PaymentDetailsView() {
                 <td className="px-4 py-3 font-medium">{r.course}</td>
                 <td className="px-4 py-3">{r.amount}</td>
                 <td className="px-4 py-3">
-                  <span className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold" style={{ backgroundColor: s.bg, color: s.color }}>
+                  <span
+                    className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold"
+                    style={{ backgroundColor: s.bg, color: s.color }}
+                  >
                     {r.status}
                   </span>
                 </td>
-                <td className="px-4 py-3" style={{ color: TEXT_MUTED }}>{r.date}</td>
+                <td className="px-4 py-3" style={{ color: TEXT_MUTED }}>
+                  {r.date}
+                </td>
                 <td className="px-4 py-3 text-right">
                   <button
                     onClick={() => toast.info("Open payment overview")}
@@ -1162,26 +1491,49 @@ function PaymentDetailsView() {
   );
 }
 
-function ConfirmDeleteModal({ user, onClose, onConfirm }: { user: User; onClose: () => void; onConfirm: () => void }) {
+function ConfirmDeleteModal({
+  user,
+  onClose,
+  onConfirm,
+}: {
+  user: User;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
   return (
     <ModalShell onClose={onClose} width="max-w-md">
       <div className="p-6">
         <div className="flex items-start gap-3">
-          <div className="h-10 w-10 rounded-full grid place-items-center shrink-0" style={{ backgroundColor: "#FEE2E2", color: "#991B1B" }}>
+          <div
+            className="h-10 w-10 rounded-full grid place-items-center shrink-0"
+            style={{ backgroundColor: "#FEE2E2", color: "#991B1B" }}
+          >
             <Trash2 className="h-5 w-5" />
           </div>
           <div className="flex-1">
             <h3 className="text-lg font-semibold">Delete user</h3>
             <p className="text-sm mt-1" style={{ color: TEXT_MUTED }}>
-              Are you sure you want to delete <span className="font-semibold" style={{ color: TEXT_DARK }}>{user.name}</span>? This action cannot be undone.
+              Are you sure you want to delete{" "}
+              <span className="font-semibold" style={{ color: TEXT_DARK }}>
+                {user.name}
+              </span>
+              ? This action cannot be undone.
             </p>
           </div>
         </div>
         <div className="mt-6 flex items-center justify-end gap-2">
-          <button onClick={onClose} className="h-9 px-4 rounded-lg text-sm font-semibold border" style={{ borderColor: BORDER }}>
+          <button
+            onClick={onClose}
+            className="h-9 px-4 rounded-lg text-sm font-semibold border"
+            style={{ borderColor: BORDER }}
+          >
             Cancel
           </button>
-          <button onClick={onConfirm} className="h-9 px-4 rounded-lg text-sm font-semibold" style={{ backgroundColor: "#B42318", color: "#fff" }}>
+          <button
+            onClick={onConfirm}
+            className="h-9 px-4 rounded-lg text-sm font-semibold"
+            style={{ backgroundColor: "#B42318", color: "#fff" }}
+          >
             Delete
           </button>
         </div>
@@ -1199,19 +1551,45 @@ function AddUserModal({ onClose, onAdd }: { onClose: () => void; onAdd: (u: User
     <ModalShell onClose={onClose} width="max-w-md">
       <div className="p-6">
         <h3 className="text-lg font-semibold">Add User</h3>
-        <p className="text-sm mt-1" style={{ color: TEXT_MUTED }}>Create a new platform user account.</p>
+        <p className="text-sm mt-1" style={{ color: TEXT_MUTED }}>
+          Create a new platform user account.
+        </p>
         <div className="mt-5 space-y-3">
           <div>
-            <label className="text-xs font-medium" style={{ color: TEXT_MUTED }}>Full name</label>
-            <input value={name} onChange={(e) => setName(e.target.value)} className="mt-1 w-full h-10 px-3 rounded-xl border bg-white text-sm" style={{ borderColor: BORDER }} placeholder="Jane Doe" />
+            <label className="text-xs font-medium" style={{ color: TEXT_MUTED }}>
+              Full name
+            </label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="mt-1 w-full h-10 px-3 rounded-xl border bg-white text-sm"
+              style={{ borderColor: BORDER }}
+              placeholder="Jane Doe"
+            />
           </div>
           <div>
-            <label className="text-xs font-medium" style={{ color: TEXT_MUTED }}>Email</label>
-            <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" className="mt-1 w-full h-10 px-3 rounded-xl border bg-white text-sm" style={{ borderColor: BORDER }} placeholder="jane@metana.io" />
+            <label className="text-xs font-medium" style={{ color: TEXT_MUTED }}>
+              Email
+            </label>
+            <input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              type="email"
+              className="mt-1 w-full h-10 px-3 rounded-xl border bg-white text-sm"
+              style={{ borderColor: BORDER }}
+              placeholder="jane@metana.io"
+            />
           </div>
           <div>
-            <label className="text-xs font-medium" style={{ color: TEXT_MUTED }}>Role</label>
-            <select value={role} onChange={(e) => setRole(e.target.value as Role)} className="mt-1 w-full h-10 px-3 rounded-xl border bg-white text-sm" style={{ borderColor: BORDER }}>
+            <label className="text-xs font-medium" style={{ color: TEXT_MUTED }}>
+              Role
+            </label>
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value as Role)}
+              className="mt-1 w-full h-10 px-3 rounded-xl border bg-white text-sm"
+              style={{ borderColor: BORDER }}
+            >
               <option value="Student">Student</option>
               <option value="Instructor">Instructor</option>
               <option value="Admin">Admin</option>
@@ -1220,10 +1598,19 @@ function AddUserModal({ onClose, onAdd }: { onClose: () => void; onAdd: (u: User
           </div>
         </div>
         <div className="mt-6 flex items-center justify-end gap-2">
-          <button onClick={onClose} className="h-9 px-4 rounded-lg text-sm font-semibold border" style={{ borderColor: BORDER }}>Cancel</button>
+          <button
+            onClick={onClose}
+            className="h-9 px-4 rounded-lg text-sm font-semibold border"
+            style={{ borderColor: BORDER }}
+          >
+            Cancel
+          </button>
           <button
             onClick={() => {
-              if (!name.trim() || !email.trim()) { toast.error("Name and email are required"); return; }
+              if (!name.trim() || !email.trim()) {
+                toast.error("Name and email are required");
+                return;
+              }
               onAdd({
                 id: `u${Date.now()}`,
                 name: name.trim(),

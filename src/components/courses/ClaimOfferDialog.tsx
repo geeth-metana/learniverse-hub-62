@@ -1,5 +1,5 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { Check, X } from "lucide-react";
+import { Check, X } from "@/components/icons";
 import { useState, type FormEvent } from "react";
 import { z } from "zod";
 
@@ -135,18 +135,8 @@ export function ClaimOfferDialog({ open, onOpenChange, countdown }: Props) {
                 {/* Right */}
                 <form onSubmit={onSubmit} noValidate className="flex h-full flex-col gap-4">
                   <div className="grid grid-cols-2 gap-4">
-                    <Field
-                      label="First Name"
-                      name="firstName"
-                      required
-                      error={errors.firstName}
-                    />
-                    <Field
-                      label="Last Name"
-                      name="lastName"
-                      required
-                      error={errors.lastName}
-                    />
+                    <Field label="First Name" name="firstName" required error={errors.firstName} />
+                    <Field label="Last Name" name="lastName" required error={errors.lastName} />
                   </div>
                   <Field label="Email" name="email" type="email" required error={errors.email} />
                   <Field

@@ -196,12 +196,16 @@ function read(): Invitation[] {
 function write(list: Invitation[]) {
   if (typeof window === "undefined") return;
   const seedIds = new Set(seed.map((s) => s.id));
-  const toStore = list.filter((i) => !seedIds.has(i.id) || i.status !== seed.find((s) => s.id === i.id)?.status);
+  const toStore = list.filter(
+    (i) => !seedIds.has(i.id) || i.status !== seed.find((s) => s.id === i.id)?.status,
+  );
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(toStore));
   window.dispatchEvent(new Event(EVT));
 }
 
-export function addInvitation(i: Omit<Invitation, "id" | "createdAt" | "checkoutLink"> & { id?: string }): Invitation {
+export function addInvitation(
+  i: Omit<Invitation, "id" | "createdAt" | "checkoutLink"> & { id?: string },
+): Invitation {
   const id = i.id ?? `INV-${Math.floor(10000 + Math.random() * 89999)}`;
   const inv: Invitation = {
     ...i,

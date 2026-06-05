@@ -26,7 +26,9 @@ import {
   TrendingUp,
   Wallet,
   Check,
-} from "lucide-react";
+  Crown,
+  Users,
+} from "@/components/icons";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   DropdownMenu,
@@ -50,6 +52,7 @@ const platform = [
   { to: "/", label: "Dashboard", icon: LayoutGrid },
   { to: "/calendar", label: "Calendar", icon: Calendar },
   { to: "/courses", label: "Courses", icon: BookOpen },
+  { to: "/prime", label: "Metana Prime", icon: Crown },
   { to: "/products", label: "Products", icon: Package },
   { to: "/sales/payments", label: "Payment", icon: Wallet },
   { to: "/announcement", label: "Announcement", icon: Megaphone },
@@ -67,26 +70,54 @@ const external = [
   { to: "/discord", label: "Discord", icon: Headphones },
 ];
 
-function Section({ title, items, collapsed }: { title: string; items: typeof platform; collapsed: boolean }) {
+// "Our Student" mirrors the student nav but points at its own cloned pages.
+const ourStudentPlatform = [
+  { to: "/our-student", label: "Dashboard", icon: LayoutGrid },
+  { to: "/calendar", label: "Calendar", icon: Calendar },
+  { to: "/our-student/courses", label: "Courses", icon: BookOpen },
+  { to: "/our-student/prime", label: "Metana Prime", icon: Crown },
+  { to: "/announcement", label: "Announcement", icon: Megaphone },
+  { to: "/settings", label: "Settings", icon: Settings },
+];
+
+function Section({
+  title,
+  items,
+  collapsed,
+}: {
+  title: string;
+  items: typeof platform;
+  collapsed: boolean;
+}) {
   return (
     <div className="mb-6">
-      <p className={`px-3 mb-2 text-smaller font-medium tracking-widest text-muted-foreground transition-opacity duration-300 ${collapsed ? "opacity-0" : "opacity-100"}`}>
+      <p
+        className={`px-3 mb-2 text-smaller font-medium tracking-widest text-muted-foreground transition-opacity duration-300 ${collapsed ? "opacity-0" : "opacity-100"}`}
+      >
         {title}
       </p>
       <nav className="space-y-1">
-        {items.map(({ to, label, icon: Icon }: any) => {
+        {items.map(({ to, label, icon: Icon }: (typeof platform)[number]) => {
+          const isPrime = label === "Metana Prime";
           const item = (
             <Link
               key={label}
               to={to as string}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-full text-body transition-all duration-300 text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground ${collapsed ? "justify-center" : ""}`}
-              activeOptions={{ exact: to === "/" }}
+              activeOptions={{ exact: to === "/" || to === "/our-student" }}
               activeProps={{
                 className: `bg-muted text-foreground shadow-[var(--shadow-soft)] font-semibold ${collapsed ? "justify-center" : ""}`,
               }}
             >
-              <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.8} />
-              <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${collapsed ? "w-0 opacity-0" : "w-auto opacity-100"}`}>{label}</span>
+              <Icon
+                className={`h-[18px] w-[18px] shrink-0 ${isPrime ? "animate-icon-shine" : ""}`}
+                strokeWidth={1.8}
+              />
+              <span
+                className={`overflow-hidden whitespace-nowrap transition-all duration-300 ${collapsed ? "w-0 opacity-0" : "w-auto opacity-100"} ${isPrime ? "animate-prime-shine font-semibold" : ""}`}
+              >
+                {label}
+              </span>
             </Link>
           );
 
@@ -95,15 +126,17 @@ function Section({ title, items, collapsed }: { title: string; items: typeof pla
               <TooltipTrigger asChild>{item}</TooltipTrigger>
               <TooltipContent side="right">{label}</TooltipContent>
             </Tooltip>
-          ) : item;
+          ) : (
+            item
+          );
         })}
       </nav>
     </div>
   );
 }
 
-export function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false);
+export function Sidebar({ defaultCollapsed = false }: { defaultCollapsed?: boolean }) {
+  const [collapsed, setCollapsed] = useState(defaultCollapsed);
   const theme = useTheme();
   const isDark = theme === "dark";
   const viewMode = useViewMode();
@@ -113,6 +146,7 @@ export function Sidebar() {
     { value: "instructor", icon: UserSquare2 },
     { value: "student", icon: GraduationCap },
     { value: "sales", icon: TrendingUp },
+    { value: "our-student", icon: Users },
   ];
 
   useEffect(() => {
@@ -122,7 +156,9 @@ export function Sidebar() {
   }, []);
 
   return (
-    <aside className={`shrink-0 h-screen sticky top-0 bg-sidebar flex flex-col overflow-hidden transition-[width] duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${collapsed ? "w-0 border-r-0" : "w-[260px] border-r border-sidebar-border"}`}>
+    <aside
+      className={`shrink-0 h-screen sticky top-0 bg-sidebar flex flex-col overflow-hidden transition-[width] duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${collapsed ? "w-0 border-r-0" : "w-[260px] border-r border-sidebar-border"}`}
+    >
       <div className="px-5 pt-6 pb-8 flex justify-start">
         <h2 className="text-main-header font-semibold text-foreground">Metana Platform</h2>
       </div>
@@ -130,15 +166,37 @@ export function Sidebar() {
         <Section
           title="PLATFORM"
           items={
-            viewMode === "student"
-              ? platform.filter((i) => ["Dashboard", "Calendar", "Courses", "Announcement", "Settings"].includes(i.label))
-              : viewMode === "sales"
-              ? platform.filter((i) => ["Dashboard", "Calendar", "Products", "Payment", "Announcement", "Settings"].includes(i.label))
-              : platform
+            viewMode === "our-student"
+              ? ourStudentPlatform
+              : viewMode === "student"
+                ? platform.filter((i) =>
+                    [
+                      "Dashboard",
+                      "Calendar",
+                      "Courses",
+                      "Metana Prime",
+                      "Announcement",
+                      "Settings",
+                    ].includes(i.label),
+                  )
+                : viewMode === "sales"
+                  ? platform.filter((i) =>
+                      [
+                        "Dashboard",
+                        "Calendar",
+                        "Products",
+                        "Payment",
+                        "Announcement",
+                        "Settings",
+                      ].includes(i.label),
+                    )
+                  : platform
           }
           collapsed={false}
         />
-        {(viewMode !== "student" && viewMode !== "sales") && <Section title="INTERNAL" items={internal} collapsed={false} />}
+        {viewMode !== "student" && viewMode !== "sales" && viewMode !== "our-student" && (
+          <Section title="INTERNAL" items={internal} collapsed={false} />
+        )}
         <Section title="EXTERNAL" items={external} collapsed={false} />
       </div>
       <div className="p-4 border-t border-sidebar-border space-y-3">
@@ -147,15 +205,28 @@ export function Sidebar() {
           <span>Support</span>
         </button>
         <div className="flex items-center gap-3 px-1">
-          <img src={metanaLogo} alt="Metana" className="h-8 w-8 rounded-full object-cover shrink-0 block dark:hidden" />
-          <img src={metanaLogoDark} alt="Metana" className="h-8 w-8 rounded-full object-contain shrink-0 hidden dark:block" />
+          <img
+            src={metanaLogo}
+            alt="Metana"
+            className="h-8 w-8 rounded-full object-cover shrink-0 block dark:hidden"
+          />
+          <img
+            src={metanaLogoDark}
+            alt="Metana"
+            className="h-8 w-8 rounded-full object-contain shrink-0 hidden dark:block"
+          />
           <div className="flex-1 min-w-0">
-            <p className="text-body font-semibold text-foreground truncate">LMS {VIEW_MODE_LABELS[viewMode].toUpperCase()}</p>
+            <p className="text-body font-semibold text-foreground truncate">
+              LMS {VIEW_MODE_LABELS[viewMode].toUpperCase()}
+            </p>
             <p className="text-small text-muted-foreground truncate">admin@lms.com</p>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="p-1 rounded-full hover:bg-sidebar-accent transition-colors" aria-label="More">
+              <button
+                className="p-1 rounded-full hover:bg-sidebar-accent transition-colors"
+                aria-label="More"
+              >
                 <MoreVertical className="h-4 w-4 text-muted-foreground" />
               </button>
             </DropdownMenuTrigger>
@@ -172,7 +243,9 @@ export function Sidebar() {
                 <DropdownMenuSubTrigger>
                   <Eye className="h-4 w-4" />
                   <span>View as</span>
-                  <span className="ml-auto text-xs text-muted-foreground">{VIEW_MODE_LABELS[viewMode]}</span>
+                  <span className="ml-auto text-xs text-muted-foreground">
+                    {VIEW_MODE_LABELS[viewMode]}
+                  </span>
                 </DropdownMenuSubTrigger>
                 <DropdownMenuPortal>
                   <DropdownMenuSubContent>
@@ -186,9 +259,7 @@ export function Sidebar() {
                   </DropdownMenuSubContent>
                 </DropdownMenuPortal>
               </DropdownMenuSub>
-              <DropdownMenuItem
-                onClick={() => window.dispatchEvent(new Event(THEME_TOGGLE_EVENT))}
-              >
+              <DropdownMenuItem onClick={() => window.dispatchEvent(new Event(THEME_TOGGLE_EVENT))}>
                 {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                 <span>Switch to {isDark ? "light" : "dark"} mode</span>
               </DropdownMenuItem>

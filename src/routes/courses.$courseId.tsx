@@ -6,7 +6,20 @@ import { getCourse } from "@/lib/courses-data";
 import { useEnrollments } from "@/lib/enrollment";
 import { PricingDialog } from "@/components/courses/PricingDialog";
 import { toast } from "sonner";
-import { ArrowLeft, Clock, CheckCircle2, Sparkles, Check, CalendarDays, Briefcase, Star, Book, BookOpen, Rocket, MessageSquare } from "lucide-react";
+import {
+  ArrowLeft,
+  Clock,
+  CheckCircle2,
+  Sparkles,
+  Check,
+  CalendarDays,
+  Briefcase,
+  Star,
+  Book,
+  BookOpen,
+  Rocket,
+  MessageSquare,
+} from "@/components/icons";
 import whatWeOfferImg from "@/assets/what-we-offer.jpg";
 import jobLocationsMap from "@/assets/job-locations-map.png";
 import careerHandshakeImg from "@/assets/career-handshake.png";
@@ -54,7 +67,13 @@ type CourseDetail = {
   offers: string[];
   outcomes: string[];
   modules: CourseModule[];
-  instructor: { name: string; role: string; bio: string; avatar: string; companies: Array<{ name: string; logo?: string }> };
+  instructor: {
+    name: string;
+    role: string;
+    bio: string;
+    avatar: string;
+    companies: Array<{ name: string; logo?: string }>;
+  };
   faqs: CourseFAQ[];
 };
 
@@ -77,12 +96,42 @@ export const courseDetails: Record<string, CourseDetail> = {
       "Communicate technical trade-offs with confidence in interviews",
     ],
     modules: [
-      { title: "Module 01 — Engineering foundations", description: "Git, the terminal, modern editor setup, and how senior engineers actually work day to day.", duration: "1 week" },
-      { title: "Module 02 — TypeScript & React", description: "Component patterns, state, effects and the parts of TypeScript that matter for product engineers.", duration: "3 weeks" },
-      { title: "Module 03 — APIs & databases", description: "Build typed Node APIs backed by Postgres with Prisma. Indexes, migrations and query patterns.", duration: "3 weeks" },
-      { title: "Module 04 — Auth, payments, storage", description: "Sessions, OAuth, Stripe checkout, file uploads and signed URLs — the boring bits that make apps real.", duration: "2 weeks" },
-      { title: "Module 05 — Ship to production", description: "CI/CD, monitoring, error tracking and on-call basics. Deploy a real app behind a real domain.", duration: "2 weeks" },
-      { title: "Module 06 — Capstone project", description: "Design, build, ship and present a portfolio-grade SaaS app. Mentor-reviewed end-to-end.", duration: "5 weeks" },
+      {
+        title: "Module 01 — Engineering foundations",
+        description:
+          "Git, the terminal, modern editor setup, and how senior engineers actually work day to day.",
+        duration: "1 week",
+      },
+      {
+        title: "Module 02 — TypeScript & React",
+        description:
+          "Component patterns, state, effects and the parts of TypeScript that matter for product engineers.",
+        duration: "3 weeks",
+      },
+      {
+        title: "Module 03 — APIs & databases",
+        description:
+          "Build typed Node APIs backed by Postgres with Prisma. Indexes, migrations and query patterns.",
+        duration: "3 weeks",
+      },
+      {
+        title: "Module 04 — Auth, payments, storage",
+        description:
+          "Sessions, OAuth, Stripe checkout, file uploads and signed URLs — the boring bits that make apps real.",
+        duration: "2 weeks",
+      },
+      {
+        title: "Module 05 — Ship to production",
+        description:
+          "CI/CD, monitoring, error tracking and on-call basics. Deploy a real app behind a real domain.",
+        duration: "2 weeks",
+      },
+      {
+        title: "Module 06 — Capstone project",
+        description:
+          "Design, build, ship and present a portfolio-grade SaaS app. Mentor-reviewed end-to-end.",
+        duration: "5 weeks",
+      },
     ],
     instructor: {
       name: "Daniel Hwang",
@@ -92,9 +141,18 @@ export const courseDetails: Record<string, CourseDetail> = {
       companies: [{ name: "Stripe" }, { name: "Vercel" }, { name: "Google" }, { name: "Shopify" }],
     },
     faqs: [
-      { q: "Do I need to know how to code before starting?", a: "No. Module 01 assumes zero programming experience, but the pace picks up quickly. If you've never written code, plan to spend an extra 4-6 hours/week in the first month." },
-      { q: "How much time should I commit per week?", a: "Around 22 hours including live sessions, async coursework and project time. Students who treat it like a part-time job get the best outcomes." },
-      { q: "Is there a job guarantee?", a: "Yes — Plan 01 includes a job guarantee. If you don't land a qualifying role within 6 months of graduating, your tuition is refunded." },
+      {
+        q: "Do I need to know how to code before starting?",
+        a: "No. Module 01 assumes zero programming experience, but the pace picks up quickly. If you've never written code, plan to spend an extra 4-6 hours/week in the first month.",
+      },
+      {
+        q: "How much time should I commit per week?",
+        a: "Around 22 hours including live sessions, async coursework and project time. Students who treat it like a part-time job get the best outcomes.",
+      },
+      {
+        q: "Is there a job guarantee?",
+        a: "Yes — Plan 01 includes a job guarantee. If you don't land a qualifying role within 6 months of graduating, your tuition is refunded.",
+      },
     ],
   },
   rust: {
@@ -115,12 +173,38 @@ export const courseDetails: Record<string, CourseDetail> = {
       "Be hireable as a Rust engineer at infra and Web3 companies",
     ],
     modules: [
-      { title: "Module 01 — Rust foundations", description: "Syntax, types, pattern matching and the mental model behind ownership.", duration: "2 weeks" },
-      { title: "Module 02 — Borrowing & lifetimes", description: "The borrow checker as your friend. Real examples, not toy ones.", duration: "2 weeks" },
-      { title: "Module 03 — Traits & generics", description: "Designing flexible APIs the Rust way, including trait objects and zero-cost abstractions.", duration: "2 weeks" },
-      { title: "Module 04 — Async & networking", description: "Tokio, futures, channels and building real HTTP services.", duration: "3 weeks" },
-      { title: "Module 05 — Unsafe, FFI & perf", description: "When to reach for unsafe, how to call C, and how to profile like a pro.", duration: "2 weeks" },
-      { title: "Module 06 — Capstone systems project", description: "Design and ship a high-performance service — a key-value store, proxy or game engine.", duration: "5 weeks" },
+      {
+        title: "Module 01 — Rust foundations",
+        description: "Syntax, types, pattern matching and the mental model behind ownership.",
+        duration: "2 weeks",
+      },
+      {
+        title: "Module 02 — Borrowing & lifetimes",
+        description: "The borrow checker as your friend. Real examples, not toy ones.",
+        duration: "2 weeks",
+      },
+      {
+        title: "Module 03 — Traits & generics",
+        description:
+          "Designing flexible APIs the Rust way, including trait objects and zero-cost abstractions.",
+        duration: "2 weeks",
+      },
+      {
+        title: "Module 04 — Async & networking",
+        description: "Tokio, futures, channels and building real HTTP services.",
+        duration: "3 weeks",
+      },
+      {
+        title: "Module 05 — Unsafe, FFI & perf",
+        description: "When to reach for unsafe, how to call C, and how to profile like a pro.",
+        duration: "2 weeks",
+      },
+      {
+        title: "Module 06 — Capstone systems project",
+        description:
+          "Design and ship a high-performance service — a key-value store, proxy or game engine.",
+        duration: "5 weeks",
+      },
     ],
     instructor: {
       name: "Marta Lindqvist",
@@ -130,9 +214,18 @@ export const courseDetails: Record<string, CourseDetail> = {
       companies: [{ name: "Cloudflare" }, { name: "Mozilla" }, { name: "AWS" }, { name: "Tokio" }],
     },
     faqs: [
-      { q: "Is Rust a good first language?", a: "It's a great second language. If you have at least 3-6 months of experience in any language (Python, JS, Go), you'll thrive. Total beginners should start with the Full-Stack bootcamp." },
-      { q: "Will I write unsafe code?", a: "Yes — but only after you understand why safe Rust exists. You'll learn when unsafe is appropriate and how to audit it." },
-      { q: "Do you cover Web3?", a: "We touch on Substrate and Solana tooling in the capstone, but this is primarily a systems bootcamp. For deep Web3 work, pair it with our Solidity or ZK programs." },
+      {
+        q: "Is Rust a good first language?",
+        a: "It's a great second language. If you have at least 3-6 months of experience in any language (Python, JS, Go), you'll thrive. Total beginners should start with the Full-Stack bootcamp.",
+      },
+      {
+        q: "Will I write unsafe code?",
+        a: "Yes — but only after you understand why safe Rust exists. You'll learn when unsafe is appropriate and how to audit it.",
+      },
+      {
+        q: "Do you cover Web3?",
+        a: "We touch on Substrate and Solana tooling in the capstone, but this is primarily a systems bootcamp. For deep Web3 work, pair it with our Solidity or ZK programs.",
+      },
     ],
   },
   solidity: {
@@ -153,12 +246,38 @@ export const courseDetails: Record<string, CourseDetail> = {
       "Be hireable as a smart contract engineer or junior auditor",
     ],
     modules: [
-      { title: "Module 01 — EVM & Solidity foundations", description: "Storage, memory, calldata and the EVM execution model.", duration: "2 weeks" },
-      { title: "Module 02 — Testing with Foundry", description: "Unit, fuzz and invariant testing — the way real protocols ship.", duration: "2 weeks" },
-      { title: "Module 03 — Security patterns", description: "Re-entrancy, oracle manipulation, access control and live audit case studies.", duration: "3 weeks" },
-      { title: "Module 04 — Gas optimization", description: "Storage packing, assembly, and reading bytecode without fear.", duration: "2 weeks" },
-      { title: "Module 05 — DeFi primitives", description: "AMMs, lending markets and yield strategies — build them from first principles.", duration: "2 weeks" },
-      { title: "Module 06 — Capstone protocol", description: "Design, build and ship an audited protocol with a public deploy.", duration: "2 weeks" },
+      {
+        title: "Module 01 — EVM & Solidity foundations",
+        description: "Storage, memory, calldata and the EVM execution model.",
+        duration: "2 weeks",
+      },
+      {
+        title: "Module 02 — Testing with Foundry",
+        description: "Unit, fuzz and invariant testing — the way real protocols ship.",
+        duration: "2 weeks",
+      },
+      {
+        title: "Module 03 — Security patterns",
+        description:
+          "Re-entrancy, oracle manipulation, access control and live audit case studies.",
+        duration: "3 weeks",
+      },
+      {
+        title: "Module 04 — Gas optimization",
+        description: "Storage packing, assembly, and reading bytecode without fear.",
+        duration: "2 weeks",
+      },
+      {
+        title: "Module 05 — DeFi primitives",
+        description:
+          "AMMs, lending markets and yield strategies — build them from first principles.",
+        duration: "2 weeks",
+      },
+      {
+        title: "Module 06 — Capstone protocol",
+        description: "Design, build and ship an audited protocol with a public deploy.",
+        duration: "2 weeks",
+      },
     ],
     instructor: {
       name: "Dmytro Onypko",
@@ -171,9 +290,18 @@ export const courseDetails: Record<string, CourseDetail> = {
       ],
     },
     faqs: [
-      { q: "Do I need to know Ethereum already?", a: "Helpful but not required. A bit of JavaScript or Python experience is enough to get going. We teach the EVM from scratch." },
-      { q: "Will I deploy to mainnet?", a: "Yes — the capstone deploys to a real L2 (Base or Arbitrum) with a verified contract you can show recruiters." },
-      { q: "Is this a Web3 dev bootcamp or a security one?", a: "Both. We believe you can't write secure contracts without thinking like an attacker, so the two are taught together." },
+      {
+        q: "Do I need to know Ethereum already?",
+        a: "Helpful but not required. A bit of JavaScript or Python experience is enough to get going. We teach the EVM from scratch.",
+      },
+      {
+        q: "Will I deploy to mainnet?",
+        a: "Yes — the capstone deploys to a real L2 (Base or Arbitrum) with a verified contract you can show recruiters.",
+      },
+      {
+        q: "Is this a Web3 dev bootcamp or a security one?",
+        a: "Both. We believe you can't write secure contracts without thinking like an attacker, so the two are taught together.",
+      },
     ],
   },
   "ai-engineering": {
@@ -199,28 +327,32 @@ export const courseDetails: Record<string, CourseDetail> = {
         description:
           "Cursor, Claude Code, GitHub Copilot, Windsurf. How senior engineers actually use these — codebase-wide edits, inline refactoring, prompt patterns that produce code worth merging. Plus: prompting like an engineer with real context, constraints, edge cases, and acceptance criteria across OpenAI, Anthropic, Gemini, and open-source models.",
         duration: "Week 1",
-        youllBuild: "Refactor a messy legacy codebase in days — same scope that took the original team a quarter.",
+        youllBuild:
+          "Refactor a messy legacy codebase in days — same scope that took the original team a quarter.",
       },
       {
         title: "Module 2 — AI-powered testing, debugging & code review",
         description:
           "Use AI to generate meaningful test coverage, surface edge cases, and run code reviews that catch real bugs instead of style nits. Build a debugging workflow where the model is a teammate, not a guess machine.",
         duration: "Week 2",
-        youllBuild: "Ship a fully-tested feature with AI-generated unit, integration and edge-case tests, plus an AI-assisted PR review checklist.",
+        youllBuild:
+          "Ship a fully-tested feature with AI-generated unit, integration and edge-case tests, plus an AI-assisted PR review checklist.",
       },
       {
         title: "Module 3 — Building with LLMs: RAG, agents, and MCP",
         description:
           "Embeddings, vector stores, chunking strategies, retrieval quality. Agentic loops with tools, planning and memory. Model Context Protocol (MCP) for connecting agents to real systems safely.",
         duration: "Week 3",
-        youllBuild: "A multi-tool agent that pulls from a real knowledge base, calls external APIs, and exposes itself over MCP to other tools.",
+        youllBuild:
+          "A multi-tool agent that pulls from a real knowledge base, calls external APIs, and exposes itself over MCP to other tools.",
       },
       {
         title: "Module 4 — Production, evals & capstone",
         description:
           "Evals that actually catch regressions, observability for LLM calls, cost/latency tuning, and shipping AI features behind real users. The capstone goes from idea to deployed product.",
         duration: "Week 4",
-        youllBuild: "A production-grade AI product with evals, monitoring and an on-call runbook — deployed and demoable to recruiters.",
+        youllBuild:
+          "A production-grade AI product with evals, monitoring and an on-call runbook — deployed and demoable to recruiters.",
       },
     ],
     instructor: {
@@ -228,12 +360,26 @@ export const courseDetails: Record<string, CourseDetail> = {
       role: "Staff ML engineer at a YC AI startup",
       bio: "Lena leads applied ML at a YC AI company and previously built recommendation systems at scale. She's obsessed with evals.",
       avatar: "https://i.pravatar.cc/120?img=32",
-      companies: [{ name: "OpenAI" }, { name: "Anthropic" }, { name: "Meta" }, { name: "Y Combinator" }],
+      companies: [
+        { name: "OpenAI" },
+        { name: "Anthropic" },
+        { name: "Meta" },
+        { name: "Y Combinator" },
+      ],
     },
     faqs: [
-      { q: "Do I need an ML background?", a: "No. We focus on AI engineering, not training models. Comfort with Python and APIs is enough." },
-      { q: "Will we cover fine-tuning?", a: "We cover when to fine-tune vs. when not to, plus a hands-on lab with a small open-weight model. The focus is on systems around the model." },
-      { q: "Which providers do you use?", a: "OpenAI, Anthropic and a local open-weight model. Skills transfer across providers — we teach patterns, not vendor APIs." },
+      {
+        q: "Do I need an ML background?",
+        a: "No. We focus on AI engineering, not training models. Comfort with Python and APIs is enough.",
+      },
+      {
+        q: "Will we cover fine-tuning?",
+        a: "We cover when to fine-tune vs. when not to, plus a hands-on lab with a small open-weight model. The focus is on systems around the model.",
+      },
+      {
+        q: "Which providers do you use?",
+        a: "OpenAI, Anthropic and a local open-weight model. Skills transfer across providers — we teach patterns, not vendor APIs.",
+      },
     ],
   },
   zk: {
@@ -254,12 +400,37 @@ export const courseDetails: Record<string, CourseDetail> = {
       "Be hireable as a ZK protocol or applications engineer",
     ],
     modules: [
-      { title: "Module 01 — Math foundations", description: "Finite fields, elliptic curves and polynomial commitments — taught visually.", duration: "2 weeks" },
-      { title: "Module 02 — Arithmetization", description: "Turning programs into constraints. R1CS, AIR and how to think in circuits.", duration: "2 weeks" },
-      { title: "Module 03 — Circom in practice", description: "Write, test and debug Circom circuits. Common pitfalls and how to avoid them.", duration: "2 weeks" },
-      { title: "Module 04 — Noir & modern tooling", description: "Noir, witness generation and integrating proofs into application code.", duration: "2 weeks" },
-      { title: "Module 05 — Proving systems", description: "Groth16, PLONK and STARKs — when to use which, with hands-on benchmarks.", duration: "2 weeks" },
-      { title: "Module 06 — Capstone ZK app", description: "Design a ZK app, write the circuit, deploy the verifier and ship it.", duration: "2 weeks" },
+      {
+        title: "Module 01 — Math foundations",
+        description: "Finite fields, elliptic curves and polynomial commitments — taught visually.",
+        duration: "2 weeks",
+      },
+      {
+        title: "Module 02 — Arithmetization",
+        description: "Turning programs into constraints. R1CS, AIR and how to think in circuits.",
+        duration: "2 weeks",
+      },
+      {
+        title: "Module 03 — Circom in practice",
+        description:
+          "Write, test and debug Circom circuits. Common pitfalls and how to avoid them.",
+        duration: "2 weeks",
+      },
+      {
+        title: "Module 04 — Noir & modern tooling",
+        description: "Noir, witness generation and integrating proofs into application code.",
+        duration: "2 weeks",
+      },
+      {
+        title: "Module 05 — Proving systems",
+        description: "Groth16, PLONK and STARKs — when to use which, with hands-on benchmarks.",
+        duration: "2 weeks",
+      },
+      {
+        title: "Module 06 — Capstone ZK app",
+        description: "Design a ZK app, write the circuit, deploy the verifier and ship it.",
+        duration: "2 weeks",
+      },
     ],
     instructor: {
       name: "Priya Nair",
@@ -269,9 +440,18 @@ export const courseDetails: Record<string, CourseDetail> = {
       companies: [{ name: "Aztec" }, { name: "Polygon" }, { name: "StarkWare" }, { name: "Noir" }],
     },
     faqs: [
-      { q: "Do I need a math degree?", a: "No. We teach the math you need, the way an engineer would want to learn it. High-school-level algebra is enough to start." },
-      { q: "Should I take Solidity first?", a: "Recommended but not required. A few weeks of Solidity experience makes Module 06 much smoother." },
-      { q: "Which proving system do you focus on?", a: "We start with Groth16 (Circom) for clarity, then move to PLONK (Noir) for modern tooling. You'll understand the trade-offs first-hand." },
+      {
+        q: "Do I need a math degree?",
+        a: "No. We teach the math you need, the way an engineer would want to learn it. High-school-level algebra is enough to start.",
+      },
+      {
+        q: "Should I take Solidity first?",
+        a: "Recommended but not required. A few weeks of Solidity experience makes Module 06 much smoother.",
+      },
+      {
+        q: "Which proving system do you focus on?",
+        a: "We start with Groth16 (Circom) for clarity, then move to PLONK (Noir) for modern tooling. You'll understand the trade-offs first-hand.",
+      },
     ],
   },
   data: {
@@ -292,24 +472,62 @@ export const courseDetails: Record<string, CourseDetail> = {
       "Be hireable as an analytics engineer or data engineer",
     ],
     modules: [
-      { title: "Module 01 — Modern SQL", description: "Window functions, CTEs and query plans. SQL that ages well.", duration: "2 weeks" },
-      { title: "Module 02 — Dimensional modeling", description: "Facts, dimensions and slowly-changing data — without the dogma.", duration: "2 weeks" },
-      { title: "Module 03 — dbt in practice", description: "Models, tests, sources and macros. Treat your warehouse like software.", duration: "3 weeks" },
-      { title: "Module 04 — Airflow & orchestration", description: "DAGs, retries, sensors and how to make pipelines self-healing.", duration: "2 weeks" },
-      { title: "Module 05 — Data quality & observability", description: "Tests, freshness, lineage and alerting that actually pages the right person.", duration: "2 weeks" },
-      { title: "Module 06 — Capstone analytics platform", description: "Build a full pipeline end-to-end, with dashboards, tests and on-call docs.", duration: "5 weeks" },
+      {
+        title: "Module 01 — Modern SQL",
+        description: "Window functions, CTEs and query plans. SQL that ages well.",
+        duration: "2 weeks",
+      },
+      {
+        title: "Module 02 — Dimensional modeling",
+        description: "Facts, dimensions and slowly-changing data — without the dogma.",
+        duration: "2 weeks",
+      },
+      {
+        title: "Module 03 — dbt in practice",
+        description: "Models, tests, sources and macros. Treat your warehouse like software.",
+        duration: "3 weeks",
+      },
+      {
+        title: "Module 04 — Airflow & orchestration",
+        description: "DAGs, retries, sensors and how to make pipelines self-healing.",
+        duration: "2 weeks",
+      },
+      {
+        title: "Module 05 — Data quality & observability",
+        description: "Tests, freshness, lineage and alerting that actually pages the right person.",
+        duration: "2 weeks",
+      },
+      {
+        title: "Module 06 — Capstone analytics platform",
+        description: "Build a full pipeline end-to-end, with dashboards, tests and on-call docs.",
+        duration: "5 weeks",
+      },
     ],
     instructor: {
       name: "Yuki Tanaka",
       role: "Senior data engineer",
       bio: "Yuki has built data platforms at two unicorn startups and a Fortune 500. He still believes the best pipeline is a boring pipeline.",
       avatar: "https://i.pravatar.cc/120?img=49",
-      companies: [{ name: "Snowflake" }, { name: "dbt Labs" }, { name: "Airbnb" }, { name: "Stripe" }],
+      companies: [
+        { name: "Snowflake" },
+        { name: "dbt Labs" },
+        { name: "Airbnb" },
+        { name: "Stripe" },
+      ],
     },
     faqs: [
-      { q: "Do I need to be good at SQL already?", a: "Some SQL helps, but Module 01 levels everyone up. If you've written a SELECT and a JOIN, you'll be fine." },
-      { q: "Is this an analyst or engineer bootcamp?", a: "Analytics engineer leaning into data engineer. By the end you'll be hireable for both, with a stronger lean toward modern stack roles." },
-      { q: "Which warehouse do you use?", a: "Snowflake, with notes on how everything translates to BigQuery and Databricks. Patterns transfer across warehouses." },
+      {
+        q: "Do I need to be good at SQL already?",
+        a: "Some SQL helps, but Module 01 levels everyone up. If you've written a SELECT and a JOIN, you'll be fine.",
+      },
+      {
+        q: "Is this an analyst or engineer bootcamp?",
+        a: "Analytics engineer leaning into data engineer. By the end you'll be hireable for both, with a stronger lean toward modern stack roles.",
+      },
+      {
+        q: "Which warehouse do you use?",
+        a: "Snowflake, with notes on how everything translates to BigQuery and Databricks. Patterns transfer across warehouses.",
+      },
     ],
   },
 };
@@ -332,10 +550,26 @@ export const fallbackDetail: CourseDetail = {
     "Be hireable in your target role",
   ],
   modules: [
-    { title: "Module 01 — Foundations", description: "Set up your environment and get comfortable with the core ideas.", duration: "2 weeks" },
-    { title: "Module 02 — Core concepts", description: "Build the mental model you'll rely on for the rest of the program.", duration: "3 weeks" },
-    { title: "Module 03 — Real projects", description: "Apply what you've learned on a project reviewed by a senior engineer.", duration: "3 weeks" },
-    { title: "Module 04 — Capstone", description: "Design and ship a portfolio-grade project end-to-end.", duration: "4 weeks" },
+    {
+      title: "Module 01 — Foundations",
+      description: "Set up your environment and get comfortable with the core ideas.",
+      duration: "2 weeks",
+    },
+    {
+      title: "Module 02 — Core concepts",
+      description: "Build the mental model you'll rely on for the rest of the program.",
+      duration: "3 weeks",
+    },
+    {
+      title: "Module 03 — Real projects",
+      description: "Apply what you've learned on a project reviewed by a senior engineer.",
+      duration: "3 weeks",
+    },
+    {
+      title: "Module 04 — Capstone",
+      description: "Design and ship a portfolio-grade project end-to-end.",
+      duration: "4 weeks",
+    },
   ],
   instructor: {
     name: "Sam Reyes",
@@ -345,9 +579,18 @@ export const fallbackDetail: CourseDetail = {
     companies: [{ name: "Google" }, { name: "Meta" }, { name: "Stripe" }, { name: "Airbnb" }],
   },
   faqs: [
-    { q: "Is this beginner friendly?", a: "Yes — the first module assumes minimal background. Pace yourself and you'll be fine." },
-    { q: "How much time per week?", a: "Plan for around 20 hours per week including live sessions, async work and projects." },
-    { q: "Is there a job guarantee?", a: "Plan 01 includes our job guarantee. See the pricing page for details." },
+    {
+      q: "Is this beginner friendly?",
+      a: "Yes — the first module assumes minimal background. Pace yourself and you'll be fine.",
+    },
+    {
+      q: "How much time per week?",
+      a: "Plan for around 20 hours per week including live sessions, async work and projects.",
+    },
+    {
+      q: "Is there a job guarantee?",
+      a: "Plan 01 includes our job guarantee. See the pricing page for details.",
+    },
   ],
 };
 
@@ -359,7 +602,6 @@ function CourseDetail() {
   const enrollment = get(courseId);
   const [now, setNow] = useState(Date.now());
   const [pricingOpen, setPricingOpen] = useState(false);
-  
 
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
@@ -383,7 +625,9 @@ function CourseDetail() {
     return (
       <div className="flex min-h-screen items-center justify-center flex-col gap-4">
         <p>Course not found.</p>
-        <Link to="/courses" className="text-primary underline">Back</Link>
+        <Link to="/courses" className="text-primary underline">
+          Back
+        </Link>
       </div>
     );
   }
@@ -409,31 +653,55 @@ function CourseDetail() {
             <div className="space-y-6">
               <div className="rounded-2xl p-8 lg:p-10 border border-border bg-card shadow-[var(--shadow-soft)]">
                 <div className="flex items-start justify-between gap-4">
-                  <h1 className="text-primary-header font-extrabold max-w-2xl">
-                    {course.title}
-                  </h1>
-                  <p className={`text-small font-semibold tracking-wider shrink-0 px-3 py-1 rounded-full ${BOOTCAMP_BADGE[course.id] ?? "bg-muted text-muted-foreground"}`}>BOOTCAMP</p>
+                  <h1 className="text-primary-header font-extrabold max-w-2xl">{course.title}</h1>
+                  <p
+                    className={`text-small font-semibold tracking-wider shrink-0 px-3 py-1 rounded-full ${BOOTCAMP_BADGE[course.id] ?? "bg-muted text-muted-foreground"}`}
+                  >
+                    BOOTCAMP
+                  </p>
                 </div>
                 <p className="text-second-header font-semibold mt-3 max-w-2xl text-foreground/90">
                   {detail.tagline}
                 </p>
-                <p className="text-body mt-3 max-w-2xl text-muted-foreground">{course.longDescription}</p>
+                <p className="text-body mt-3 max-w-2xl text-muted-foreground">
+                  {course.longDescription}
+                </p>
 
                 {/* Stat cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
                   {(() => {
                     const parts = course.meta.split("·").map((s) => s.trim());
                     const items = [
-                      { icon: Clock, label: "Time commitment", value: parts[0] ?? "20H / Week", color: "text-sky-600", bg: "bg-sky-500/10" },
-                      { icon: CalendarDays, label: "Duration", value: parts[1] ?? "4 Months", color: "text-violet-600", bg: "bg-violet-500/10" },
-                      { icon: Briefcase, label: "Format", value: parts[2] ?? "Part Time", color: "text-amber-600", bg: "bg-amber-500/10" },
+                      {
+                        icon: Clock,
+                        label: "Time commitment",
+                        value: parts[0] ?? "20H / Week",
+                        color: "text-sky-600",
+                        bg: "bg-sky-500/10",
+                      },
+                      {
+                        icon: CalendarDays,
+                        label: "Duration",
+                        value: parts[1] ?? "4 Months",
+                        color: "text-violet-600",
+                        bg: "bg-violet-500/10",
+                      },
+                      {
+                        icon: Briefcase,
+                        label: "Format",
+                        value: parts[2] ?? "Part Time",
+                        color: "text-amber-600",
+                        bg: "bg-amber-500/10",
+                      },
                     ];
                     return items.map((it) => (
                       <div
                         key={it.label}
                         className="flex items-center gap-3 rounded-2xl border border-border bg-background p-4"
                       >
-                        <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${it.bg}`}>
+                        <span
+                          className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${it.bg}`}
+                        >
                           <it.icon className={`h-5 w-5 ${it.color}`} />
                         </span>
                         <div className="flex-1 min-w-0 text-right">
@@ -448,7 +716,9 @@ function CourseDetail() {
                 <div className="mt-6 border-t border-border pt-6">
                   <h2 className="font-bold text-second-header mb-3">About this bootcamp</h2>
                   <div className="space-y-3 text-body text-muted-foreground leading-relaxed">
-                    {detail.overview.map((p, i) => <p key={i}>{p}</p>)}
+                    {detail.overview.map((p, i) => (
+                      <p key={i}>{p}</p>
+                    ))}
                   </div>
                   {enrollment.status === "none" && (
                     <button
@@ -460,7 +730,6 @@ function CourseDetail() {
                   )}
                 </div>
               </div>
-
 
               {/* Curriculum */}
               <div className="rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
@@ -488,7 +757,9 @@ function CourseDetail() {
                               </span>
                             </div>
                             <span className="text-body text-muted-foreground truncate">
-                              {m.title.includes("—") ? m.title.split("—").slice(1).join("—").trim() : ""}
+                              {m.title.includes("—")
+                                ? m.title.split("—").slice(1).join("—").trim()
+                                : ""}
                             </span>
                           </div>
                         </div>
@@ -520,8 +791,14 @@ function CourseDetail() {
                     ];
                     const v = variants[i % 3];
                     return (
-                      <li key={o} className="flex flex-col items-center text-center gap-4 px-5 py-2">
-                        <v.Icon className={`h-12 w-12 text-foreground ${v.anim}`} strokeWidth={1.5} />
+                      <li
+                        key={o}
+                        className="flex flex-col items-center text-center gap-4 px-5 py-2"
+                      >
+                        <v.Icon
+                          className={`h-12 w-12 text-foreground ${v.anim}`}
+                          strokeWidth={1.5}
+                        />
                         <span className="text-body">{o}</span>
                       </li>
                     );
@@ -639,7 +916,11 @@ function CourseDetail() {
                       The bootcamp that finally got me hired
                     </h3>
                     <blockquote className="text-body text-foreground leading-relaxed flex-1">
-                      "I tried two other bootcamps before this. The difference is that the mentors actually ship code — and they treat you like a future colleague. The weekly code reviews changed how I think about software, and the capstone is the project I show in every interview. Career support didn't stop at graduation; my coach helped me negotiate $22k more on my first offer."
+                      "I tried two other bootcamps before this. The difference is that the mentors
+                      actually ship code — and they treat you like a future colleague. The weekly
+                      code reviews changed how I think about software, and the capstone is the
+                      project I show in every interview. Career support didn't stop at graduation;
+                      my coach helped me negotiate $22k more on my first offer."
                     </blockquote>
                     <figcaption className="flex items-center gap-3 mt-auto">
                       <img
@@ -649,7 +930,9 @@ function CourseDetail() {
                       />
                       <div className="min-w-0">
                         <p className="font-semibold truncate">Mei Tanaka</p>
-                        <p className="text-smaller text-muted-foreground truncate">AI Engineer at a YC startup</p>
+                        <p className="text-smaller text-muted-foreground truncate">
+                          AI Engineer at a YC startup
+                        </p>
                       </div>
                     </figcaption>
                   </figure>
@@ -663,7 +946,9 @@ function CourseDetail() {
                     <details key={f.q} className="group py-4">
                       <summary className="cursor-pointer font-semibold list-none flex items-start justify-between gap-3">
                         <span>{f.q}</span>
-                        <span className="text-muted-foreground group-open:rotate-180 transition-transform">⌄</span>
+                        <span className="text-muted-foreground group-open:rotate-180 transition-transform">
+                          ⌄
+                        </span>
                       </summary>
                       <p className="mt-2 text-body text-muted-foreground leading-relaxed">{f.a}</p>
                     </details>
@@ -684,70 +969,70 @@ function CourseDetail() {
                   className="w-full h-40 object-cover"
                 />
                 <div className="p-6">
-                <h3 className="font-bold text-second-header mb-1">What we offer</h3>
-                <p className="text-small text-muted-foreground mb-4">
-                  Everything included in this bootcamp.
-                </p>
-                <ul className="space-y-3 mb-6">
-                  {bullets.map((b) => (
-                    <li key={b} className="flex items-start gap-3 text-body">
-                      <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-brand">
-                        <Check className="h-3 w-3 text-foreground" strokeWidth={3} />
-                      </span>
-                      <span>{b}</span>
-                    </li>
-                  ))}
-                </ul>
+                  <h3 className="font-bold text-second-header mb-1">What we offer</h3>
+                  <p className="text-small text-muted-foreground mb-4">
+                    Everything included in this bootcamp.
+                  </p>
+                  <ul className="space-y-3 mb-6">
+                    {bullets.map((b) => (
+                      <li key={b} className="flex items-start gap-3 text-body">
+                        <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-brand">
+                          <Check className="h-3 w-3 text-foreground" strokeWidth={3} />
+                        </span>
+                        <span>{b}</span>
+                      </li>
+                    ))}
+                  </ul>
 
-                {enrollment.status === "none" && (
-                  <button
-                    onClick={() => setPricingOpen(true)}
-                    className="w-full py-3.5 rounded-full bg-brand text-foreground text-button-primary font-semibold hover:bg-brand/90 transition-colors"
-                  >
-                    Purchase bootcamp
-                  </button>
-                )}
-
-                {enrollment.status === "pending" && (
-                  <div className="space-y-3">
+                  {enrollment.status === "none" && (
                     <button
-                      type="button"
-                      disabled
-                      className="w-full py-3.5 rounded-full bg-warning/25 text-foreground text-button-primary font-semibold inline-flex items-center justify-center gap-2 cursor-not-allowed"
+                      onClick={() => setPricingOpen(true)}
+                      className="w-full py-3.5 rounded-full bg-brand text-foreground text-button-primary font-semibold hover:bg-brand/90 transition-colors"
                     >
-                      <Clock className="h-4 w-4" /> Pending approval
+                      Purchase bootcamp
                     </button>
-                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-brand transition-all"
-                        style={{ width: `${progress}%` }}
-                      />
+                  )}
+
+                  {enrollment.status === "pending" && (
+                    <div className="space-y-3">
+                      <button
+                        type="button"
+                        disabled
+                        className="w-full py-3.5 rounded-full bg-warning/25 text-foreground text-button-primary font-semibold inline-flex items-center justify-center gap-2 cursor-not-allowed"
+                      >
+                        <Clock className="h-4 w-4" /> Pending approval
+                      </button>
+                      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-brand transition-all"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                      <p className="text-smaller text-muted-foreground text-center">
+                        Auto-approves in {Math.ceil(remaining / 1000)}s (demo)
+                      </p>
                     </div>
-                    <p className="text-smaller text-muted-foreground text-center">
-                      Auto-approves in {Math.ceil(remaining / 1000)}s (demo)
-                    </p>
-                  </div>
-                )}
+                  )}
 
-                {enrollment.status === "active" && (
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => toast.success("Launching first module... (demo)")}
-                      className="w-full py-3.5 rounded-full bg-brand text-foreground text-button-primary font-semibold hover:bg-brand/90 transition-colors inline-flex items-center justify-center gap-2"
-                    >
-                      <Sparkles className="h-4 w-4" /> Continue learning
-                    </button>
-                    <button
-                      onClick={() => {
-                        set(courseId, { status: "none" });
-                        toast.message("Course deactivated (demo)");
-                      }}
-                      className="w-full py-2.5 rounded-full border border-border bg-background text-foreground text-small font-semibold hover:bg-muted transition-colors"
-                    >
-                      Deactivate course (demo)
-                    </button>
-                  </div>
-                )}
+                  {enrollment.status === "active" && (
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => toast.success("Launching first module... (demo)")}
+                        className="w-full py-3.5 rounded-full bg-brand text-foreground text-button-primary font-semibold hover:bg-brand/90 transition-colors inline-flex items-center justify-center gap-2"
+                      >
+                        <Sparkles className="h-4 w-4" /> Continue learning
+                      </button>
+                      <button
+                        onClick={() => {
+                          set(courseId, { status: "none" });
+                          toast.message("Course deactivated (demo)");
+                        }}
+                        className="w-full py-2.5 rounded-full border border-border bg-background text-foreground text-small font-semibold hover:bg-muted transition-colors"
+                      >
+                        Deactivate course (demo)
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </aside>

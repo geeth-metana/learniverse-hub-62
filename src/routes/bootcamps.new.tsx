@@ -31,7 +31,7 @@ import {
   CircleDashed,
   Box,
   MessageSquare,
-} from "lucide-react";
+} from "@/components/icons";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Topbar } from "@/components/dashboard/Topbar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -191,9 +191,7 @@ function CreateBootcampPage() {
   // ---------- Unit ops ----------
   const addUnit = (mid: string) => {
     const u: Unit = { id: uid(), title: "New Unit", items: [] };
-    setModules((ms) =>
-      ms.map((m) => (m.id === mid ? { ...m, units: [...m.units, u] } : m)),
-    );
+    setModules((ms) => ms.map((m) => (m.id === mid ? { ...m, units: [...m.units, u] } : m)));
     setOpenModules((o) => ({ ...o, [mid]: true }));
     setOpenUnits((o) => ({ ...o, [u.id]: true }));
     setSelection({ kind: "unit", moduleId: mid, unitId: u.id });
@@ -225,9 +223,7 @@ function CreateBootcampPage() {
       ...(kind === "feedback"
         ? {
             multipleQuestions: false,
-            questions: [
-              { id: uid(), title: "", label: "", ratingType: "" },
-            ],
+            questions: [{ id: uid(), title: "", label: "", ratingType: "" }],
           }
         : {}),
     };
@@ -328,12 +324,7 @@ function CreateBootcampPage() {
       ),
     );
 
-  const updateItem = (
-    mid: string,
-    unitId: string,
-    itemId: string,
-    patch: Partial<UnitItem>,
-  ) =>
+  const updateItem = (mid: string, unitId: string, itemId: string, patch: Partial<UnitItem>) =>
     setModules((ms) =>
       ms.map((m) =>
         m.id === mid
@@ -404,11 +395,9 @@ function CreateBootcampPage() {
 
   // ---------- Breadcrumb ----------
   const moduleIndex = (mid: string) => modules.findIndex((m) => m.id === mid) + 1;
-  const unitIndex = (m: Module, uid2: string) =>
-    m.units.findIndex((u) => u.id === uid2) + 1;
+  const unitIndex = (m: Module, uid2: string) => m.units.findIndex((u) => u.id === uid2) + 1;
   const itemIndex = (u: Unit, iid: string) => u.items.findIndex((i) => i.id === iid) + 1;
-  const lessonIndex = (i: UnitItem, lid: string) =>
-    i.lessons.findIndex((l) => l.id === lid) + 1;
+  const lessonIndex = (i: UnitItem, lid: string) => i.lessons.findIndex((l) => l.id === lid) + 1;
 
   const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -509,8 +498,7 @@ function CreateBootcampPage() {
                             {m.units.map((u) => {
                               const uOpen = openUnits[u.id];
                               const uSelected =
-                                selection.kind === "unit" &&
-                                (selection as any).unitId === u.id;
+                                selection.kind === "unit" && (selection as any).unitId === u.id;
                               return (
                                 <div key={u.id} className="rounded-xl">
                                   <div
@@ -543,7 +531,9 @@ function CreateBootcampPage() {
                                       )}
                                     </button>
                                     <Box className="h-4 w-4 text-[oklch(0.7_0.15_200)]" />
-                                    <span className="flex-1 truncate text-base font-medium">{u.title}</span>
+                                    <span className="flex-1 truncate text-base font-medium">
+                                      {u.title}
+                                    </span>
                                     {u.optional && <OptionalBadge small />}
                                     <button
                                       onClick={(e) => {
@@ -656,9 +646,7 @@ function CreateBootcampPage() {
                                                         })
                                                       }
                                                       className={`group flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer ${
-                                                        lSelected
-                                                          ? "bg-muted"
-                                                          : "hover:bg-muted/50"
+                                                        lSelected ? "bg-muted" : "hover:bg-muted/50"
                                                       }`}
                                                     >
                                                       <FileText className="h-4 w-4 text-[oklch(0.65_0.16_240)]" />
@@ -698,9 +686,7 @@ function CreateBootcampPage() {
                                         <PillBtn onClick={() => addItem(m.id, u.id, "quiz")}>
                                           <HelpCircle className="h-3 w-3" /> Quiz
                                         </PillBtn>
-                                        <PillBtn
-                                          onClick={() => addItem(m.id, u.id, "assignment")}
-                                        >
+                                        <PillBtn onClick={() => addItem(m.id, u.id, "assignment")}>
                                           <ClipboardList className="h-3 w-3" /> Assignment
                                         </PillBtn>
                                         <PillBtn onClick={() => addItem(m.id, u.id, "feedback")}>
@@ -887,13 +873,7 @@ function CreateBootcampPage() {
 
 // ----------------- Subcomponents -----------------
 
-function PillBtn({
-  children,
-  onClick,
-}: {
-  children: React.ReactNode;
-  onClick: () => void;
-}) {
+function PillBtn({ children, onClick }: { children: React.ReactNode; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
@@ -966,14 +946,28 @@ function Toolbar() {
         <option>16</option>
       </select>
       <div className="w-px h-5 bg-border mx-1" />
-      <Btn><Bold className="h-4 w-4" /></Btn>
-      <Btn><Italic className="h-4 w-4" /></Btn>
-      <Btn><Underline className="h-4 w-4" /></Btn>
+      <Btn>
+        <Bold className="h-4 w-4" />
+      </Btn>
+      <Btn>
+        <Italic className="h-4 w-4" />
+      </Btn>
+      <Btn>
+        <Underline className="h-4 w-4" />
+      </Btn>
       <div className="w-px h-5 bg-border mx-1" />
-      <Btn><ListIcon className="h-4 w-4" /></Btn>
-      <Btn><ListOrdered className="h-4 w-4" /></Btn>
-      <Btn><ImageIcon className="h-4 w-4" /></Btn>
-      <Btn><LinkIcon className="h-4 w-4" /></Btn>
+      <Btn>
+        <ListIcon className="h-4 w-4" />
+      </Btn>
+      <Btn>
+        <ListOrdered className="h-4 w-4" />
+      </Btn>
+      <Btn>
+        <ImageIcon className="h-4 w-4" />
+      </Btn>
+      <Btn>
+        <LinkIcon className="h-4 w-4" />
+      </Btn>
       <button className="ml-auto flex items-center gap-2 px-3 py-1.5 rounded-full border border-border text-small text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
         <Upload className="h-3.5 w-3.5" /> Upload Resources
       </button>
@@ -1026,7 +1020,12 @@ function CourseEditor({
       </div>
       <div className="flex flex-col lg:flex-row gap-3">
         <div className="flex-1">
-          <TitleInput value={title} onChange={onTitle} label="Course Title" placeholder="Enter course name" />
+          <TitleInput
+            value={title}
+            onChange={onTitle}
+            label="Course Title"
+            placeholder="Enter course name"
+          />
         </div>
         <button className="flex items-center gap-2 px-5 py-3 rounded-2xl border border-border text-body hover:bg-muted/60 transition-colors">
           <Upload className="h-4 w-4" /> Upload Cover Image
@@ -1044,15 +1043,7 @@ function CourseEditor({
   );
 }
 
-
-
-function OptionalToggle({
-  value,
-  onChange,
-}: {
-  value: boolean;
-  onChange: (v: boolean) => void;
-}) {
+function OptionalToggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
   return (
     <div className="ml-auto flex items-center gap-2 text-small">
       <span className="text-muted-foreground">Optional</span>
@@ -1100,7 +1091,12 @@ function ModuleEditor({
         <h2 className="text-section-header font-semibold">Module</h2>
         <OptionalToggle value={!!m.optional} onChange={(v) => onChange({ optional: v })} />
       </div>
-      <TitleInput value={m.title} onChange={(v) => onChange({ title: v })} label="Module Title" placeholder="Enter module title" />
+      <TitleInput
+        value={m.title}
+        onChange={(v) => onChange({ title: v })}
+        label="Module Title"
+        placeholder="Enter module title"
+      />
       <p className="text-body text-muted-foreground">
         Add units to this module from the curriculum on the left, then build content, quizzes, and
         assignments inside each unit.
@@ -1129,7 +1125,12 @@ function UnitEditor({
         </div>
         <OptionalToggle value={!!unit.optional} onChange={(v) => onChange({ optional: v })} />
       </div>
-      <TitleInput value={unit.title} onChange={(v) => onChange({ title: v })} label="Unit Title" placeholder="Enter unit title" />
+      <TitleInput
+        value={unit.title}
+        onChange={(v) => onChange({ title: v })}
+        label="Unit Title"
+        placeholder="Enter unit title"
+      />
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <AddCard
           icon={BookOpen}
@@ -1377,21 +1378,15 @@ function FeedbackEditor({
           return (
             <div
               key={q.id}
-              className={`rounded-2xl border border-border ${
-                isOpen ? "bg-card" : "bg-muted/40"
-              }`}
+              className={`rounded-2xl border border-border ${isOpen ? "bg-card" : "bg-muted/40"}`}
             >
               <button
                 type="button"
                 onClick={() => setOpenId(isOpen ? "" : q.id)}
                 className="w-full flex items-center gap-3 px-5 py-4 text-left"
               >
-                {multiple && (
-                  <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
-                )}
-                <span className="flex-1 text-body font-medium text-foreground">
-                  {headerLabel}
-                </span>
+                {multiple && <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />}
+                <span className="flex-1 text-body font-medium text-foreground">{headerLabel}</span>
                 <ChevronDown
                   className={`h-4 w-4 text-muted-foreground transition-transform ${
                     isOpen ? "rotate-180" : ""
@@ -1535,8 +1530,7 @@ function QuizEditor({
       <div className="space-y-3">
         {quizzes.map((q, idx) => {
           const isOpen = openId === q.id;
-          const headerLabel =
-            q.question.trim() || `Question ${String(idx + 1).padStart(2, "0")}`;
+          const headerLabel = q.question.trim() || `Question ${String(idx + 1).padStart(2, "0")}`;
           return (
             <div
               key={q.id}
@@ -1549,9 +1543,7 @@ function QuizEditor({
               >
                 <GripVertical className="h-4 w-4 text-muted-foreground shrink-0" />
                 <span className="flex-1 text-body font-medium text-foreground">{headerLabel}</span>
-                {q.correctId && (
-                  <span className="text-xs text-muted-foreground">Correct set</span>
-                )}
+                {q.correctId && <span className="text-xs text-muted-foreground">Correct set</span>}
                 <ChevronDown
                   className={`h-4 w-4 text-muted-foreground transition-transform ${
                     isOpen ? "rotate-180" : ""
@@ -1685,7 +1677,12 @@ function LessonEditor({
         </div>
         <OptionalToggle value={!!lesson.optional} onChange={(v) => onChange({ optional: v })} />
       </div>
-      <TitleInput value={lesson.title} onChange={(v) => onChange({ title: v })} label="Lesson Title" placeholder="Enter lesson title" />
+      <TitleInput
+        value={lesson.title}
+        onChange={(v) => onChange({ title: v })}
+        label="Lesson Title"
+        placeholder="Enter lesson title"
+      />
       <Toolbar />
       <BodyTextarea
         value={lesson.body}
@@ -1832,7 +1829,12 @@ function PreviewView({
                         <div className="pl-3 pr-1 pb-1 space-y-0.5">
                           {m.units.flatMap((u) =>
                             u.items.flatMap((i) => {
-                              const rows: { key: string; sel: Sel; title: string; optional: boolean }[] =
+                              const rows: {
+                                key: string;
+                                sel: Sel;
+                                title: string;
+                                optional: boolean;
+                              }[] =
                                 i.kind === "content" && i.lessons.length
                                   ? i.lessons.map((l) => ({
                                       key: `${i.id}:${l.id}`,
@@ -1913,9 +1915,11 @@ function PreviewView({
                 {current ? (
                   <article className="max-w-3xl space-y-5">
                     <h1 className="text-primary-header font-semibold">
-                      Unit {String(
-                        current.m.units.findIndex((u) => u.id === current.u.id) + 1,
-                      ).padStart(2, "0")}{" "}
+                      Unit{" "}
+                      {String(current.m.units.findIndex((u) => u.id === current.u.id) + 1).padStart(
+                        2,
+                        "0",
+                      )}{" "}
                       : {current.u.title}
                     </h1>
                     <h2 className="text-section-header font-semibold">
